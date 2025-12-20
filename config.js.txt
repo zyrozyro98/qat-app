@@ -1,0 +1,62 @@
+module.exports = {
+    // إعدادات التطبيق
+    app: {
+        name: 'تطبيق قات',
+        version: '1.0.0',
+        port: process.env.PORT || 3000,
+        env: process.env.NODE_ENV || 'development'
+    },
+    
+    // إعدادات الأمان
+    security: {
+        sessionSecret: process.env.SESSION_SECRET || 'qat-app-secret-key-change-in-production',
+        jwtSecret: process.env.JWT_SECRET || 'qat-jwt-secret-change-in-production',
+        passwordSaltRounds: 12
+    },
+    
+    // إعدادات المحافظ الإلكترونية
+    wallets: {
+        depositNumber: '771831482',
+        depositName: 'يوسف محمد علي حمود زهير',
+        supportedWallets: [
+            'محفظة جيب',
+            'محفظة جوالي', 
+            'محفظة موبايل موني',
+            'محفظة الشامل موني',
+            'محفظة فلوسك'
+        ]
+    },
+    
+    // إعدادات البريد الإلكتروني
+    email: {
+        service: 'gmail',
+        user: process.env.EMAIL_USER || 'your-email@gmail.com',
+        pass: process.env.EMAIL_PASS || 'your-email-password'
+    },
+    
+    // إعدادات الملفات
+    uploads: {
+        maxFileSize: 5 * 1024 * 1024, // 5MB
+        allowedTypes: ['image/jpeg', 'image/png', 'image/gif'],
+        paths: {
+            products: 'uploads/products/',
+            ads: 'uploads/ads/',
+            avatars: 'uploads/avatars/'
+        }
+    },
+    
+    // الرسائل النصية
+    messages: {
+        welcome: 'مرحباً بك في تطبيق قات',
+        orderCreated: 'تم إنشاء طلبك بنجاح',
+        paymentSuccess: 'تمت عملية الدفع بنجاح',
+        lowBalance: 'رصيدك غير كافٍ لإتمام العملية'
+    },
+    
+    // الضرائب والرسوم
+    fees: {
+        washQat: 100,
+        deliveryFee: 15,
+        platformFee: 0.02 // 2%
+    }
+};
