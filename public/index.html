@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق قات - بيع وتوصيل القات</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2E7D32;
+            --primary-dark: #1B5E20;
+            --primary-light: #4CAF50;
+            --secondary: #FF9800;
+            --accent: #FF5722;
+            --text: #333;
+            --text-light: #666;
+            --background: #F5F5F5;
+            --white: #FFFFFF;
+            --border: #E0E0E0;
+            --success: #4CAF50;
+            --warning: #FF9800;
+            --error: #F44336;
+            --info: #2196F3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Tahoma', 'Geneva', 'Verdana', sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 1rem;
+        }
+
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem 0;
+            min-height: calc(100vh - 200px);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--white);
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary-light);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .product-card {
+            background: var(--white);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            border: 1px solid var(--border);
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .product-image {
+            height: 200px;
+            background: var(--border);
+            background-size: cover;
+            background-position: center;
+        }
+
+        .product-info {
+            padding: 1.5rem;
+        }
+
+        .product-price {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 0.5rem 0;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #F57C00;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-menu {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(46, 125, 50, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-leaf"></i>
+                    <span>تطبيق قات</span>
+                </div>
+                
+                <ul class="nav-menu" id="mainMenu">
+                    <li><a href="#" onclick="showSection('home')">الرئيسية</a></li>
+                    <li><a href="#" onclick="showSection('products')">المنتجات</a></li>
+                    <li><a href="#" onclick="showSection('orders')">الطلبات</a></li>
+                    <li><a href="#" onclick="showSection('wallet')">المحفظة</a></li>
+                </ul>
+                
+                <div class="user-menu" id="userMenu">
+                    <button class="btn btn-outline" onclick="showLoginModal()">تسجيل الدخول</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Home Section -->
+            <section id="homeSection">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>مرحباً بك في تطبيق قات</h2>
+                        <div id="userGreeting"></div>
+                    </div>
+                    
+                    <div class="stats-grid" id="statsGrid">
+                        <!-- سيتم تحميل الإحصائيات هنا -->
+                    </div>
+                    
+                    <div id="adsContainer">
+                        <!-- الإعلانات ستظهر هنا -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Products Section -->
+            <section id="productsSection" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>المنتجات</h2>
+                        <button class="btn btn-primary" id="addProductBtn" style="display: none;">
+                            <i class="fas fa-plus"></i> إضافة منتج
+                        </button>
+                    </div>
+                    
+                    <div class="products-grid" id="productsGrid">
+                        <!-- المنتجات ستظهر هنا -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Cart Section -->
+            <section id="cartSection" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>سلة التسوق</h2>
+                    </div>
+                    <div id="cartItems">
+                        <!-- عناصر السلة ستظهر هنا -->
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <div style="padding: 2rem;">
+                <h2 style="text-align: center; margin-bottom: 1.5rem; color: var(--primary);">
+                    تسجيل الدخول
+                </h2>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <input type="email" class="form-control" id="loginEmail" placeholder="البريد الإلكتروني" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="password" class="form-control" id="loginPassword" placeholder="كلمة المرور" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        تسجيل الدخول
+                    </button>
+                </form>
+                
+                <div style="text-align: center; margin-top: 1rem;">
+                    <a href="#" onclick="showRegisterForm()">إنشاء حساب جديد</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <div style="padding: 2rem;">
+                <h2 style="text-align: center; margin-bottom: 1.5rem; color: var(--primary);">
+                    إنشاء حساب جديد
+                </h2>
+                
+                <form id="registerForm">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="regName" placeholder="الاسم الكامل" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="email" class="form-control" id="regEmail" placeholder="البريد الإلكتروني" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="tel" class="form-control" id="regPhone" placeholder="رقم الهاتف" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <select class="form-control" id="regRole" onchange="toggleRegisterFields()" required>
+                            <option value="">اختر نوع الحساب</option>
+                            <option value="buyer">مشتري</option>
+                            <option value="seller">بائع</option>
+                            <option value="driver">مندوب توصيل</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="storeField" style="display: none;">
+                        <input type="text" class="form-control" id="regStore" placeholder="اسم المتجر">
+                    </div>
+                    
+                    <div class="form-group" id="vehicleField" style="display: none;">
+                        <input type="text" class="form-control" id="regVehicle" placeholder="نوع المركبة">
+                    </div>
+                    
+                    <div class="form-group">
+                        <input type="password" class="form-control" id="regPassword" placeholder="كلمة المرور" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        إنشاء الحساب
+                    </button>
+                </form>
+                
+                <div style="text-align: center; margin-top: 1rem;">
+                    <a href="#" onclick="showLoginForm()">لديك حساب بالفعل؟</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // حالة التطبيق
+        let appState = {
+            user: null,
+            cart: [],
+            products: [],
+            markets: []
+        };
+
+        // تهيئة التطبيق
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadMarkets();
+            loadProducts();
+            loadAds();
+        });
+
+        // التحقق من المصادقة
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/auth/check', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    appState.user = data.user;
+                    updateUI();
+                }
+            } catch (error) {
+                console.error('خطأ في التحقق من المصادقة:', error);
+            }
+        }
+
+        // تحديث واجهة المستخدم
+        function updateUI() {
+            const userMenu = document.getElementById('userMenu');
+            const userGreeting = document.getElementById('userGreeting');
+            const addProductBtn = document.getElementById('addProductBtn');
+            
+            if (appState.user) {
+                userMenu.innerHTML = `
+                    <div class="user-avatar">${appState.user.name.charAt(0)}</div>
+                    <span>${appState.user.name}</span>
+                    <button class="btn btn-outline" onclick="logout()">تسجيل الخروج</button>
+                `;
+                
+                userGreeting.innerHTML = `<h3>مرحباً ${appState.user.name}</h3>`;
+                
+                if (appState.user.role === 'seller') {
+                    addProductBtn.style.display = 'block';
+                }
+                
+                // إضافة خيارات القائمة حسب الدور
+                const menu = document.getElementById('mainMenu');
+                if (appState.user.role === 'admin') {
+                    menu.innerHTML += '<li><a href="#" onclick="showAdminPanel()">لوحة التحكم</a></li>';
+                }
+                
+                loadStats();
+            }
+        }
+
+        // تسجيل الدخول
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    appState.user = data.user;
+                    updateUI();
+                    hideModal('loginModal');
+                    showSuccess('تم تسجيل الدخول بنجاح');
+                } else {
+                    showError(data.error);
+                }
+            } catch (error) {
+                showError('حدث خطأ في الاتصال');
+            }
+        });
+
+        // التسجيل
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const userData = {
+                name: document.getElementById('regName').value,
+                email: document.getElementById('regEmail').value,
+                phone: document.getElementById('regPhone').value,
+                password: document.getElementById('regPassword').value,
+                role: document.getElementById('regRole').value,
+                storeName: document.getElementById('regStore').value,
+                vehicleType: document.getElementById('regVehicle').value
+            };
+            
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showSuccess('تم إنشاء الحساب بنجاح');
+                    showLoginForm();
+                } else {
+                    showError(data.error);
+                }
+            } catch (error) {
+                showError('حدث خطأ في الاتصال');
+            }
+        });
+
+        // تسجيل الخروج
+        async function logout() {
+            try {
+                await fetch('/api/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                
+                appState.user = null;
+                location.reload();
+            } catch (error) {
+                console.error('خطأ في تسجيل الخروج:', error);
+            }
+        }
+
+        // تحميل المنتجات
+        async function loadProducts() {
+            try {
+                const response = await fetch('/api/products');
+                const data = await response.json();
+                
+                if (data.success) {
+                    appState.products = data.products;
+                    renderProducts();
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل المنتجات:', error);
+            }
+        }
+
+        // عرض المنتجات
+        function renderProducts() {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = '';
+            
+            appState.products.forEach(product => {
+                const card = `
+                    <div class="product-card">
+                        <div class="product-image" style="background-image: url('${product.image || 'https://via.placeholder.com/300x200/4CAF50/FFFFFF?text=Qat'}')">
+                            ${product.quantity === 0 ? '<div style="background: rgba(255,0,0,0.7); color: white; padding: 5px; text-align: center;">نفذت الكمية</div>' : ''}
+                        </div>
+                        <div class="product-info">
+                            <h3>${product.name}</h3>
+                            <p style="color: var(--text-light); margin: 0.5rem 0;">${product.description || ''}</p>
+                            <div class="product-price">${product.price} ريال</div>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                                <button class="btn btn-outline" onclick="showProductDetails(${product.id})">
+                                    <i class="fas fa-eye"></i> تفاصيل
+                                </button>
+                                ${appState.user && appState.user.role === 'buyer' ? `
+                                    <button class="btn btn-primary" onclick="addToCart(${product.id})" ${product.quantity === 0 ? 'disabled' : ''}>
+                                        <i class="fas fa-cart-plus"></i> إضافة
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += card;
+            });
+        }
+
+        // تحميل الأسواق
+        async function loadMarkets() {
+            try {
+                const response = await fetch('/api/markets');
+                const data = await response.json();
+                
+                if (data.success) {
+                    appState.markets = data.markets;
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل الأسواق:', error);
+            }
+        }
+
+        // تحميل الإعلانات
+        async function loadAds() {
+            try {
+                const response = await fetch('/api/ads');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const container = document.getElementById('adsContainer');
+                    container.innerHTML = '';
+                    
+                    data.ads.forEach(ad => {
+                        if (ad.is_active) {
+                            const adHtml = `
+                                <div class="card" style="margin-bottom: 1rem; border-left: 4px solid var(--secondary);">
+                                    <h3>${ad.title}</h3>
+                                    <p>${ad.description}</p>
+                                    ${ad.link ? `<a href="${ad.link}" target="_blank" class="btn btn-secondary">المزيد</a>` : ''}
+                                </div>
+                            `;
+                            container.innerHTML += adHtml;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل الإعلانات:', error);
+            }
+        }
+
+        // تحميل الإحصائيات
+        async function loadStats() {
+            if (!appState.user || appState.user.role !== 'admin') return;
+            
+            try {
+                const response = await fetch('/api/admin/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const grid = document.getElementById('statsGrid');
+                    grid.innerHTML = '';
+                    
+                    const stats = data.stats;
+                    const statCards = [
+                        { title: 'إجمالي المستخدمين', value: stats.total_users, color: 'var(--primary)' },
+                        { title: 'إجمالي المبيعات', value: stats.total_revenue + ' ريال', color: 'var(--success)' },
+                        { title: 'الطلبات النشطة', value: stats.pending_orders, color: 'var(--warning)' },
+                        { title: 'المنتجات النشطة', value: stats.active_products, color: 'var(--info)' }
+                    ];
+                    
+                    statCards.forEach(stat => {
+                        const card = `
+                            <div class="stat-card">
+                                <div class="stat-number" style="color: ${stat.color};">${stat.value}</div>
+                                <div>${stat.title}</div>
+                            </div>
+                        `;
+                        grid.innerHTML += card;
+                    });
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل الإحصائيات:', error);
+            }
+        }
+
+        // دوال العرض والإخفاء
+        function showSection(sectionId) {
+            // إخفاء جميع الأقسام
+            ['homeSection', 'productsSection', 'cartSection'].forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+            
+            // إظهار القسم المطلوب
+            document.getElementById(sectionId + 'Section').style.display = 'block';
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function showLoginModal() {
+            showModal('loginModal');
+        }
+
+        function showRegisterForm() {
+            hideModal('loginModal');
+            showModal('registerModal');
+        }
+
+        function showLoginForm() {
+            hideModal('registerModal');
+            showModal('loginModal');
+        }
+
+        function toggleRegisterFields() {
+            const role = document.getElementById('regRole').value;
+            document.getElementById('storeField').style.display = role === 'seller' ? 'block' : 'none';
+            document.getElementById('vehicleField').style.display = role === 'driver' ? 'block' : 'none';
+        }
+
+        // إضافة إلى السلة
+        function addToCart(productId) {
+            const product = appState.products.find(p => p.id === productId);
+            if (product) {
+                appState.cart.push({ ...product, quantity: 1 });
+                showSuccess('تم إضافة المنتج إلى السلة');
+            }
+        }
+
+        // دوال مساعدة للرسائل
+        function showSuccess(message) {
+            alert('✅ ' + message);
+        }
+
+        function showError(message) {
+            alert('❌ ' + message);
+        }
+
+        function showInfo(message) {
+            alert('ℹ️ ' + message);
+        }
+
+        // إغلاق النوافذ عند النقر خارجها
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        };
+
+        // WebSocket للتنبيهات في الوقت الحقيقي
+        const socket = io();
+        
+        if (appState.user) {
+            socket.emit('joinRoom', appState.user.id);
+        }
+        
+        socket.on('notification', (data) => {
+            showInfo(`${data.title}: ${data.message}`);
+        });
+    </script>
+</body>
+</html>
