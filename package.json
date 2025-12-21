@@ -99,7 +99,6 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.1.1",
     "prettier": "^3.0.3",
-    "sqlite3-extension": "^1.0.2",
     "faker": "^5.5.3",
     "chalk": "^4.1.2",
     "figlet": "^1.6.0",
@@ -256,5 +255,6 @@
     "registry": "https://registry.npmjs.org/"
   }
 }
+
 
 
