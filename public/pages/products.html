@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المنتجات - تطبيق قات PRO</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/products.css">
+</head>
+<body>
+    <div class="products-page">
+        <!-- Hero Section -->
+        <section class="products-hero">
+            <div class="container">
+                <h1 class="hero-title">منتجات القات المميزة</h1>
+                <p class="hero-description">اكتشف أفضل أنواع القات من مختلف الأسواق والمزارع</p>
+                
+                <!-- Search Box -->
+                <div class="hero-search">
+                    <div class="search-box large">
+                        <input type="text" class="search-input" id="mainSearch" placeholder="ابحث عن منتج أو سوق أو بائع...">
+                        <button class="search-btn" onclick="productsManager.search()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <main class="products-main">
+            <div class="container">
+                <div class="products-layout">
+                    <!-- Sidebar Filters -->
+                    <aside class="products-sidebar" id="filtersSidebar">
+                        <div class="sidebar-header">
+                            <h3>تصفية النتائج</h3>
+                            <button class="btn btn-sm btn-outline" onclick="productsManager.clearFilters()">
+                                <i class="fas fa-times"></i>
+                                مسح الكل
+                            </button>
+                        </div>
+
+                        <!-- Categories Filter -->
+                        <div class="filter-section">
+                            <div class="filter-header" onclick="toggleFilterSection('categories')">
+                                <h4>الفئات</h4>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="filter-body" id="categoriesFilter">
+                                <div class="filter-list">
+                                    <label class="filter-item">
+                                        <input type="checkbox" name="category" value="يمني" onchange="productsManager.applyFilters()">
+                                        <span class="filter-label">يمني أصلي</span>
+                                        <span class="filter-count">(45)</span>
+                                    </label>
+                                    <label class="filter-item">
+                                        <input type="checkbox" name="category" value="حاربي" onchange="productsManager.applyFilters()">
+                                        <span class="filter-label">حاربي</span>
+                                        <span class="filter-count">(32)</span>
+                                    </label>
+                                    <label class="filter-item">
+                                        <input type="checkbox" name="category" value="يافعي" onchange="productsManager.applyFilters()">
+                                        <span class="filter-label">يافعي</span>
+                                        <span class="filter-count">(28)</span>
+                                    </label>
+                                    <label class="filter-item">
+                                        <input type="checkbox" name="category" value="حدائدي" onchange="productsManager.applyFilters()">
+                                        <span class="filter-label">حدائدي</span>
+                                        <span class="filter-count">(21)</span>
+                                    </label>
+                                    <label class="filter-item">
+                                        <input type="checkbox" name="category" value="مخلوط" onchange="productsManager.applyFilters()">
+                                        <span class="filter-label">مخلوط</span>
+                                        <span class="filter-count">(15)</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Price Filter -->
+                        <div class="filter-section">
+                            <div class="filter-header" onclick="toggleFilterSection('price')">
+                                <h4>السعر</h4>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="filter-body" id="priceFilter">
+                                <div class="price-range">
+                                    <div class="range-values">
+                                        <span id="minPriceValue">1,000 ريال</span>
+                                        <span id="maxPriceValue">50,000 ريال</span>
+                                    </div>
+                                    <input type="range" min="1000" max="50000" value="1000" class="range-slider" id="minPrice" oninput="updatePriceRange()">
+                                    <input type="range" min="1000" max="50000" value="50000" class="range-slider" id="maxPrice" oninput="updatePriceRange()">
+                                    <div class="range-track"></div>
+                                </div>
+                                <button class="btn btn-sm btn-primary w-100 mt-2" onclick="applyPriceFilter()">
+                                    تطبيق السعر
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Markets Filter -->
+                        <div class="filter-section">
+                            <div class="filter-header" onclick="toggleFilterSection('markets')">
+                                <h4>الأسواق</h4>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="filter-body" id="marketsFilter">
+                                <div class="filter-list">
+                                    <!-- سيتم تحميل الأسواق ديناميكياً -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sellers Filter -->
+                        <div class="filter-section">
+                            <div class="filter-header" onclick="toggleFilterSection('sellers')">
+                                <h4>البائعون</h4>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="filter-body" id="sellersFilter">
+                                <div class="filter-list">
+                                    <!-- سيتم تحميل البائعين ديناميكياً -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Availability Filter -->
+                        <div class="filter-section">
+                            <div class="filter-header" onclick="toggleFilterSection('availability')">
+                                <h4>التوفر</h4>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="filter-body" id="availabilityFilter">
+                                <div class="filter-list">
+                                    <label class="filter-item">
+                                        <input type="checkbox" name="availability" value="in_stock" onchange="productsManager.applyFilters()">
+                                        <span class="filter-label">متوفر</span>
+                                    </label>
+                                    <label class="filter-item">
+                                        <input type="checkbox" name="availability" value="out_of_stock" onchange="productsManager.applyFilters()">
+                                        <span class="filter-label">غير متوفر</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rating Filter -->
+                        <div class="filter-section">
+                            <div class="filter-header" onclick="toggleFilterSection('rating')">
+                                <h4>التقييم</h4>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="filter-body" id="ratingFilter">
+                                <div class="rating-filters">
+                                    <label class="rating-filter">
+                                        <input type="radio" name="rating" value="5" onchange="productsManager.applyFilters()">
+                                        <div class="stars">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <span>5 نجوم</span>
+                                        </div>
+                                    </label>
+                                    <label class="rating-filter">
+                                        <input type="radio" name="rating" value="4" onchange="productsManager.applyFilters()">
+                                        <div class="stars">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="far fa-star"></i>
+                                            <span>4 نجوم فما فوق</span>
+                                        </div>
+                                    </label>
+                                    <label class="rating-filter">
+                                        <input type="radio" name="rating" value="3" onchange="productsManager.applyFilters()">
+                                        <div class="stars">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="far fa-star"></i>
+                                            <i class="far fa-star"></i>
+                                            <span>3 نجوم فما فوق</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Discount Filter -->
+                        <div class="filter-section">
+                            <div class="filter-header" onclick="toggleFilterSection('discount')">
+                                <h4>العروض</h4>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="filter-body" id="discountFilter">
+                                <div class="filter-list">
+                                    <label class="filter-item">
+                                        <input type="checkbox" name="discount" value="has_discount" onchange="productsManager.applyFilters()">
+                                        <span class="filter-label">منتجات مخفضة</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <!-- Products Grid -->
+                    <div class="products-content">
+                        <!-- Products Header -->
+                        <div class="products-header">
+                            <div class="header-left">
+                                <h2 id="productsCount">جارٍ التحميل...</h2>
+                                <p class="text-muted" id="productsSummary">جاري البحث عن المنتجات</p>
+                            </div>
+                            <div class="header-right">
+                                <!-- Sort Options -->
+                                <div class="sort-options">
+                                    <label>ترتيب حسب:</label>
+                                    <select class="sort-select" id="sortSelect" onchange="productsManager.sortProducts()">
+                                        <option value="latest">الأحدث</option>
+                                        <option value="price_low">السعر: من الأقل للأعلى</option>
+                                        <option value="price_high">السعر: من الأعلى للأقل</option>
+                                        <option value="rating">الأعلى تقييماً</option>
+                                        <option value="popular">الأكثر شعبية</option>
+                                    </select>
+                                </div>
+
+                                <!-- View Toggle -->
+                                <div class="view-toggle">
+                                    <button class="view-btn active" data-view="grid" onclick="productsManager.changeView('grid')">
+                                        <i class="fas fa-th"></i>
+                                    </button>
+                                    <button class="view-btn" data-view="list" onclick="productsManager.changeView('list')">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Filter Toggle (Mobile) -->
+                                <button class="btn btn-outline mobile-only" onclick="toggleFiltersSidebar()">
+                                    <i class="fas fa-filter"></i>
+                                    تصفية
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Active Filters -->
+                        <div class="active-filters" id="activeFilters">
+                            <!-- سيتم عرض الفلاتر النشطة هنا -->
+                        </div>
+
+                        <!-- Products Grid/List -->
+                        <div class="products-container">
+                            <div class="products-view" id="productsView">
+                                <!-- سيتم تحميل المنتجات هنا -->
+                            </div>
+
+                            <!-- Loading State -->
+                            <div class="loading-state" id="productsLoading">
+                                <div class="loading-spinner"></div>
+                                <p>جاري تحميل المنتجات...</p>
+                            </div>
+
+                            <!-- Empty State -->
+                            <div class="empty-state" id="productsEmpty" style="display: none;">
+                                <i class="fas fa-shopping-basket"></i>
+                                <h3>لم يتم العثور على منتجات</h3>
+                                <p>جرب تعديل معايير البحث أو التصفية للعثور على ما تبحث عنه</p>
+                                <button class="btn btn-primary" onclick="productsManager.clearFilters()">
+                                    <i class="fas fa-redo"></i>
+                                    مسح جميع الفلاتر
+                                </button>
+                            </div>
+
+                            <!-- Error State -->
+                            <div class="error-state" id="productsError" style="display: none;">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <h3>حدث خطأ في تحميل المنتجات</h3>
+                                <p>يرجى المحاولة مرة أخرى</p>
+                                <button class="btn btn-primary" onclick="productsManager.loadProducts()">
+                                    <i class="fas fa-redo"></i>
+                                    إعادة المحاولة
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="pagination-container" id="paginationContainer">
+                            <!-- سيتم تحميل التصفح هنا -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Quick View Modal -->
+        <div class="modal" id="quickViewModal">
+            <div class="modal-content modal-lg">
+                <div class="modal-header">
+                    <h3 class="modal-title">معاينة سريعة</h3>
+                    <button class="modal-close" onclick="closeModal('quickViewModal')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="quick-view-content" id="quickViewContent">
+                        <!-- سيتم تحميل محتوى المعاينة هنا -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/utils.js"></script>
+    <script src="/js/products.js"></script>
+    
+    <script>
+        // دالة تبديل الفلاتر
+        function toggleFilterSection(sectionId) {
+            const section = document.getElementById(sectionId + 'Filter');
+            const icon = section.previousElementSibling.querySelector('.fa-chevron-down');
+            
+            section.classList.toggle('open');
+            icon.classList.toggle('fa-chevron-down');
+            icon.classList.toggle('fa-chevron-up');
+        }
+
+        // دالة تبديل الشريط الجانبي للفلاتر (للهواتف)
+        function toggleFiltersSidebar() {
+            const sidebar = document.getElementById('filtersSidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // دالة تحديث نطاق السعر
+        function updatePriceRange() {
+            const minPrice = document.getElementById('minPrice');
+            const maxPrice = document.getElementById('maxPrice');
+            const minValue = document.getElementById('minPriceValue');
+            const maxValue = document.getElementById('maxPriceValue');
+            
+            // التأكد من أن الحد الأدنى أقل من الحد الأقصى
+            if (parseInt(minPrice.value) > parseInt(maxPrice.value)) {
+                minPrice.value = maxPrice.value;
+            }
+            
+            minValue.textContent = utils.formatCurrency(minPrice.value) + ' ريال';
+            maxValue.textContent = utils.formatCurrency(maxPrice.value) + ' ريال';
+        }
+
+        // دالة تطبيق فلتر السعر
+        function applyPriceFilter() {
+            const minPrice = document.getElementById('minPrice').value;
+            const maxPrice = document.getElementById('maxPrice').value;
+            
+            productsManager.applyPriceFilter(minPrice, maxPrice);
+        }
+
+        // دالة إغلاق الموديل
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('active');
+        }
+
+        // تهيئة مدير المنتجات عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            window.productsManager = new ProductsManager();
+            productsManager.initialize();
+        });
+    </script>
+</body>
+</html>
