@@ -1,9 +1,10 @@
-// server.js - تطبيق قات PRO - النسخة المعدلة لـ Render
+// server.js - تطبيق قات PRO - النسخة النهائية المصححة لـ Render
 const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 const fs = require('fs').promises;
+const fsSync = require('fs'); // للدوال المتزامنة
 const crypto = require('crypto');
 const multer = require('multer');
 const sharp = require('sharp');
@@ -135,9 +136,10 @@ function initializeDatabase() {
     return new Promise((resolve, reject) => {
         const dbPath = path.join(__dirname, 'data', 'database.sqlite');
         
-        // إنشاء مجلد data إذا لم يكن موجوداً
-        if (!fs.existsSync(path.join(__dirname, 'data'))) {
-            fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
+        // إنشاء مجلد data إذا لم يكن موجوداً - استخدم fsSync بدلاً من fs.existsSync
+        const dataDir = path.join(__dirname, 'data');
+        if (!fsSync.existsSync(dataDir)) {
+            fsSync.mkdirSync(dataDir, { recursive: true });
         }
         
         db = new sqlite3.Database(dbPath, (err) => {
@@ -1137,12 +1139,12 @@ initializeDatabase().then(() => {
         logger.info(`⚙️  البيئة: ${process.env.NODE_ENV || 'development'}`);
         logger.info(`✅ التطبيق جاهز للاستخدام`);
         
-        // إنشاء المجلدات المطلوبة
+        // إنشاء المجلدات المطلوبة باستخدام fsSync
         const requiredDirs = ['uploads', 'data', 'logs'];
         requiredDirs.forEach(dir => {
             const dirPath = path.join(__dirname, dir);
-            if (!fs.existsSync(dirPath)) {
-                fs.mkdirSync(dirPath, { recursive: true });
+            if (!fsSync.existsSync(dirPath)) {
+                fsSync.mkdirSync(dirPath, { recursive: true });
                 logger.info(`📁 تم إنشاء مجلد: ${dir}`);
             }
         });
