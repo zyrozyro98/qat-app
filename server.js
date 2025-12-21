@@ -68,7 +68,9 @@ const logger = winston.createLogger({
                 winston.format.simple()
             )
         })
-        // الصفحة الرئيسية
+    ]
+});
+ // الصفحة الرئيسية
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -83,9 +85,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 // 📊 Morgan مع Winston
 app.use(morgan('combined', { 
     stream: { write: (message) => logger.info(message.trim()) }
-    ]
-});
-
 }));
 
 // 🔐 الإعدادات الأمنية المتقدمة
@@ -2096,5 +2095,6 @@ const shutdown = () => {
 
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
+
 
 
