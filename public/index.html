@@ -3,18 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق قات PRO - تسجيل الدخول</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>تطبيق قات PRO - الدخول</title>
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="auth-page">
-    <!-- الرسائل العائمة -->
-    <div id="messages"></div>
-
-    <!-- الحاوية الرئيسية -->
     <div class="auth-container">
-        <!-- الهيدر -->
         <div class="auth-header">
             <div class="logo">
                 <i class="fas fa-leaf"></i>
@@ -23,12 +18,11 @@
             <p class="tagline">نظام متكامل لبيع وتوصيل القات</p>
         </div>
 
-        <!-- التبويبات -->
         <div class="auth-tabs">
-            <button class="tab-btn active" onclick="showAuthTab('login')" id="loginTab">
+            <button class="tab-btn active" onclick="showTab('login')">
                 <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
             </button>
-            <button class="tab-btn" onclick="showAuthTab('register')" id="registerTab">
+            <button class="tab-btn" onclick="showTab('register')">
                 <i class="fas fa-user-plus"></i> إنشاء حساب
             </button>
         </div>
@@ -36,61 +30,45 @@
         <!-- نموذج تسجيل الدخول -->
         <div class="auth-form" id="loginForm">
             <div class="form-group">
-                <label for="email">
-                    <i class="fas fa-envelope"></i> البريد الإلكتروني
-                </label>
-                <input type="email" id="loginEmail" placeholder="example@email.com" required>
-                <div class="error-message" id="emailError"></div>
+                <label for="email"><i class="fas fa-envelope"></i> البريد الإلكتروني</label>
+                <input type="email" id="email" placeholder="example@email.com" required>
             </div>
-            
+
             <div class="form-group">
-                <label for="password">
-                    <i class="fas fa-lock"></i> كلمة المرور
-                </label>
-                <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور" required>
-                <div class="error-message" id="passwordError"></div>
+                <label for="password"><i class="fas fa-lock"></i> كلمة المرور</label>
+                <input type="password" id="password" placeholder="أدخل كلمة المرور" required>
             </div>
-            
-            <button class="btn btn-primary btn-block" onclick="handleLogin()" id="loginButton">
+
+            <button class="btn btn-primary btn-block" onclick="login()">
                 <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
             </button>
-            
+
             <div class="auth-footer">
-                <a href="#" onclick="showAuthTab('register')">لا تملك حساباً؟ <strong>سجل الآن</strong></a>
+                <a href="#" onclick="showTab('register')">لا تملك حساباً؟ سجل الآن</a>
             </div>
         </div>
 
         <!-- نموذج التسجيل -->
         <div class="auth-form" id="registerForm" style="display: none;">
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="regName">
-                        <i class="fas fa-user"></i> الاسم الكامل
-                    </label>
-                    <input type="text" id="regName" placeholder="أدخل اسمك الكامل" required>
-                </div>
+            <div class="form-group">
+                <label for="regName"><i class="fas fa-user"></i> الاسم الكامل</label>
+                <input type="text" id="regName" placeholder="أدخل اسمك الكامل" required>
             </div>
-            
+
             <div class="form-row">
                 <div class="form-group">
-                    <label for="regEmail">
-                        <i class="fas fa-envelope"></i> البريد الإلكتروني
-                    </label>
+                    <label for="regEmail"><i class="fas fa-envelope"></i> البريد الإلكتروني</label>
                     <input type="email" id="regEmail" placeholder="example@email.com" required>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="regPhone">
-                        <i class="fas fa-phone"></i> رقم الهاتف
-                    </label>
+                    <label for="regPhone"><i class="fas fa-phone"></i> رقم الهاتف</label>
                     <input type="tel" id="regPhone" placeholder="7XXXXXXXX" required>
                 </div>
             </div>
-            
+
             <div class="form-group">
-                <label for="regRole">
-                    <i class="fas fa-user-tag"></i> نوع الحساب
-                </label>
+                <label for="regRole"><i class="fas fa-user-tag"></i> نوع الحساب</label>
                 <select id="regRole" onchange="toggleRoleFields()" required>
                     <option value="">اختر نوع الحساب</option>
                     <option value="buyer">مشتري</option>
@@ -98,87 +76,53 @@
                     <option value="driver">مندوب توصيل</option>
                 </select>
             </div>
-            
-            <!-- حقول إضافية للبائع -->
+
             <div class="form-group" id="storeField" style="display: none;">
-                <label for="regStore">
-                    <i class="fas fa-store"></i> اسم المتجر
-                </label>
+                <label for="regStore"><i class="fas fa-store"></i> اسم المتجر</label>
                 <input type="text" id="regStore" placeholder="أدخل اسم المتجر">
             </div>
-            
-            <!-- حقول إضافية لمندوب التوصيل -->
+
             <div class="form-group" id="vehicleField" style="display: none;">
-                <label for="regVehicle">
-                    <i class="fas fa-car"></i> نوع المركبة
-                </label>
+                <label for="regVehicle"><i class="fas fa-car"></i> نوع المركبة</label>
                 <input type="text" id="regVehicle" placeholder="مثال: دراجة نارية، سيارة">
             </div>
-            
+
             <div class="form-row">
                 <div class="form-group">
-                    <label for="regPassword">
-                        <i class="fas fa-lock"></i> كلمة المرور
-                    </label>
-                    <input type="password" id="regPassword" placeholder="كلمة المرور (6 أحرف على الأقل)" required>
+                    <label for="regPassword"><i class="fas fa-lock"></i> كلمة المرور</label>
+                    <input type="password" id="regPassword" placeholder="كلمة المرور" required>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="regConfirmPassword">
-                        <i class="fas fa-lock"></i> تأكيد كلمة المرور
-                    </label>
+                    <label for="regConfirmPassword"><i class="fas fa-lock"></i> تأكيد كلمة المرور</label>
                     <input type="password" id="regConfirmPassword" placeholder="أعد إدخال كلمة المرور" required>
                 </div>
             </div>
-            
-            <button class="btn btn-primary btn-block" onclick="handleRegister()" id="registerButton">
+
+            <button class="btn btn-primary btn-block" onclick="register()">
                 <i class="fas fa-user-plus"></i> إنشاء الحساب
             </button>
-            
+
             <div class="auth-footer">
-                <a href="#" onclick="showAuthTab('login')">لديك حساب بالفعل؟ <strong>سجل الدخول</strong></a>
+                <a href="#" onclick="showTab('login')">لديك حساب بالفعل؟ سجل الدخول</a>
             </div>
         </div>
 
-        <!-- معلومات التطبيق -->
         <div class="auth-info">
-            <h3><i class="fas fa-info-circle"></i> مميزات التطبيق</h3>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <i class="fas fa-shield-alt"></i>
-                    <h4>نظام آمن</h4>
-                    <p>حماية كاملة للمعاملات المالية</p>
-                </div>
-                <div class="feature-card">
-                    <i class="fas fa-shipping-fast"></i>
-                    <h4>توصيل سريع</h4>
-                    <p>توصيل لجميع المحافظات</p>
-                </div>
-                <div class="feature-card">
-                    <i class="fas fa-chart-line"></i>
-                    <h4>تقارير متقدمة</h4>
-                    <p>تحليلات وإحصائيات دقيقة</p>
-                </div>
-                <div class="feature-card">
-                    <i class="fas fa-headset"></i>
-                    <h4>دعم فني</h4>
-                    <p>دعم على مدار الساعة</p>
-                </div>
-            </div>
+            <h3><i class="fas fa-info-circle"></i> حول التطبيق</h3>
+            <ul>
+                <li><i class="fas fa-check"></i> نظام آمن للدفع الإلكتروني</li>
+                <li><i class="fas fa-check"></i> توصيل سريع لجميع المحافظات</li>
+                <li><i class="fas fa-check"></i> دعم متعدد اللغات</li>
+                <li><i class="fas fa-check"></i> تقارير وتحليلات متقدمة</li>
+            </ul>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- الرسائل -->
+    <div id="messages"></div>
+
     <script src="/js/auth.js"></script>
-    <script>
-        // تهيئة الصفحة
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 صفحة الدخول جاهزة');
-            
-            // التحقق من وجود جلسة نشطة
-            checkExistingSession();
-        });
-    </script>
+    <script src="/js/app.js"></script>
 </body>
 </html>
