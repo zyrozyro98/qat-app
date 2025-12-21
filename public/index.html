@@ -3,126 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق قات PRO - الدخول</title>
+    <title>تطبيق قات PRO - نظام البيع والتوصيل</title>
+    
+    <!-- CSS -->
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/auth.css">
+    <link rel="stylesheet" href="/css/responsive.css">
+    
+    <!-- Fonts & Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
 </head>
-<body class="auth-page">
-    <div class="auth-container">
-        <div class="auth-header">
-            <div class="logo">
-                <i class="fas fa-leaf"></i>
-                <h1>تطبيق قات PRO</h1>
-            </div>
-            <p class="tagline">نظام متكامل لبيع وتوصيل القات</p>
-        </div>
-
-        <div class="auth-tabs">
-            <button class="tab-btn active" onclick="showTab('login')">
-                <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
-            </button>
-            <button class="tab-btn" onclick="showTab('register')">
-                <i class="fas fa-user-plus"></i> إنشاء حساب
-            </button>
-        </div>
-
-        <!-- نموذج تسجيل الدخول -->
-        <div class="auth-form" id="loginForm">
-            <div class="form-group">
-                <label for="email"><i class="fas fa-envelope"></i> البريد الإلكتروني</label>
-                <input type="email" id="email" placeholder="example@email.com" required>
-            </div>
-
-            <div class="form-group">
-                <label for="password"><i class="fas fa-lock"></i> كلمة المرور</label>
-                <input type="password" id="password" placeholder="أدخل كلمة المرور" required>
-            </div>
-
-            <button class="btn btn-primary btn-block" onclick="login()">
-                <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
-            </button>
-
-            <div class="auth-footer">
-                <a href="#" onclick="showTab('register')">لا تملك حساباً؟ سجل الآن</a>
-            </div>
-        </div>
-
-        <!-- نموذج التسجيل -->
-        <div class="auth-form" id="registerForm" style="display: none;">
-            <div class="form-group">
-                <label for="regName"><i class="fas fa-user"></i> الاسم الكامل</label>
-                <input type="text" id="regName" placeholder="أدخل اسمك الكامل" required>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="regEmail"><i class="fas fa-envelope"></i> البريد الإلكتروني</label>
-                    <input type="email" id="regEmail" placeholder="example@email.com" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="regPhone"><i class="fas fa-phone"></i> رقم الهاتف</label>
-                    <input type="tel" id="regPhone" placeholder="7XXXXXXXX" required>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="regRole"><i class="fas fa-user-tag"></i> نوع الحساب</label>
-                <select id="regRole" onchange="toggleRoleFields()" required>
-                    <option value="">اختر نوع الحساب</option>
-                    <option value="buyer">مشتري</option>
-                    <option value="seller">بائع</option>
-                    <option value="driver">مندوب توصيل</option>
-                </select>
-            </div>
-
-            <div class="form-group" id="storeField" style="display: none;">
-                <label for="regStore"><i class="fas fa-store"></i> اسم المتجر</label>
-                <input type="text" id="regStore" placeholder="أدخل اسم المتجر">
-            </div>
-
-            <div class="form-group" id="vehicleField" style="display: none;">
-                <label for="regVehicle"><i class="fas fa-car"></i> نوع المركبة</label>
-                <input type="text" id="regVehicle" placeholder="مثال: دراجة نارية، سيارة">
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="regPassword"><i class="fas fa-lock"></i> كلمة المرور</label>
-                    <input type="password" id="regPassword" placeholder="كلمة المرور" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="regConfirmPassword"><i class="fas fa-lock"></i> تأكيد كلمة المرور</label>
-                    <input type="password" id="regConfirmPassword" placeholder="أعد إدخال كلمة المرور" required>
-                </div>
-            </div>
-
-            <button class="btn btn-primary btn-block" onclick="register()">
-                <i class="fas fa-user-plus"></i> إنشاء الحساب
-            </button>
-
-            <div class="auth-footer">
-                <a href="#" onclick="showTab('login')">لديك حساب بالفعل؟ سجل الدخول</a>
-            </div>
-        </div>
-
-        <div class="auth-info">
-            <h3><i class="fas fa-info-circle"></i> حول التطبيق</h3>
-            <ul>
-                <li><i class="fas fa-check"></i> نظام آمن للدفع الإلكتروني</li>
-                <li><i class="fas fa-check"></i> توصيل سريع لجميع المحافظات</li>
-                <li><i class="fas fa-check"></i> دعم متعدد اللغات</li>
-                <li><i class="fas fa-check"></i> تقارير وتحليلات متقدمة</li>
-            </ul>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>جاري تحميل التطبيق...</p>
         </div>
     </div>
-
-    <!-- الرسائل -->
-    <div id="messages"></div>
-
+    
+    <!-- App Container -->
+    <div id="app" class="app-container">
+        <!-- Header Component -->
+        <header id="header" class="app-header"></header>
+        
+        <!-- Navigation Component -->
+        <nav id="navigation" class="app-navigation"></nav>
+        
+        <!-- Main Content -->
+        <main id="mainContent" class="app-main">
+            <!-- Dynamic content will be loaded here -->
+        </main>
+        
+        <!-- Footer Component -->
+        <footer id="footer" class="app-footer"></footer>
+        
+        <!-- Modals Container -->
+        <div id="modalsContainer" class="modals-container"></div>
+        
+        <!-- Notifications Container -->
+        <div id="notificationsContainer" class="notifications-container"></div>
+        
+        <!-- Sidebar (for mobile) -->
+        <div id="sidebar" class="app-sidebar"></div>
+        
+        <!-- Cart Sidebar -->
+        <div id="cartSidebar" class="cart-sidebar"></div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="/js/utils.js"></script>
     <script src="/js/auth.js"></script>
+    <script src="/js/socket.js"></script>
     <script src="/js/app.js"></script>
+    <script src="/js/products.js"></script>
+    <script src="/js/orders.js"></script>
+    <script src="/js/wallet.js"></script>
+    <script src="/js/notifications.js"></script>
+    <script src="/js/dashboard.js"></script>
+    
+    <!-- Initialize App -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the application
+            window.app = new QatApp();
+            
+            // Hide loading screen
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+            }, 1000);
+        });
+    </script>
 </body>
 </html>
