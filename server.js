@@ -1,864 +1,1976 @@
-// server.js - تطبيق قات PRO - النسخة الكاملة
+// server.js - تطبيق قات PRO - النسخة النهائية المصححة
 const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
+const session = require('express-session');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const http = require('http');
+const path = require('path');
+const fs = require('fs').promises;
+const crypto = require('crypto');
+const multer = require('multer');
+const sharp = require('sharp');
+const cors = require('cors');
+const helmet = require('helmet');
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
+const { body, validationResult } = require('express-validator');
 const { Server } = require('socket.io');
-require('dotenv').config();
+const http = require('http');
+const nodemailer = require('nodemailer');
+const winston = require('winston');
+const morgan = require('morgan');
+const xlsx = require('xlsx');
+const PDFDocument = require('pdfkit');
+const qr = require('qr-image');
+const cryptoJS = require('crypto-js');
+const moment = require('moment');
+require('moment-hijri');
+const cron = require('node-cron');
+const geoip = require('geoip-lite');
+const uaParser = require('ua-parser-js');
 
 // تهيئة التطبيق
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
+
+// 🔧 إعدادات PRO
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const VERSION = '2.0.0-PRO';
+
+// 🔧 إعدادات الأمان المتقدمة
+app.set('trust proxy', 1);
+app.set('x-powered-by', false);
+
+// 📊 إعداد التسجيل (Logging)
+const logger = winston.createLogger({
+    level: IS_PRODUCTION ? 'info' : 'debug',
+    format: winston.format.combine(
+        winston.format.timestamp({
+            format: 'YYYY-MM-DD HH:mm:ss'
+        }),
+        winston.format.errors({ stack: true }),
+        winston.format.splat(),
+        winston.format.json()
+    ),
+    defaultMeta: { service: 'qat-app-pro' },
+    transports: [
+        new winston.transports.File({ 
+            filename: 'logs/error.log', 
+            level: 'error',
+            maxsize: 5242880, // 5MB
+            maxFiles: 5
+        }),
+        new winston.transports.File({ 
+            filename: 'logs/combined.log',
+            maxsize: 5242880,
+            maxFiles: 5
+        }),
+        new winston.transports.Console({
+            format: winston.format.combine(
+                winston.format.colorize(),
+                winston.format.simple()
+            )
+        })
+    ]
+});
+
+// 📊 Morgan مع Winston
+app.use(morgan('combined', { 
+    stream: { write: (message) => logger.info(message.trim()) }
+}));
+
+// 🔐 الإعدادات الأمنية المتقدمة
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+            imgSrc: ["'self'", "data:", "https:", "blob:"],
+            connectSrc: ["'self'", "ws:", "wss:"]
+        }
+    },
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+// 🔧 Middleware الأساسية
+app.use(compression({
+    level: 6,
+    threshold: 100 * 1024 // ضغط الملفات أكبر من 100KB
+}));
+
+app.use(cors({
+    origin: IS_PRODUCTION ? [
+        'https://qat-app.onrender.com',
+        'https://www.qat-app.com',
+        'https://qat-app.com'
+    ] : 'http://localhost:3000',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// ⚡ Rate Limiting المتقدم
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 دقيقة
+    max: 1000, // 1000 طلب لكل IP
+    message: {
+        error: 'لقد تجاوزت الحد المسموح به من الطلبات',
+        retryAfter: '15 دقيقة'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => {
+        return req.ip || req.connection.remoteAddress;
+    },
+    skip: (req) => {
+        // تخطي بعض المسارات
+        return req.path.includes('/health') || req.path.includes('/status');
     }
 });
 
-// الوسائط
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
-
-// متغيرات البيئة
-const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/qat_pro';
-
-// اتصال MongoDB
-mongoose.connect(MONGO_URI)
-    .then(() => console.log('✅ تم الاتصال بقاعدة البيانات بنجاح'))
-    .catch(err => console.error('❌ خطأ في الاتصال بقاعدة البيانات:', err));
-
-// نماذج Mongoose
-const UserSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    phone: { type: String, required: true },
-    password: { type: String, required: true },
-    role: { 
-        type: String, 
-        enum: ['buyer', 'seller', 'driver'], 
-        required: true 
-    },
-    storeName: { type: String, default: '' },
-    vehicleType: { type: String, default: '' },
-    balance: { type: Number, default: 0 },
-    isActive: { type: Boolean, default: true },
-    createdAt: { type: Date, default: Date.now }
+const authLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // ساعة واحدة
+    max: 10, // 10 محاولات تسجيل دخول
+    message: {
+        error: 'لقد تجاوزت عدد محاولات تسجيل الدخول المسموح بها',
+        retryAfter: '60 دقيقة'
+    }
 });
 
-const ProductSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    description: { type: String },
-    price: { type: Number, required: true },
-    quantity: { type: Number, required: true },
-    category: { type: String, required: true },
-    sellerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    imageUrl: { type: String, default: '' },
-    isAvailable: { type: Boolean, default: true },
-    rating: { type: Number, default: 0, min: 0, max: 5 },
-    createdAt: { type: Date, default: Date.now }
-});
+app.use('/api/', apiLimiter);
+app.use('/api/login', authLimiter);
+app.use('/api/register', authLimiter);
 
-const OrderSchema = new mongoose.Schema({
-    orderNumber: { type: String, unique: true },
-    buyerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    sellerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    driverId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    products: [{
-        productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
-        quantity: { type: Number, required: true },
-        price: { type: Number, required: true }
-    }],
-    totalAmount: { type: Number, required: true },
-    deliveryAddress: { type: String, required: true },
-    status: { 
-        type: String, 
-        enum: ['pending', 'confirmed', 'preparing', 'on_the_way', 'delivered', 'cancelled'],
-        default: 'pending'
-    },
-    paymentMethod: { 
-        type: String, 
-        enum: ['cash', 'wallet', 'card'], 
-        required: true 
-    },
-    paymentStatus: { 
-        type: String, 
-        enum: ['pending', 'paid', 'failed'], 
-        default: 'pending' 
-    },
-    deliveryNotes: { type: String, default: '' },
-    estimatedDelivery: { type: Date },
-    actualDelivery: { type: Date },
-    createdAt: { type: Date, default: Date.now }
-});
+// 📦 Middleware للبيانات
+app.use(express.json({ 
+    limit: '10mb',
+    verify: (req, res, buf) => {
+        req.rawBody = buf.toString();
+    }
+}));
+app.use(express.urlencoded({ 
+    extended: true, 
+    limit: '10mb'
+}));
 
-const TransactionSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    amount: { type: Number, required: true },
-    type: { 
-        type: String, 
-        enum: ['deposit', 'withdrawal', 'payment', 'refund', 'order_income'],
-        required: true 
+// 📁 الملفات الثابتة
+app.use(express.static(path.join(__dirname, 'public'), {
+    maxAge: IS_PRODUCTION ? '1y' : '0',
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        }
+    }
+}));
+
+// 🔐 إعدادات الجلسات المتقدمة
+const sessionConfig = {
+    name: 'qat_pro_session',
+    secret: process.env.SESSION_SECRET || crypto.randomBytes(64).toString('hex'),
+    resave: false,
+    saveUninitialized: false,
+    store: new session.MemoryStore(),
+    cookie: {
+        secure: IS_PRODUCTION,
+        httpOnly: true,
+        sameSite: IS_PRODUCTION ? 'strict' : 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 أيام
+        domain: IS_PRODUCTION ? '.qat-app.com' : undefined
     },
-    orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', default: null },
-    description: { type: String, required: true },
-    balanceAfter: { type: Number, required: true },
-    status: { 
-        type: String, 
-        enum: ['pending', 'completed', 'failed'], 
-        default: 'pending' 
-    },
-    createdAt: { type: Date, default: Date.now }
-});
+    proxy: IS_PRODUCTION,
+    genid: () => crypto.randomBytes(16).toString('hex')
+};
 
-const NotificationSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    title: { type: String, required: true },
-    message: { type: String, required: true },
-    type: { 
-        type: String, 
-        enum: ['order', 'payment', 'system', 'alert', 'promotion'],
-        default: 'system'
-    },
-    isRead: { type: Boolean, default: false },
-    link: { type: String, default: '' },
-    createdAt: { type: Date, default: Date.now }
-});
+app.use(session(sessionConfig));
 
-// النماذج
-const User = mongoose.model('User', UserSchema);
-const Product = mongoose.model('Product', ProductSchema);
-const Order = mongoose.model('Order', OrderSchema);
-const Transaction = mongoose.model('Transaction', TransactionSchema);
-const Notification = mongoose.model('Notification', NotificationSchema);
+// 📊 قاعدة البيانات - استخدام قاعدة البيانات المحلية
+const Database = require('better-sqlite3');
+const dbPath = path.join(__dirname, 'data', 'database.sqlite');
+const db = new Database(dbPath, { verbose: console.log });
 
-// وظيفة المساعدين
-function generateOrderNumber() {
-    const date = new Date();
-    const year = date.getFullYear().toString().slice(-2);
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    const random = Math.floor(1000 + Math.random() * 9000);
-    return `ORD-${year}${month}${day}-${random}`;
-}
-
-async function createNotification(userId, title, message, type = 'system', link = '') {
+// تهيئة جداول قاعدة البيانات
+function initializeDatabase() {
     try {
-        const notification = new Notification({
-            userId,
-            title,
-            message,
-            type,
-            link
-        });
-        await notification.save();
-        
-        // إرسال الإشعار عبر WebSocket
-        io.to(`user_${userId}`).emit('new_notification', notification);
-        
-        return notification;
-    } catch (error) {
-        console.error('خطأ في إنشاء الإشعار:', error);
-    }
-}
+        // إنشاء جدول المستخدمين
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                phone TEXT NOT NULL,
+                password TEXT NOT NULL,
+                role TEXT NOT NULL CHECK(role IN ('buyer', 'seller', 'driver', 'admin')),
+                avatar TEXT,
+                status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive', 'suspended')),
+                store_name TEXT,
+                vehicle_type TEXT,
+                rating REAL DEFAULT 0,
+                total_sales REAL DEFAULT 0,
+                last_login TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
 
-// middleware المصادقة
-const authenticateToken = async (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+        // إنشاء جدول الأسواق
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS markets (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                description TEXT,
+                location TEXT NOT NULL,
+                latitude REAL,
+                longitude REAL,
+                opening_hours TEXT,
+                contact_phone TEXT,
+                status TEXT DEFAULT 'active',
+                image TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
 
-    if (!token) {
-        return res.status(401).json({ message: 'رمز الوصول مطلوب' });
-    }
+        // إنشاء جدول المنتجات
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS products (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                seller_id INTEGER NOT NULL,
+                market_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                description TEXT,
+                price REAL NOT NULL,
+                image TEXT,
+                category TEXT NOT NULL,
+                quantity INTEGER NOT NULL DEFAULT 0,
+                specifications TEXT,
+                rating REAL DEFAULT 0,
+                status TEXT DEFAULT 'active',
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (seller_id) REFERENCES users(id),
+                FOREIGN KEY (market_id) REFERENCES markets(id)
+            )
+        `);
 
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const user = await User.findById(decoded.userId).select('-password');
-        
-        if (!user) {
-            return res.status(401).json({ message: 'المستخدم غير موجود' });
+        // إنشاء جدول المحفظة
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS wallets (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER UNIQUE NOT NULL,
+                balance REAL DEFAULT 0,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        `);
+
+        // إنشاء جدول الطلبات
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS orders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                buyer_id INTEGER NOT NULL,
+                total REAL NOT NULL,
+                shipping_address TEXT NOT NULL,
+                payment_method TEXT NOT NULL CHECK(payment_method IN ('wallet', 'cash')),
+                wash_qat INTEGER DEFAULT 0,
+                status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'confirmed', 'preparing', 'on_the_way', 'delivered', 'cancelled')),
+                order_code TEXT UNIQUE NOT NULL,
+                driver_id INTEGER,
+                notes TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (buyer_id) REFERENCES users(id),
+                FOREIGN KEY (driver_id) REFERENCES users(id)
+            )
+        `);
+
+        // إنشاء جدول عناصر الطلب
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS order_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                order_id INTEGER NOT NULL,
+                product_id INTEGER NOT NULL,
+                seller_id INTEGER NOT NULL,
+                quantity INTEGER NOT NULL,
+                unit_price REAL NOT NULL,
+                total_price REAL NOT NULL,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (order_id) REFERENCES orders(id),
+                FOREIGN KEY (product_id) REFERENCES products(id),
+                FOREIGN KEY (seller_id) REFERENCES users(id)
+            )
+        `);
+
+        // إنشاء جدول المعاملات
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS transactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                amount REAL NOT NULL,
+                type TEXT NOT NULL CHECK(type IN ('deposit', 'withdrawal', 'purchase', 'refund')),
+                method TEXT,
+                wallet_type TEXT,
+                transaction_id TEXT UNIQUE,
+                status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'completed', 'failed')),
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        `);
+
+        // إنشاء جدول الإشعارات
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS notifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                message TEXT NOT NULL,
+                type TEXT DEFAULT 'info',
+                is_read INTEGER DEFAULT 0,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        `);
+
+        // إنشاء جدول التقييمات
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS reviews (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                product_id INTEGER NOT NULL,
+                order_id INTEGER,
+                rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5),
+                comment TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id),
+                FOREIGN KEY (product_id) REFERENCES products(id),
+                FOREIGN KEY (order_id) REFERENCES orders(id)
+            )
+        `);
+
+        // إنشاء جدول مندوبي التوصيل
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS drivers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER UNIQUE NOT NULL,
+                vehicle_type TEXT NOT NULL,
+                license_plate TEXT,
+                status TEXT DEFAULT 'available' CHECK(status IN ('available', 'busy', 'offline')),
+                rating REAL DEFAULT 0,
+                total_deliveries INTEGER DEFAULT 0,
+                current_location TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        `);
+
+        // إنشاء جدول محطات الغسيل
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS wash_stations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                market_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                location TEXT NOT NULL,
+                contact_phone TEXT,
+                status TEXT DEFAULT 'active',
+                rating REAL DEFAULT 0,
+                price REAL DEFAULT 100,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (market_id) REFERENCES markets(id)
+            )
+        `);
+
+        // إنشاء جدول طلبات الغسيل
+        db.exec(`
+            CREATE TABLE IF NOT EXISTS wash_orders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                order_id INTEGER NOT NULL,
+                wash_station_id INTEGER NOT NULL,
+                status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'washing', 'completed')),
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                completed_at TEXT,
+                FOREIGN KEY (order_id) REFERENCES orders(id),
+                FOREIGN KEY (wash_station_id) REFERENCES wash_stations(id)
+            )
+        `);
+
+        // إنشاء إدخالات تجريبية إذا لم تكن موجودة
+        const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
+        if (userCount === 0) {
+            const hashedPassword = bcrypt.hashSync('admin123', 10);
+            
+            // إنشاء مستخدم admin
+            db.prepare(`
+                INSERT INTO users (name, email, phone, password, role, status)
+                VALUES (?, ?, ?, ?, ?, ?)
+            `).run('مدير النظام', 'admin@qatpro.com', '771234567', hashedPassword, 'admin', 'active');
+            
+            // إنشاء سوق تجريبي
+            db.prepare(`
+                INSERT INTO markets (name, description, location, status)
+                VALUES (?, ?, ?, ?)
+            `).run('سوق القات الرئيسي', 'أكبر سوق للقات في المدينة', 'صنعاء - شارع الزبيري', 'active');
+            
+            logger.info('✅ تم تهيئة قاعدة البيانات مع بيانات تجريبية');
         }
 
-        req.user = user;
-        next();
+        logger.info('✅ تم تهيئة قاعدة البيانات بنجاح');
     } catch (error) {
-        return res.status(403).json({ message: 'رمز وصول غير صالح' });
+        logger.error(`❌ خطأ في تهيئة قاعدة البيانات: ${error.message}`);
+    }
+}
+
+// استدعاء تهيئة قاعدة البيانات
+initializeDatabase();
+
+// 🔌 WebSocket للتنبيهات الحية
+const io = new Server(server, {
+    cors: {
+        origin: IS_PRODUCTION ? [
+            'https://qat-app.onrender.com',
+            'https://www.qat-app.com'
+        ] : 'http://localhost:3000',
+        methods: ['GET', 'POST'],
+        credentials: true
+    },
+    transports: ['websocket', 'polling'],
+    pingTimeout: 60000,
+    pingInterval: 25000
+});
+
+// 🔔 نظام الإشعارات الحية
+const notificationManager = {
+    activeConnections: new Map(),
+    
+    addConnection(userId, socketId) {
+        this.activeConnections.set(userId, socketId);
+        logger.info(`🔌 اتصال جديد: المستخدم ${userId}, السوكيت ${socketId}`);
+    },
+    
+    removeConnection(userId) {
+        this.activeConnections.delete(userId);
+        logger.info(`🔌 اتصال مغلق: المستخدم ${userId}`);
+    },
+    
+    sendNotification(userId, notification) {
+        const socketId = this.activeConnections.get(userId);
+        if (socketId && io.sockets.sockets.get(socketId)) {
+            io.to(socketId).emit('notification', notification);
+            logger.info(`🔔 إشعار مرسل للمستخدم ${userId}: ${notification.title}`);
+            return true;
+        }
+        return false;
+    },
+    
+    broadcastToRole(role, notification) {
+        this.activeConnections.forEach((socketId, userId) => {
+            if (io.sockets.sockets.get(socketId)) {
+                io.to(socketId).emit('notification', notification);
+            }
+        });
+        logger.info(`📢 إشعار عام للدور ${role}: ${notification.title}`);
     }
 };
 
-// WebSocket connection handling
-const connectedUsers = new Map();
-
 io.on('connection', (socket) => {
-    console.log('✅ مستخدم متصل:', socket.id);
-
-    socket.on('register_user', (userId) => {
-        socket.join(`user_${userId}`);
-        connectedUsers.set(userId, socket.id);
-        console.log(`👤 المستخدم ${userId} مسجل في WebSocket`);
-    });
-
-    socket.on('user_activity', (data) => {
-        socket.broadcast.emit('user_status', {
-            userId: data.userId,
-            status: data.status || 'online'
-        });
-    });
-
-    socket.on('new_message', (data) => {
-        const { orderId, senderId, receiverId, message } = data;
-        const receiverSocket = connectedUsers.get(receiverId);
-        
-        if (receiverSocket) {
-            io.to(receiverSocket).emit('order_message', {
-                orderId,
-                senderId,
-                message,
-                timestamp: new Date()
-            });
-        }
-    });
-
-    socket.on('disconnect', () => {
-        console.log('❌ مستخدم منقطع:', socket.id);
-        for (const [userId, socketId] of connectedUsers.entries()) {
-            if (socketId === socket.id) {
-                connectedUsers.delete(userId);
-                break;
+    logger.info(`🌐 اتصال سوكيت جديد: ${socket.id}`);
+    
+    socket.on('authenticate', async ({ userId, token }) => {
+        try {
+            if (userId && token) {
+                socket.join(`user_${userId}`);
+                socket.userId = userId;
+                notificationManager.addConnection(userId, socket.id);
+                
+                logger.info(`✅ مصادقة ناجحة: المستخدم ${userId} انضم للغرفة`);
+                
+                socket.emit('welcome', {
+                    message: 'مرحباً بك في نظام الإشعارات المباشرة',
+                    timestamp: new Date().toISOString()
+                });
             }
+        } catch (error) {
+            logger.error(`❌ خطأ في مصادقة السوكيت: ${error.message}`);
+            socket.emit('error', { message: 'فشل المصادقة' });
         }
+    });
+    
+    socket.on('joinRoom', (room) => {
+        socket.join(room);
+        logger.info(`👤 السوكيت ${socket.id} انضم للغرفة ${room}`);
+    });
+    
+    socket.on('disconnect', () => {
+        if (socket.userId) {
+            notificationManager.removeConnection(socket.userId);
+        }
+        logger.info(`🌐 اتصال سوكيت مغلق: ${socket.id}`);
     });
 });
 
-// ============== Routes ==============
+// 📁 نظام التحميل المتقدم
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadDir = path.join(__dirname, 'uploads');
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
+        cb(null, uniqueName);
+    }
+});
 
-// 1. Routes المصادقة
-app.post('/api/auth/register', async (req, res) => {
+const upload = multer({
+    storage,
+    limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB
+        files: 5
+    },
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = /jpeg|jpg|png|gif|webp/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+        
+        if (mimetype && extname) {
+            cb(null, true);
+        } else {
+            cb(new Error('نوع الملف غير مدعوم. يرجى رفع صور فقط (JPEG, PNG, GIF, WebP)'));
+        }
+    }
+});
+
+// 🖼️ معالج الصور
+const imageProcessor = {
+    async processImage(buffer, options = {}) {
+        const {
+            width = 800,
+            height = 600,
+            quality = 80,
+            format = 'webp'
+        } = options;
+        
+        try {
+            const image = sharp(buffer);
+            const metadata = await image.metadata();
+            
+            const processed = await image
+                .resize(width, height, {
+                    fit: 'cover',
+                    position: 'center'
+                })
+                .toFormat(format, { quality })
+                .toBuffer();
+            
+            return {
+                buffer: processed,
+                format,
+                originalSize: buffer.length,
+                processedSize: processed.length,
+                metadata
+            };
+        } catch (error) {
+            logger.error(`❌ خطأ في معالجة الصورة: ${error.message}`);
+            throw error;
+        }
+    },
+    
+    async createThumbnail(buffer, size = 200) {
+        return this.processImage(buffer, {
+            width: size,
+            height: size,
+            quality: 70,
+            format: 'webp'
+        });
+    }
+};
+
+// 🔧 دوال مساعدة PRO
+const helpers = {
+    generateOrderCode() {
+        const prefix = 'QAT';
+        const timestamp = Date.now().toString().slice(-6);
+        const random = Math.random().toString(36).substr(2, 4).toUpperCase();
+        return `${prefix}${timestamp}${random}`;
+    },
+    
+    generateGiftCode() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let code = '';
+        for (let i = 0; i < 12; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+            if (i === 3 || i === 7) code += '-';
+        }
+        return `GIFT-${code}`;
+    },
+    
+    generateTransactionId() {
+        return `TXN${Date.now()}${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    },
+    
+    async hashPassword(password) {
+        return bcrypt.hash(password, 12);
+    },
+    
+    async verifyPassword(password, hash) {
+        return bcrypt.compare(password, hash);
+    },
+    
+    formatCurrency(amount) {
+        return new Intl.NumberFormat('ar-YE', {
+            style: 'currency',
+            currency: 'YER',
+            minimumFractionDigits: 0
+        }).format(amount);
+    },
+    
+    formatDate(date, format = 'YYYY-MM-DD HH:mm:ss') {
+        return moment(date).format(format);
+    },
+    
+    formatHijriDate(date) {
+        return moment(date).format('iYYYY/iMM/iDD');
+    },
+    
+    async generateQRCode(text) {
+        try {
+            const qr_png = qr.imageSync(text, { type: 'png' });
+            return qr_png.toString('base64');
+        } catch (error) {
+            logger.error(`❌ خطأ في إنشاء QR: ${error.message}`);
+            return null;
+        }
+    },
+    
+    calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // نصف قطر الأرض بالكيلومتر
+        const dLat = this.deg2rad(lat2 - lat1);
+        const dLon = this.deg2rad(lon2 - lon1);
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    },
+    
+    deg2rad(deg) {
+        return deg * (Math.PI/180);
+    },
+    
+    encrypt(text) {
+        return cryptoJS.AES.encrypt(text, process.env.ENCRYPTION_KEY || 'qat-pro-secure-key').toString();
+    },
+    
+    decrypt(ciphertext) {
+        const bytes = cryptoJS.AES.decrypt(ciphertext, process.env.ENCRYPTION_KEY || 'qat-pro-secure-key');
+        return bytes.toString(cryptoJS.enc.Utf8);
+    }
+};
+
+// 📧 نظام البريد الإلكتروني
+const emailService = {
+    transporter: null,
+    
+    initialize() {
+        if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+            logger.warn('⚠️ إعدادات SMTP غير موجودة، سيتم تعطيل خدمة البريد الإلكتروني');
+            return;
+        }
+        
+        this.transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST || 'smtp.gmail.com',
+            port: process.env.SMTP_PORT || 587,
+            secure: process.env.SMTP_SECURE === 'true',
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS
+            }
+        });
+        
+        logger.info('📧 تم تهيئة خدمة البريد الإلكتروني');
+    },
+    
+    async sendEmail(to, subject, html, attachments = []) {
+        try {
+            if (!this.transporter) {
+                logger.warn('⚠️ خدمة البريد الإلكتروني غير مهيأة');
+                return null;
+            }
+            
+            const mailOptions = {
+                from: `"تطبيق قات PRO" <${process.env.SMTP_USER}>`,
+                to,
+                subject,
+                html,
+                attachments
+            };
+            
+            const info = await this.transporter.sendMail(mailOptions);
+            logger.info(`📧 بريد إلكتروني مرسل إلى ${to}: ${info.messageId}`);
+            return info;
+        } catch (error) {
+            logger.error(`❌ خطأ في إرسال البريد الإلكتروني: ${error.message}`);
+            throw error;
+        }
+    },
+    
+    async sendWelcomeEmail(user) {
+        const html = `
+            <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #2E7D32; text-align: center;">مرحباً بك في تطبيق قات PRO</h2>
+                <p>عزيزي ${user.name},</p>
+                <p>نرحب بك في منصتنا المتكاملة لبيع وتوصيل القات.</p>
+                <p>تفاصيل حسابك:</p>
+                <ul>
+                    <li><strong>البريد الإلكتروني:</strong> ${user.email}</li>
+                    <li><strong>رقم الهاتف:</strong> ${user.phone}</li>
+                    <li><strong>نوع الحساب:</strong> ${user.role}</li>
+                </ul>
+                <p>يمكنك الآن البدء في استخدام جميع ميزات التطبيق.</p>
+                <hr>
+                <p style="color: #666; font-size: 12px;">
+                    هذا البريد الإلكتروني تم إرساله تلقائياً من نظام تطبيق قات PRO.
+                </p>
+            </div>
+        `;
+        
+        return this.sendEmail(user.email, 'مرحباً بك في تطبيق قات PRO', html);
+    },
+    
+    async sendOrderConfirmation(order, user) {
+        const html = `
+            <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #2E7D32; text-align: center;">تأكيد طلبك #${order.order_code}</h2>
+                <p>عزيزي ${user.name},</p>
+                <p>شكراً لك على طلبك. تفاصيل الطلب:</p>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;"><strong>رقم الطلب</strong></td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${order.order_code}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;"><strong>المبلغ الإجمالي</strong></td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${helpers.formatCurrency(order.total)}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;"><strong>حالة الطلب</strong></td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${order.status}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;"><strong>تاريخ الطلب</strong></td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${helpers.formatDate(order.created_at)}</td>
+                    </tr>
+                </table>
+                <p>سيتم تحديثك على حالة طلبك عبر التطبيق.</p>
+                <hr>
+                <p style="color: #666; font-size: 12px;">تطبيق قات PRO - نظام البيع والتوصيل المتكامل</p>
+            </div>
+        `;
+        
+        return this.sendEmail(user.email, `تأكيد طلبك #${order.order_code}`, html);
+    }
+};
+
+// تهيئة خدمة البريد
+emailService.initialize();
+
+// 📊 نظام التقارير
+const reportService = {
+    async generateSalesReport(startDate, endDate) {
+        try {
+            const query = db.prepare(`
+                SELECT 
+                    DATE(o.created_at) as date,
+                    COUNT(*) as order_count,
+                    SUM(o.total) as total_sales,
+                    AVG(o.total) as avg_order_value
+                FROM orders o
+                WHERE o.created_at BETWEEN ? AND ?
+                GROUP BY DATE(o.created_at)
+                ORDER BY date DESC
+            `);
+            
+            return query.all(startDate, endDate);
+        } catch (error) {
+            logger.error(`❌ خطأ في إنشاء تقرير المبيعات: ${error.message}`);
+            throw error;
+        }
+    },
+    
+    async generateProductReport() {
+        try {
+            const query = db.prepare(`
+                SELECT 
+                    p.name,
+                    p.category,
+                    COUNT(oi.product_id) as units_sold,
+                    SUM(oi.total_price) as revenue,
+                    AVG(p.price) as avg_price
+                FROM products p
+                LEFT JOIN order_items oi ON p.id = oi.product_id
+                GROUP BY p.id
+                ORDER BY revenue DESC
+            `);
+            
+            return query.all();
+        } catch (error) {
+            logger.error(`❌ خطأ في إنشاء تقرير المنتجات: ${error.message}`);
+            throw error;
+        }
+    },
+    
+    async exportToExcel(data, filename) {
+        try {
+            const ws = xlsx.utils.json_to_sheet(data);
+            const wb = xlsx.utils.book_new();
+            xlsx.utils.book_append_sheet(wb, ws, 'Report');
+            
+            const buffer = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
+            
+            return {
+                filename: `${filename}_${helpers.formatDate(new Date(), 'YYYY-MM-DD')}.xlsx`,
+                buffer,
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            };
+        } catch (error) {
+            logger.error(`❌ خطأ في تصدير Excel: ${error.message}`);
+            throw error;
+        }
+    },
+    
+    async generatePDFReport(data, title) {
+        return new Promise((resolve, reject) => {
+            try {
+                const doc = new PDFDocument({ margin: 50 });
+                const buffers = [];
+                
+                doc.on('data', buffers.push.bind(buffers));
+                doc.on('end', () => {
+                    const pdfData = Buffer.concat(buffers);
+                    resolve({
+                        filename: `${title}_${helpers.formatDate(new Date(), 'YYYY-MM-DD')}.pdf`,
+                        buffer: pdfData,
+                        type: 'application/pdf'
+                    });
+                });
+                
+                doc.font('Helvetica-Bold')
+                   .fontSize(20)
+                   .text(title, { align: 'center' });
+                
+                doc.moveDown();
+                doc.fontSize(12);
+                doc.text(`تاريخ التقرير: ${helpers.formatDate(new Date(), 'YYYY-MM-DD HH:mm:ss')}`);
+                doc.text(`نسخة: ${VERSION}`);
+                
+                if (data.length > 0) {
+                    doc.moveDown();
+                    doc.font('Helvetica-Bold').text('البيانات:');
+                    
+                    data.forEach((item, index) => {
+                        doc.moveDown();
+                        doc.font('Helvetica').text(`${index + 1}. ${JSON.stringify(item, null, 2)}`);
+                    });
+                }
+                
+                doc.end();
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+};
+
+// 🔐 نظام الصلاحيات
+const requireAuth = (req, res, next) => {
+    if (!req.session.userId) {
+        logger.warn(`🚫 محاولة وصول غير مصرح بها إلى ${req.path}`);
+        return res.status(401).json({ 
+            success: false, 
+            error: 'يجب تسجيل الدخول للوصول إلى هذا المورد' 
+        });
+    }
+    next();
+};
+
+const requireRole = (...roles) => {
+    return (req, res, next) => {
+        if (!req.session.userId || !req.session.role || !roles.includes(req.session.role)) {
+            logger.warn(`🚫 محاولة وصول غير مصرح بها لدور ${req.session.role} إلى ${req.path}`);
+            return res.status(403).json({ 
+                success: false, 
+                error: 'صلاحية مرفوضة. لا تملك الصلاحيات الكافية' 
+            });
+        }
+        next();
+    };
+};
+
+// متغيرات الصلاحيات المسبقة
+const requireAdmin = requireRole('admin');
+const requireSeller = requireRole('seller');
+const requireBuyer = requireRole('buyer');
+const requireDriver = requireRole('driver');
+const requireAdminOrSeller = requireRole('admin', 'seller');
+
+// 📍 Middleware للتحقق من البيانات
+const validateRequest = (validations) => {
+    return async (req, res, next) => {
+        await Promise.all(validations.map(validation => validation.run(req)));
+        
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                errors: errors.array(),
+                message: 'البيانات المدخلة غير صحيحة'
+            });
+        }
+        
+        next();
+    };
+};
+
+// 📊 Middleware للتحليلات
+const analyticsMiddleware = (req, res, next) => {
+    req.analytics = {
+        timestamp: new Date().toISOString(),
+        ip: req.ip || req.connection.remoteAddress,
+        userAgent: req.get('user-agent') || '',
+        method: req.method,
+        path: req.path,
+        query: req.query,
+        user: req.session.userId || 'guest'
+    };
+    
+    const geo = geoip.lookup(req.ip);
+    const ua = uaParser(req.get('user-agent') || '');
+    
+    req.analytics.geo = geo || {};
+    req.analytics.device = {
+        browser: `${ua.browser.name || ''} ${ua.browser.version || ''}`,
+        os: `${ua.os.name || ''} ${ua.os.version || ''}`,
+        device: ua.device.type || 'desktop'
+    };
+    
+    next();
+};
+
+app.use(analyticsMiddleware);
+
+// ============ API Routes PRO ============
+
+// 📊 الصحة والمراقبة
+app.get('/api/health', async (req, res) => {
+    try {
+        const dbStatus = db.prepare('SELECT 1 as status').get();
+        const uptime = process.uptime();
+        const memoryUsage = process.memoryUsage();
+        
+        res.json({
+            success: true,
+            data: {
+                status: 'healthy',
+                version: VERSION,
+                environment: process.env.NODE_ENV || 'development',
+                timestamp: new Date().toISOString(),
+                uptime: `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m ${Math.floor(uptime % 60)}s`,
+                database: dbStatus ? 'connected' : 'disconnected',
+                memory: {
+                    rss: Math.round(memoryUsage.rss / 1024 / 1024) + 'MB',
+                    heapTotal: Math.round(memoryUsage.heapTotal / 1024 / 1024) + 'MB',
+                    heapUsed: Math.round(memoryUsage.heapUsed / 1024 / 1024) + 'MB'
+                },
+                connections: notificationManager.activeConnections.size
+            }
+        });
+    } catch (error) {
+        logger.error(`❌ خطأ في فحص الصحة: ${error.message}`);
+        res.status(500).json({
+            success: false,
+            error: 'الخادم يعاني من مشاكل فنية',
+            details: IS_PRODUCTION ? undefined : error.message
+        });
+    }
+});
+
+app.get('/api/status', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const stats = db.prepare(`
+            SELECT 
+                (SELECT COUNT(*) FROM users) as total_users,
+                (SELECT COUNT(*) FROM products WHERE status = 'active') as active_products,
+                (SELECT COUNT(*) FROM orders WHERE DATE(created_at) = DATE('now')) as today_orders,
+                (SELECT SUM(total) FROM orders WHERE DATE(created_at) = DATE('now')) as today_revenue,
+                (SELECT COUNT(*) FROM drivers WHERE status = 'available') as available_drivers,
+                (SELECT COUNT(*) FROM markets WHERE status = 'active') as active_markets
+        `).get();
+        
+        res.json({
+            success: true,
+            data: stats || {}
+        });
+    } catch (error) {
+        logger.error(`❌ خطأ في جلب الإحصائيات: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+    }
+});
+
+// 👤 المستخدمون والمصادقة
+app.post('/api/register', [
+    body('name').trim().notEmpty().withMessage('الاسم مطلوب'),
+    body('email').trim().isEmail().withMessage('البريد الإلكتروني غير صحيح'),
+    body('phone').trim().matches(/^[0-9]{9,15}$/).withMessage('رقم الهاتف غير صحيح'),
+    body('password').isLength({ min: 6 }).withMessage('كلمة المرور يجب أن تكون 6 أحرف على الأقل'),
+    body('role').isIn(['buyer', 'seller', 'driver']).withMessage('نوع الحساب غير صحيح')
+], validateRequest, async (req, res) => {
     try {
         const { name, email, phone, password, role, storeName, vehicleType } = req.body;
-
+        
+        logger.info(`📝 محاولة تسجيل جديد: ${email}`);
+        
         // التحقق من وجود المستخدم
-        const existingUser = await User.findOne({ email });
+        const existingUser = db.prepare(
+            'SELECT id FROM users WHERE email = ? OR phone = ?'
+        ).get(email, phone);
+        
         if (existingUser) {
-            return res.status(400).json({ message: 'البريد الإلكتروني مسجل مسبقاً' });
+            logger.warn(`❌ مستخدم موجود بالفعل: ${email}`);
+            return res.status(400).json({
+                success: false,
+                error: 'البريد الإلكتروني أو رقم الهاتف مستخدم بالفعل'
+            });
         }
-
-        // تشفير كلمة المرور
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        // إنشاء المستخدم
-        const user = new User({
+        
+        const hashedPassword = await helpers.hashPassword(password);
+        const createdAt = new Date().toISOString();
+        
+        // بدء معاملة
+        const insertUser = db.prepare(`
+            INSERT INTO users (name, email, phone, password, role, status, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, 'active', ?, ?)
+        `);
+        
+        const insertWallet = db.prepare(`
+            INSERT INTO wallets (user_id, balance, created_at, updated_at)
+            VALUES (?, 0, ?, ?)
+        `);
+        
+        const insertSeller = db.prepare(`
+            INSERT INTO sellers (user_id, store_name, rating, total_sales, created_at)
+            VALUES (?, ?, 0, 0, ?)
+        `);
+        
+        const insertDriver = db.prepare(`
+            INSERT INTO drivers (user_id, vehicle_type, rating, status, created_at)
+            VALUES (?, ?, 0, 'available', ?)
+        `);
+        
+        const insertNotification = db.prepare(`
+            INSERT INTO notifications (user_id, title, message, is_read, created_at)
+            VALUES (?, ?, ?, 0, ?)
+        `);
+        
+        // استخدام معاملة
+        const transaction = db.transaction(() => {
+            const userResult = insertUser.run(name, email, phone, hashedPassword, role, createdAt, createdAt);
+            const userId = userResult.lastInsertRowid;
+            
+            insertWallet.run(userId, createdAt, createdAt);
+            
+            if (role === 'seller' && storeName) {
+                insertSeller.run(userId, storeName, createdAt);
+            }
+            
+            if (role === 'driver' && vehicleType) {
+                insertDriver.run(userId, vehicleType, createdAt);
+            }
+            
+            insertNotification.run(userId, 'مرحباً بك!', 'تم إنشاء حسابك بنجاح في تطبيق قات PRO', createdAt);
+            
+            return userId;
+        });
+        
+        const userId = transaction();
+        
+        // تسجيل الدخول التلقائي
+        req.session.userId = userId;
+        req.session.role = role;
+        req.session.userEmail = email;
+        
+        const userData = {
+            id: userId,
             name,
             email,
             phone,
-            password: hashedPassword,
             role,
-            storeName: role === 'seller' ? storeName : '',
-            vehicleType: role === 'driver' ? vehicleType : ''
-        });
-
-        await user.save();
-
-        // إنشاء إشعار ترحيبي
-        await createNotification(
-            user._id,
-            'مرحباً بك في تطبيق قات PRO!',
-            'تم إنشاء حسابك بنجاح. يمكنك الآن بدء استخدام التطبيق.',
-            'system',
-            '/dashboard'
-        );
-
-        res.status(201).json({
-            message: 'تم إنشاء الحساب بنجاح',
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role
+            storeName: role === 'seller' ? storeName : undefined,
+            vehicleType: role === 'driver' ? vehicleType : undefined
+        };
+        
+        // إرسال بريد ترحيبي
+        if (emailService.transporter) {
+            try {
+                await emailService.sendWelcomeEmail(userData);
+            } catch (emailError) {
+                logger.error(`❌ خطأ في إرسال البريد الترحيبي: ${emailError.message}`);
             }
+        }
+        
+        // إرسال إشعار مباشر
+        notificationManager.sendNotification(userId, {
+            title: 'مرحباً بك!',
+            message: 'تم إنشاء حسابك بنجاح',
+            type: 'success',
+            timestamp: new Date().toISOString()
         });
+        
+        logger.info(`✅ تم إنشاء حساب جديد: ${email} (ID: ${userId})`);
+        
+        res.json({
+            success: true,
+            message: 'تم إنشاء الحساب بنجاح',
+            user: userData,
+            token: helpers.encrypt(userId.toString())
+        });
+        
     } catch (error) {
-        console.error('خطأ في التسجيل:', error);
-        res.status(500).json({ message: 'خطأ في الخادم' });
+        logger.error(`❌ خطأ في التسجيل: ${error.message}`);
+        res.status(500).json({
+            success: false,
+            error: 'حدث خطأ أثناء إنشاء الحساب',
+            details: IS_PRODUCTION ? undefined : error.message
+        });
     }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/login', [
+    body('email').trim().isEmail().withMessage('البريد الإلكتروني غير صحيح'),
+    body('password').notEmpty().withMessage('كلمة المرور مطلوبة')
+], validateRequest, async (req, res) => {
     try {
         const { email, password } = req.body;
-
-        // البحث عن المستخدم
-        const user = await User.findOne({ email });
+        
+        logger.info(`🔐 محاولة تسجيل دخول: ${email}`);
+        
+        const user = db.prepare(
+            'SELECT * FROM users WHERE email = ? AND status = "active"'
+        ).get(email);
+        
         if (!user) {
-            return res.status(401).json({ message: 'البريد الإلكتروني أو كلمة المرور غير صحيحة' });
+            logger.warn(`❌ مستخدم غير موجود: ${email}`);
+            return res.status(401).json({
+                success: false,
+                error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+            });
         }
-
-        if (!user.isActive) {
-            return res.status(403).json({ message: 'الحساب موقوف' });
-        }
-
-        // التحقق من كلمة المرور
-        const validPassword = await bcrypt.compare(password, user.password);
+        
+        const validPassword = await helpers.verifyPassword(password, user.password);
         if (!validPassword) {
-            return res.status(401).json({ message: 'البريد الإلكتروني أو كلمة المرور غير صحيحة' });
+            logger.warn(`❌ كلمة مرور خاطئة: ${email}`);
+            return res.status(401).json({
+                success: false,
+                error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+            });
         }
-
-        // إنشاء رمز الوصول
-        const token = jwt.sign(
-            { userId: user._id, role: user.role },
-            JWT_SECRET,
-            { expiresIn: '7d' }
-        );
-
+        
+        req.session.userId = user.id;
+        req.session.role = user.role;
+        req.session.userEmail = user.email;
+        
+        db.prepare(
+            'UPDATE users SET last_login = ? WHERE id = ?'
+        ).run(new Date().toISOString(), user.id);
+        
+        let additionalInfo = {};
+        if (user.role === 'seller') {
+            const sellerInfo = db.prepare(
+                'SELECT store_name, rating, total_sales FROM sellers WHERE user_id = ?'
+            ).get(user.id);
+            additionalInfo = sellerInfo || {};
+        } else if (user.role === 'driver') {
+            const driverInfo = db.prepare(
+                'SELECT vehicle_type, rating, status FROM drivers WHERE user_id = ?'
+            ).get(user.id);
+            additionalInfo = driverInfo || {};
+        }
+        
+        const wallet = db.prepare(
+            'SELECT balance FROM wallets WHERE user_id = ?'
+        ).get(user.id);
+        
+        const userData = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            role: user.role,
+            avatar: user.avatar,
+            ...additionalInfo,
+            balance: wallet ? wallet.balance : 0
+        };
+        
+        logger.info(`✅ تسجيل دخول ناجح: ${email} (ID: ${user.id})`);
+        
         res.json({
+            success: true,
             message: 'تم تسجيل الدخول بنجاح',
-            token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                balance: user.balance
+            user: userData,
+            token: helpers.encrypt(user.id.toString())
+        });
+        
+    } catch (error) {
+        logger.error(`❌ خطأ في تسجيل الدخول: ${error.message}`);
+        res.status(500).json({
+            success: false,
+            error: 'حدث خطأ أثناء تسجيل الدخول',
+            details: IS_PRODUCTION ? undefined : error.message
+        });
+    }
+});
+
+app.post('/api/logout', requireAuth, (req, res) => {
+    logger.info(`👋 تسجيل خروج: ${req.session.userEmail}`);
+    
+    req.session.destroy((err) => {
+        if (err) {
+            logger.error(`❌ خطأ في تسجيل الخروج: ${err.message}`);
+            return res.status(500).json({
+                success: false,
+                error: 'خطأ في تسجيل الخروج'
+            });
+        }
+        
+        res.json({
+            success: true,
+            message: 'تم تسجيل الخروج بنجاح'
+        });
+    });
+});
+
+app.get('/api/auth/check', (req, res) => {
+    if (req.session.userId) {
+        try {
+            const user = db.prepare(
+                'SELECT id, name, email, phone, role, avatar FROM users WHERE id = ?'
+            ).get(req.session.userId);
+            
+            if (!user) {
+                return res.json({ isAuthenticated: false });
+            }
+            res.json({ isAuthenticated: true, user });
+        } catch (error) {
+            logger.error(`❌ خطأ في التحقق من المصادقة: ${error.message}`);
+            res.json({ isAuthenticated: false });
+        }
+    } else {
+        res.json({ isAuthenticated: false });
+    }
+});
+
+// 🔄 الملف الشخصي
+app.get('/api/profile', requireAuth, async (req, res) => {
+    try {
+        const user = db.prepare(`
+            SELECT u.*, w.balance
+             FROM users u
+             LEFT JOIN wallets w ON u.id = w.user_id
+             WHERE u.id = ?
+        `).get(req.session.userId);
+        
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                error: 'المستخدم غير موجود'
+            });
+        }
+        
+        res.json({
+            success: true,
+            data: user
+        });
+    } catch (error) {
+        logger.error(`❌ خطأ في جلب الملف الشخصي: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+    }
+});
+
+app.put('/api/profile', requireAuth, [
+    body('name').optional().trim().notEmpty().withMessage('الاسم لا يمكن أن يكون فارغاً'),
+    body('phone').optional().trim().matches(/^[0-9]{9,15}$/).withMessage('رقم الهاتف غير صحيح')
+], validateRequest, async (req, res) => {
+    try {
+        const { name, phone } = req.body;
+        
+        db.prepare(
+            'UPDATE users SET name = ?, phone = ?, updated_at = ? WHERE id = ?'
+        ).run(name, phone, new Date().toISOString(), req.session.userId);
+        
+        logger.info(`📝 تم تحديث الملف الشخصي للمستخدم: ${req.session.userId}`);
+        
+        res.json({
+            success: true,
+            message: 'تم تحديث الملف الشخصي بنجاح'
+        });
+    } catch (error) {
+        logger.error(`❌ خطأ في تحديث الملف الشخصي: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+    }
+});
+
+app.post('/api/profile/avatar', requireAuth, upload.single('avatar'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                error: 'يرجى اختيار صورة'
+            });
+        }
+        
+        // معالجة الصورة
+        const processedImage = await imageProcessor.createThumbnail(req.file.buffer);
+        
+        // حفظ الصورة
+        const filename = `avatar_${req.session.userId}_${Date.now()}.webp`;
+        const avatarsDir = path.join(__dirname, 'uploads', 'avatars');
+        
+        if (!fs.existsSync(avatarsDir)) {
+            await fs.mkdir(avatarsDir, { recursive: true });
+        }
+        
+        const filepath = path.join(avatarsDir, filename);
+        await fs.writeFile(filepath, processedImage.buffer);
+        
+        // تحديث قاعدة البيانات
+        db.prepare(
+            'UPDATE users SET avatar = ? WHERE id = ?'
+        ).run(`/uploads/avatars/${filename}`, req.session.userId);
+        
+        logger.info(`🖼️ تم تحديث صورة الملف الشخصي للمستخدم: ${req.session.userId}`);
+        
+        res.json({
+            success: true,
+            message: 'تم تحديث الصورة بنجاح',
+            avatar: `/uploads/avatars/${filename}`
+        });
+    } catch (error) {
+        logger.error(`❌ خطأ في تحديث الصورة: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في تحديث الصورة' });
+    }
+});
+
+// 🏪 الأسواق
+app.get('/api/markets', async (req, res) => {
+    try {
+        logger.info('🏪 جلب قائمة الأسواق');
+        
+        const markets = db.prepare(`
+            SELECT m.*, 
+                    COUNT(DISTINCT p.id) as product_count,
+                    COUNT(DISTINCT s.user_id) as seller_count
+             FROM markets m
+             LEFT JOIN products p ON m.id = p.market_id AND p.status = 'active'
+             LEFT JOIN sellers s ON p.seller_id = s.user_id
+             WHERE m.status = 'active'
+             GROUP BY m.id
+             ORDER BY m.name
+        `).all();
+        
+        logger.info(`✅ تم جلب ${markets.length} سوق`);
+        
+        res.json({
+            success: true,
+            data: markets,
+            meta: {
+                count: markets.length,
+                timestamp: new Date().toISOString()
             }
         });
     } catch (error) {
-        console.error('خطأ في تسجيل الدخول:', error);
-        res.status(500).json({ message: 'خطأ في الخادم' });
+        logger.error(`❌ خطأ في جلب الأسواق: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في الخادم' });
     }
 });
 
-// 2. Routes المستخدمين
-app.get('/api/users/profile', authenticateToken, async (req, res) => {
+app.get('/api/markets/:id', async (req, res) => {
     try {
-        const user = await User.findById(req.user._id).select('-password');
-        res.json(user);
-    } catch (error) {
-        res.status(500).json({ message: 'خطأ في الخادم' });
-    }
-});
-
-app.put('/api/users/profile', authenticateToken, async (req, res) => {
-    try {
-        const updates = req.body;
+        const marketId = req.params.id;
         
-        // منع تحديث بعض الحقول
-        delete updates.password;
-        delete updates.email;
-        delete updates.balance;
-
-        const user = await User.findByIdAndUpdate(
-            req.user._id,
-            updates,
-            { new: true, runValidators: true }
-        ).select('-password');
-
+        logger.info(`🏪 جلب تفاصيل السوق: ${marketId}`);
+        
+        const market = db.prepare(`
+            SELECT m.*,
+                    COUNT(DISTINCT p.id) as product_count,
+                    COUNT(DISTINCT s.user_id) as seller_count
+             FROM markets m
+             LEFT JOIN products p ON m.id = p.market_id AND p.status = 'active'
+             LEFT JOIN sellers s ON p.seller_id = s.user_id
+             WHERE m.id = ? AND m.status = 'active'
+             GROUP BY m.id
+        `).get(marketId);
+        
+        if (!market) {
+            return res.status(404).json({
+                success: false,
+                error: 'السوق غير موجود'
+            });
+        }
+        
+        const topProducts = db.prepare(`
+            SELECT p.*, u.name as seller_name
+             FROM products p
+             LEFT JOIN users u ON p.seller_id = u.id
+             WHERE p.market_id = ? AND p.status = 'active'
+             ORDER BY p.created_at DESC
+             LIMIT 10
+        `).all(marketId);
+        
         res.json({
-            message: 'تم تحديث الملف الشخصي بنجاح',
-            user
+            success: true,
+            data: {
+                ...market,
+                top_products: topProducts
+            }
         });
     } catch (error) {
-        res.status(500).json({ message: 'خطأ في الخادم' });
+        logger.error(`❌ خطأ في جلب تفاصيل السوق: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في الخادم' });
     }
 });
 
-// 3. Routes المنتجات
+// 🛒 المنتجات
 app.get('/api/products', async (req, res) => {
     try {
-        const { category, minPrice, maxPrice, search, sellerId } = req.query;
-        const query = { isAvailable: true };
-
-        if (category) query.category = category;
-        if (sellerId) query.sellerId = sellerId;
-        if (minPrice || maxPrice) {
-            query.price = {};
-            if (minPrice) query.price.$gte = parseFloat(minPrice);
-            if (maxPrice) query.price.$lte = parseFloat(maxPrice);
+        const {
+            category,
+            market_id,
+            seller_id,
+            min_price,
+            max_price,
+            search,
+            sort_by = 'created_at',
+            sort_order = 'DESC',
+            page = 1,
+            limit = 20
+        } = req.query;
+        
+        logger.info(`🛒 جلب المنتجات: ${JSON.stringify(req.query)}`);
+        
+        let whereConditions = ["p.status = 'active'"];
+        const params = [];
+        
+        if (category) {
+            whereConditions.push('p.category = ?');
+            params.push(category);
         }
+        
+        if (market_id) {
+            whereConditions.push('p.market_id = ?');
+            params.push(market_id);
+        }
+        
+        if (seller_id) {
+            whereConditions.push('p.seller_id = ?');
+            params.push(seller_id);
+        }
+        
+        if (min_price) {
+            whereConditions.push('p.price >= ?');
+            params.push(min_price);
+        }
+        
+        if (max_price) {
+            whereConditions.push('p.price <= ?');
+            params.push(max_price);
+        }
+        
         if (search) {
-            query.$or = [
-                { name: { $regex: search, $options: 'i' } },
-                { description: { $regex: search, $options: 'i' } }
-            ];
+            whereConditions.push('(p.name LIKE ? OR p.description LIKE ?)');
+            const searchTerm = `%${search}%`;
+            params.push(searchTerm, searchTerm);
         }
-
-        const products = await Product.find(query)
-            .populate('sellerId', 'name storeName')
-            .sort({ createdAt: -1 });
-
-        res.json(products);
+        
+        const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
+        
+        let query = `
+            SELECT p.*, u.name as seller_name, u.avatar as seller_avatar,
+                   s.store_name, s.rating as seller_rating,
+                   m.name as market_name
+            FROM products p
+            LEFT JOIN users u ON p.seller_id = u.id
+            LEFT JOIN sellers s ON p.seller_id = s.user_id
+            LEFT JOIN markets m ON p.market_id = m.id
+            ${whereClause}
+        `;
+        
+        const countQuery = `SELECT COUNT(*) as total FROM products p ${whereClause}`;
+        const countResult = db.prepare(countQuery).get(...params);
+        const total = countResult.total;
+        
+        const validSortColumns = ['price', 'created_at', 'name'];
+        const sortColumn = validSortColumns.includes(sort_by) ? sort_by : 'created_at';
+        const order = sort_order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+        
+        query += ` ORDER BY p.${sortColumn} ${order}`;
+        
+        const offset = (page - 1) * limit;
+        query += ' LIMIT ? OFFSET ?';
+        params.push(parseInt(limit), offset);
+        
+        const products = db.prepare(query).all(...params);
+        
+        logger.info(`✅ تم جلب ${products.length} منتج من أصل ${total}`);
+        
+        res.json({
+            success: true,
+            data: products,
+            meta: {
+                total,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                pages: Math.ceil(total / limit),
+                timestamp: new Date().toISOString()
+            }
+        });
     } catch (error) {
-        console.error('خطأ في جلب المنتجات:', error);
-        res.status(500).json({ message: 'خطأ في الخادم' });
+        logger.error(`❌ خطأ في جلب المنتجات: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في الخادم' });
     }
 });
 
-app.post('/api/products', authenticateToken, async (req, res) => {
+app.get('/api/products/:id', async (req, res) => {
     try {
-        if (req.user.role !== 'seller') {
-            return res.status(403).json({ message: 'غير مسموح لك بإضافة منتجات' });
-        }
-
-        const product = new Product({
-            ...req.body,
-            sellerId: req.user._id
-        });
-
-        await product.save();
-
-        res.status(201).json({
-            message: 'تم إضافة المنتج بنجاح',
-            product
-        });
-    } catch (error) {
-        res.status(500).json({ message: 'خطأ في الخادم' });
-    }
-});
-
-app.put('/api/products/:id', authenticateToken, async (req, res) => {
-    try {
-        const product = await Product.findById(req.params.id);
+        const productId = req.params.id;
+        
+        logger.info(`🛒 جلب تفاصيل المنتج: ${productId}`);
+        
+        const product = db.prepare(`
+            SELECT p.*, u.name as seller_name, u.avatar as seller_avatar,
+                    u.phone as seller_phone, u.email as seller_email,
+                    s.store_name, s.rating as seller_rating, s.total_sales,
+                    m.name as market_name
+             FROM products p
+             LEFT JOIN users u ON p.seller_id = u.id
+             LEFT JOIN sellers s ON p.seller_id = s.user_id
+             LEFT JOIN markets m ON p.market_id = m.id
+             WHERE p.id = ? AND p.status = 'active'
+        `).get(productId);
         
         if (!product) {
-            return res.status(404).json({ message: 'المنتج غير موجود' });
-        }
-
-        // التحقق من ملكية المنتج
-        if (product.sellerId.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ message: 'غير مسموح لك بتعديل هذا المنتج' });
-        }
-
-        const updatedProduct = await Product.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true }
-        );
-
-        res.json({
-            message: 'تم تحديث المنتج بنجاح',
-            product: updatedProduct
-        });
-    } catch (error) {
-        res.status(500).json({ message: 'خطأ في الخادم' });
-    }
-});
-
-// 4. Routes الطلبات
-app.post('/api/orders', authenticateToken, async (req, res) => {
-    try {
-        if (req.user.role !== 'buyer') {
-            return res.status(403).json({ message: 'غير مسموح لك بإنشاء طلبات' });
-        }
-
-        const { products, deliveryAddress, paymentMethod, deliveryNotes } = req.body;
-
-        // حساب المبلغ الإجمالي والتأكد من توفر المنتجات
-        let totalAmount = 0;
-        const orderProducts = [];
-
-        for (const item of products) {
-            const product = await Product.findById(item.productId);
-            
-            if (!product || !product.isAvailable) {
-                return res.status(400).json({ 
-                    message: `المنتج ${product?.name || 'غير موجود'} غير متوفر` 
-                });
-            }
-
-            if (product.quantity < item.quantity) {
-                return res.status(400).json({ 
-                    message: `الكمية المطلوبة للمنتج ${product.name} غير متوفرة` 
-                });
-            }
-
-            totalAmount += product.price * item.quantity;
-            
-            orderProducts.push({
-                productId: product._id,
-                quantity: item.quantity,
-                price: product.price
+            return res.status(404).json({
+                success: false,
+                error: 'المنتج غير موجود'
             });
-
-            // تحديث كمية المنتج
-            product.quantity -= item.quantity;
-            if (product.quantity <= 0) {
-                product.isAvailable = false;
+        }
+        
+        const reviews = db.prepare(`
+            SELECT r.*, u.name as user_name, u.avatar as user_avatar
+             FROM reviews r
+             LEFT JOIN users u ON r.user_id = u.id
+             WHERE r.product_id = ?
+             ORDER BY r.created_at DESC
+             LIMIT 20
+        `).all(productId);
+        
+        const similarProducts = db.prepare(`
+            SELECT p.*, u.name as seller_name, s.store_name
+             FROM products p
+             LEFT JOIN users u ON p.seller_id = u.id
+             LEFT JOIN sellers s ON p.seller_id = s.user_id
+             WHERE p.category = ? AND p.id != ? AND p.status = 'active'
+             ORDER BY RANDOM()
+             LIMIT 6
+        `).all(product.category, productId);
+        
+        res.json({
+            success: true,
+            data: {
+                ...product,
+                reviews,
+                similar_products: similarProducts
             }
-            await product.save();
-        }
-
-        // الحصول على البائع (أول منتج في الطلب)
-        const firstProduct = await Product.findById(products[0].productId);
-        const sellerId = firstProduct.sellerId;
-
-        // إنشاء الطلب
-        const order = new Order({
-            orderNumber: generateOrderNumber(),
-            buyerId: req.user._id,
-            sellerId: sellerId,
-            products: orderProducts,
-            totalAmount,
-            deliveryAddress,
-            paymentMethod,
-            deliveryNotes,
-            estimatedDelivery: new Date(Date.now() + 24 * 60 * 60 * 1000) // بعد 24 ساعة
-        });
-
-        await order.save();
-
-        // إضافة المعاملة للمشتري
-        const transaction = new Transaction({
-            userId: req.user._id,
-            amount: -totalAmount,
-            type: 'payment',
-            orderId: order._id,
-            description: `دفع مقابل الطلب ${order.orderNumber}`,
-            balanceAfter: req.user.balance - totalAmount,
-            status: paymentMethod === 'cash' ? 'pending' : 'completed'
-        });
-        await transaction.save();
-
-        // تحديث رصيد المشتري (إذا لم تكن نقداً)
-        if (paymentMethod !== 'cash') {
-            req.user.balance -= totalAmount;
-            await req.user.save();
-        }
-
-        // إرسال إشعارات
-        await createNotification(
-            sellerId,
-            'طلب جديد',
-            `لديك طلب جديد برقم ${order.orderNumber}`,
-            'order',
-            `/orders/${order._id}`
-        );
-
-        await createNotification(
-            req.user._id,
-            'تم إنشاء الطلب',
-            `تم إنشاء طلبك برقم ${order.orderNumber} بنجاح`,
-            'order',
-            `/orders/${order._id}`
-        );
-
-        // إشعار للسائقين المتاحين عبر WebSocket
-        io.emit('new_order_available', {
-            orderId: order._id,
-            orderNumber: order.orderNumber,
-            totalAmount,
-            deliveryAddress
-        });
-
-        res.status(201).json({
-            message: 'تم إنشاء الطلب بنجاح',
-            order
         });
     } catch (error) {
-        console.error('خطأ في إنشاء الطلب:', error);
-        res.status(500).json({ message: 'خطأ في الخادم' });
+        logger.error(`❌ خطأ في جلب تفاصيل المنتج: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في الخادم' });
     }
 });
 
-app.get('/api/orders', authenticateToken, async (req, res) => {
+app.post('/api/products', requireAuth, requireSeller, [
+    body('name').trim().notEmpty().withMessage('اسم المنتج مطلوب'),
+    body('price').isFloat({ min: 1 }).withMessage('السعر يجب أن يكون رقم صحيح'),
+    body('category').trim().notEmpty().withMessage('الفئة مطلوبة'),
+    body('quantity').isInt({ min: 0 }).withMessage('الكمية يجب أن تكون رقم صحيح'),
+    body('market_id').isInt().withMessage('معرف السوق غير صحيح')
+], validateRequest, upload.single('image'), async (req, res) => {
     try {
-        let query = {};
+        const { name, description, price, category, quantity, market_id, specifications } = req.body;
         
-        switch (req.user.role) {
-            case 'buyer':
-                query.buyerId = req.user._id;
-                break;
-            case 'seller':
-                query.sellerId = req.user._id;
-                break;
-            case 'driver':
-                query.driverId = req.user._id;
-                break;
-        }
-
-        const orders = await Order.find(query)
-            .populate('buyerId', 'name phone')
-            .populate('sellerId', 'name storeName phone')
-            .populate('driverId', 'name phone vehicleType')
-            .populate('products.productId', 'name price')
-            .sort({ createdAt: -1 });
-
-        res.json(orders);
-    } catch (error) {
-        res.status(500).json({ message: 'خطأ في الخادم' });
-    }
-});
-
-app.put('/api/orders/:id/accept', authenticateToken, async (req, res) => {
-    try {
-        if (req.user.role !== 'driver') {
-            return res.status(403).json({ message: 'غير مسموح لك بقبول الطلبات' });
-        }
-
-        const order = await Order.findById(req.params.id);
+        logger.info(`➕ إضافة منتج جديد: ${name} بواسطة البائع ${req.session.userId}`);
         
-        if (!order) {
-            return res.status(404).json({ message: 'الطلب غير موجود' });
+        let imagePath = null;
+        if (req.file) {
+            const processedImage = await imageProcessor.processImage(req.file.buffer);
+            const filename = `product_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.webp`;
+            const productsDir = path.join(__dirname, 'uploads', 'products');
+            
+            if (!fs.existsSync(productsDir)) {
+                await fs.mkdir(productsDir, { recursive: true });
+            }
+            
+            const filepath = path.join(productsDir, filename);
+            await fs.writeFile(filepath, processedImage.buffer);
+            imagePath = `/uploads/products/${filename}`;
         }
-
-        if (order.status !== 'confirmed') {
-            return res.status(400).json({ message: 'الطلب غير جاهز للتسليم' });
-        }
-
-        order.driverId = req.user._id;
-        order.status = 'on_the_way';
-        await order.save();
-
-        // إشعارات
-        await createNotification(
-            order.buyerId,
-            'مندوب التوصيل في الطريق',
-            `مندوب التوصيل ${req.user.name} في طريقه إليك`,
-            'order',
-            `/orders/${order._id}`
-        );
-
-        await createNotification(
-            order.sellerId,
-            'بدء التوصيل',
-            `بدأ مندوب التوصيل ${req.user.name} توصيل الطلب ${order.orderNumber}`,
-            'order',
-            `/orders/${order._id}`
-        );
-
+        
+        const productData = {
+            seller_id: req.session.userId,
+            market_id,
+            name,
+            description: description || '',
+            price: parseFloat(price),
+            image: imagePath,
+            category,
+            quantity: parseInt(quantity),
+            specifications: specifications || '',
+            status: 'active',
+            created_at: new Date().toISOString()
+        };
+        
+        const result = db.prepare(`
+            INSERT INTO products 
+             (seller_id, market_id, name, description, price, image, category, quantity, specifications, status, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(Object.values(productData));
+        
+        const productId = result.lastInsertRowid;
+        
+        logger.info(`✅ تم إضافة المنتج بنجاح: ${productId}`);
+        
+        notificationManager.sendNotification(req.session.userId, {
+            title: 'تم إضافة منتج جديد',
+            message: `تمت إضافة المنتج "${name}" بنجاح`,
+            type: 'success',
+            timestamp: new Date().toISOString()
+        });
+        
         res.json({
-            message: 'تم قبول الطلب بنجاح',
-            order
+            success: true,
+            message: 'تم إضافة المنتج بنجاح',
+            data: { id: productId, ...productData }
         });
     } catch (error) {
-        res.status(500).json({ message: 'خطأ في الخادم' });
+        logger.error(`❌ خطأ في إضافة المنتج: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في إضافة المنتج' });
     }
 });
 
-// 5. Routes المحفظة
-app.get('/api/wallet/balance', authenticateToken, async (req, res) => {
+// 💰 المحفظة والمعاملات
+app.get('/api/wallet', requireAuth, async (req, res) => {
     try {
-        const user = await User.findById(req.user._id).select('balance');
-        res.json({ balance: user.balance });
-    } catch (error) {
-        res.status(500).json({ message: 'خطأ في الخادم' });
-    }
-});
-
-app.get('/api/wallet/transactions', authenticateToken, async (req, res) => {
-    try {
-        const transactions = await Transaction.find({ userId: req.user._id })
-            .sort({ createdAt: -1 })
-            .limit(50);
-
-        res.json(transactions);
-    } catch (error) {
-        res.status(500).json({ message: 'خطأ في الخادم' });
-    }
-});
-
-app.post('/api/wallet/deposit', authenticateToken, async (req, res) => {
-    try {
-        const { amount, method } = req.body;
-
-        if (amount <= 0) {
-            return res.status(400).json({ message: 'المبلغ يجب أن يكون أكبر من صفر' });
+        const wallet = db.prepare(`
+            SELECT w.*, u.name as user_name
+             FROM wallets w
+             LEFT JOIN users u ON w.user_id = u.id
+             WHERE w.user_id = ?
+        `).get(req.session.userId);
+        
+        if (!wallet) {
+            const result = db.prepare(
+                'INSERT INTO wallets (user_id, balance, created_at, updated_at) VALUES (?, 0, ?, ?)'
+            ).run(req.session.userId, new Date().toISOString(), new Date().toISOString());
+            
+            res.json({
+                success: true,
+                data: {
+                    id: result.lastInsertRowid,
+                    user_id: req.session.userId,
+                    balance: 0,
+                    created_at: new Date().toISOString()
+                }
+            });
+        } else {
+            const transactions = db.prepare(`
+                SELECT * FROM transactions 
+                 WHERE user_id = ? 
+                 ORDER BY created_at DESC 
+                 LIMIT 10
+            `).all(req.session.userId);
+            
+            res.json({
+                success: true,
+                data: {
+                    ...wallet,
+                    transactions
+                }
+            });
         }
+    } catch (error) {
+        logger.error(`❌ خطأ في جلب المحفظة: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+    }
+});
 
-        // تحديث الرصيد
-        req.user.balance += amount;
-        await req.user.save();
-
-        // تسجيل المعاملة
-        const transaction = new Transaction({
-            userId: req.user._id,
-            amount,
+app.post('/api/wallet/topup', requireAuth, [
+    body('amount').isFloat({ min: 1000 }).withMessage('المبلغ يجب أن يكون 1000 ريال على الأقل'),
+    body('method').isIn(['manual', 'wallet']).withMessage('طريقة الدفع غير صحيحة'),
+    body('wallet_type').optional().isString()
+], validateRequest, async (req, res) => {
+    try {
+        const { amount, method, wallet_type } = req.body;
+        
+        logger.info(`💰 طلب شحن رصيد: ${amount} ريال للمستخدم ${req.session.userId}`);
+        
+        const transactionId = helpers.generateTransactionId();
+        const transactionData = {
+            user_id: req.session.userId,
+            amount: parseFloat(amount),
             type: 'deposit',
-            description: `إيداع عبر ${method}`,
-            balanceAfter: req.user.balance,
-            status: 'completed'
-        });
-        await transaction.save();
-
-        // إشعار
-        await createNotification(
-            req.user._id,
-            'تم الإيداع بنجاح',
-            `تم إيداع ${amount} ريال إلى محفظتك`,
-            'payment'
-        );
-
-        res.json({
-            message: 'تم الإيداع بنجاح',
-            newBalance: req.user.balance,
-            transaction
-        });
-    } catch (error) {
-        res.status(500).json({ message: 'خطأ في الخادم' });
-    }
-});
-
-// 6. Routes الإشعارات
-app.get('/api/notifications', authenticateToken, async (req, res) => {
-    try {
-        const notifications = await Notification.find({ userId: req.user._id })
-            .sort({ createdAt: -1 })
-            .limit(20);
-
-        res.json(notifications);
-    } catch (error) {
-        res.status(500).json({ message: 'خطأ في الخادم' });
-    }
-});
-
-app.put('/api/notifications/:id/read', authenticateToken, async (req, res) => {
-    try {
-        await Notification.findByIdAndUpdate(req.params.id, { isRead: true });
-        res.json({ message: 'تم تحديث حالة الإشعار' });
-    } catch (error) {
-        res.status(500).json({ message: 'خطأ في الخادم' });
-    }
-});
-
-app.put('/api/notifications/read-all', authenticateToken, async (req, res) => {
-    try {
-        await Notification.updateMany(
-            { userId: req.user._id, isRead: false },
-            { isRead: true }
-        );
-        res.json({ message: 'تم تحديد جميع الإشعارات كمقروءة' });
-    } catch (error) {
-        res.status(500).json({ message: 'خطأ في الخادم' });
-    }
-});
-
-// 7. Routes الإحصائيات
-app.get('/api/stats/dashboard', authenticateToken, async (req, res) => {
-    try {
-        const user = req.user;
-        let stats = {};
-
-        switch (user.role) {
-            case 'seller':
-                stats = {
-                    totalProducts: await Product.countDocuments({ sellerId: user._id }),
-                    availableProducts: await Product.countDocuments({ 
-                        sellerId: user._id, 
-                        isAvailable: true 
-                    }),
-                    totalOrders: await Order.countDocuments({ sellerId: user._id }),
-                    pendingOrders: await Order.countDocuments({ 
-                        sellerId: user._id, 
-                        status: 'pending' 
-                    }),
-                    monthlyRevenue: await Order.aggregate([
-                        { 
-                            $match: { 
-                                sellerId: user._id,
-                                status: 'delivered',
-                                createdAt: { 
-                                    $gte: new Date(new Date().setDate(new Date().getDate() - 30))
-                                }
-                            }
-                        },
-                        { $group: { _id: null, total: { $sum: '$totalAmount' } } }
-                    ])
-                };
-                break;
-
-            case 'buyer':
-                stats = {
-                    totalOrders: await Order.countDocuments({ buyerId: user._id }),
-                    pendingOrders: await Order.countDocuments({ 
-                        buyerId: user._id, 
-                        status: { $in: ['pending', 'confirmed', 'on_the_way'] } 
-                    }),
-                    totalSpent: await Order.aggregate([
-                        { 
-                            $match: { 
-                                buyerId: user._id,
-                                status: 'delivered'
-                            }
-                        },
-                        { $group: { _id: null, total: { $sum: '$totalAmount' } } }
-                    ])
-                };
-                break;
-
-            case 'driver':
-                stats = {
-                    deliveredOrders: await Order.countDocuments({ 
-                        driverId: user._id, 
-                        status: 'delivered' 
-                    }),
-                    pendingDeliveries: await Order.countDocuments({ 
-                        driverId: user._id, 
-                        status: 'on_the_way' 
-                    }),
-                    totalEarnings: await Order.aggregate([
-                        { 
-                            $match: { 
-                                driverId: user._id,
-                                status: 'delivered'
-                            }
-                        },
-                        { $group: { _id: null, total: { $sum: { $multiply: ['$totalAmount', 0.1] } } } }
-                    ])
-                };
-                break;
+            method: method || 'manual',
+            wallet_type: wallet_type || '',
+            transaction_id: transactionId,
+            status: method === 'wallet' ? 'completed' : 'pending',
+            created_at: new Date().toISOString()
+        };
+        
+        const result = db.prepare(`
+            INSERT INTO transactions 
+             (user_id, amount, type, method, wallet_type, transaction_id, status, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(Object.values(transactionData));
+        
+        if (method === 'wallet') {
+            db.prepare(
+                'UPDATE wallets SET balance = balance + ? WHERE user_id = ?'
+            ).run(amount, req.session.userId);
+            
+            db.prepare(
+                'UPDATE transactions SET status = "completed" WHERE id = ?'
+            ).run(result.lastInsertRowid);
+            
+            logger.info(`✅ تم شحن الرصيد بنجاح: ${amount} ريال للمستخدم ${req.session.userId}`);
+            
+            notificationManager.sendNotification(req.session.userId, {
+                title: 'تم شحن الرصيد',
+                message: `تم شحن ${helpers.formatCurrency(amount)} إلى محفظتك`,
+                type: 'success',
+                timestamp: new Date().toISOString()
+            });
+            
+            const newBalance = db.prepare(
+                'SELECT balance FROM wallets WHERE user_id = ?'
+            ).get(req.session.userId).balance;
+            
+            res.json({
+                success: true,
+                message: 'تم شحن الرصيد بنجاح',
+                data: {
+                    transaction_id: transactionId,
+                    amount,
+                    new_balance: newBalance
+                }
+            });
+        } else {
+            logger.info(`⏳ طلب شحن يدوي بانتظار الموافقة: ${transactionId}`);
+            
+            res.json({
+                success: true,
+                message: 'تم تقديم طلب الشحن بنجاح. سيتم إضافة الرصيد بعد التحقق من التحويل.',
+                data: {
+                    transaction_id: transactionId,
+                    amount,
+                    instructions: {
+                        transfer_to: '771831482',
+                        name: 'يوسف محمد علي حمود زهير',
+                        note: 'أرسل إيصال التحويل عبر الواتساب'
+                    }
+                }
+            });
         }
-
-        res.json(stats);
     } catch (error) {
-        console.error('خطأ في جلب الإحصائيات:', error);
-        res.status(500).json({ message: 'خطأ في الخادم' });
+        logger.error(`❌ خطأ في شحن الرصيد: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في شحن الرصيد' });
     }
 });
 
-// 8. Routes إضافية
-app.get('/api/categories', async (req, res) => {
+// 🛍️ الطلبات
+app.get('/api/orders', requireAuth, async (req, res) => {
     try {
-        const categories = await Product.distinct('category');
-        res.json(categories);
+        const { status, page = 1, limit = 10 } = req.query;
+        
+        let whereConditions = ['o.buyer_id = ?'];
+        const params = [req.session.userId];
+        
+        if (status) {
+            whereConditions.push('o.status = ?');
+            params.push(status);
+        }
+        
+        const whereClause = 'WHERE ' + whereConditions.join(' AND ');
+        
+        let query = `
+            SELECT o.*, u.name as buyer_name, u.phone as buyer_phone,
+                   d.user_id as driver_id, du.name as driver_name,
+                   COUNT(oi.id) as item_count,
+                   SUM(oi.total_price) as items_total
+            FROM orders o
+            LEFT JOIN users u ON o.buyer_id = u.id
+            LEFT JOIN drivers d ON o.driver_id = d.id
+            LEFT JOIN users du ON d.user_id = du.id
+            LEFT JOIN order_items oi ON o.id = oi.order_id
+            ${whereClause}
+            GROUP BY o.id ORDER BY o.created_at DESC
+        `;
+        
+        const countQuery = `SELECT COUNT(DISTINCT o.id) as total FROM orders o ${whereClause}`;
+        const countResult = db.prepare(countQuery).get(...params);
+        const total = countResult.total;
+        
+        const offset = (page - 1) * limit;
+        query += ' LIMIT ? OFFSET ?';
+        params.push(parseInt(limit), offset);
+        
+        const orders = db.prepare(query).all(...params);
+        
+        for (let order of orders) {
+            const items = db.prepare(`
+                SELECT oi.*, p.name as product_name, p.image as product_image,
+                        u.name as seller_name
+                 FROM order_items oi
+                 LEFT JOIN products p ON oi.product_id = p.id
+                 LEFT JOIN users u ON oi.seller_id = u.id
+                 WHERE oi.order_id = ?
+            `).all(order.id);
+            order.items = items;
+        }
+        
+        res.json({
+            success: true,
+            data: orders,
+            meta: {
+                total,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                pages: Math.ceil(total / limit)
+            }
+        });
     } catch (error) {
-        res.status(500).json({ message: 'خطأ في الخادم' });
+        logger.error(`❌ خطأ في جلب الطلبات: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في الخادم' });
     }
 });
 
-app.get('/api/drivers/available', authenticateToken, async (req, res) => {
+app.post('/api/orders', requireAuth, requireBuyer, [
+    body('items').isArray({ min: 1 }).withMessage('يجب اختيار منتج واحد على الأقل'),
+    body('shipping_address').trim().notEmpty().withMessage('عنوان التوصيل مطلوب'),
+    body('payment_method').isIn(['wallet', 'cash']).withMessage('طريقة الدفع غير صحيحة'),
+    body('wash_qat').optional().isBoolean().withMessage('قيمة غسيل القات غير صحيحة')
+], validateRequest, async (req, res) => {
     try {
-        const drivers = await User.find({ 
-            role: 'driver', 
-            isActive: true 
-        }).select('name phone vehicleType');
-
-        res.json(drivers);
-    } catch (error) {
-        res.status(500).json({ message: 'خطأ في الخادم' });
-    }
-});
-
-// صفحة الواجهة الرئيسية
-app.get('*', (req, res) => {
-    res.sendFile(__dirname + '/public/index.html');
-});
-
-// بدء الخادم
-server.listen(PORT, () => {
-    console.log(`🚀 الخادم يعمل على: http://localhost:${PORT}`);
-    console.log(`📡 WebSocket جاهز للاتصالات`);
-});
-
-// معالجة الأخطاء غير المتوقعة
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('❌ رفض غير معالج:', reason);
-});
-
-process.on('uncaughtException', (error) => {
-    console.error('❌ استثناء غير معالج:', error);
-});
+        const { items, shipping_address, payment_method, wash_qat = false } = req.body;
+        
+        logger.info(`🛍️ إنشاء طلب جديد بواسطة المشتري ${req.session.userId}`);
+        
+        let totalAmount = 0;
+        const orderItems = [];
+        
+        for (const item of items) {
+            const product = db.prepare(
+                'SELECT * FROM products WHERE id = ? AND status = "active"'
+            ).get(item.product_id);
+            
+            if (!product) {
+                return res.status(400).json({
+                    success: false,
+                    error: `المنتج ${item.product_id} غير موجود`
+                });
+            }
+            
+            if (product.quantity < item.quantity) {
+                return res.status(400).json({
+                    success: false,
+                    error: `الكمية غير متوفرة للمنتج ${product.name}`
+                });
+            }
+            
+            const itemTotal = product.price * item.quantity;
+            totalAmount += itemTotal;
+            
+            orderItems.push({
+                product_id: product.id,
+                seller_id: product.seller_id,
+                quantity: item.quantity,
+                unit_price: product.price,
+                total_price: itemTotal,
+                product_name: product.name
+            });
+        }
+        
+        if (wash_qat) {
+            totalAmount += 100;
+        }
+        
+        if (payment_method === 'wallet') {
+            const wallet = db.prepare(
+                'SELECT balance FROM wallets WHERE user_id = ?'
+            ).get(req.session.userId);
+            
+            if (!wallet || wallet.balance < totalAmount) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'رصيد المحفظة غير كافي'
+                });
+            }
+        }
+        
+        const orderCode = helpers.generateOrderCode();
+        const orderData = {
+            buyer_id: req.session.userId,
+            total: totalAmount,
+            shipping_address,
+            payment_method,
+            wash_qat: wash_qat ? 1 : 0,
+            status: payment_method === 'wallet' ? 'paid' : 'pending',
+            order_code: orderCode,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
+        
+        const insertOrder = db.prepare(`
+            INSERT INTO orders 
+             (buyer_id, total, shipping_address, payment_method, wash_qat, status, order_code, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        
+        const insertOrderItem = db.prepare(`
+            INSERT INTO order_items 
+             (order_id, product_id, seller_id, quantity, unit_price, total_price)
+             VALUES (?, ?, ?, ?, ?, ?)
+        `);
+        
+        const updateProduct = db.prepare(`
+            UPDATE products SET quantity = quantity - ? WHERE id = ?
+        `);
+        
+        const updateWallet = db.prepare(`
+            UPDATE wallets SET balance = balance - ? WHERE user_id = ?
+        `);
+        
+        const insertTransaction = db.prepare(`
+            INSERT INTO transactions 
+             (user_id, amount, type, method, status, created_at)
+             VALUES (?, ?, 'purchase', 'wallet', 'completed', ?)
+        `);
+        
+        const insertWashOrder = db.prepare(`
+            INSERT INTO wash_orders 
+             (order_id, wash_station_id, status, created_at)
+             VALUES (?, ?, 'pending', ?)
+        `);
+        
+        const transaction = db.transaction(() => {
+            const orderResult = insertOrder.run(...Object.values(orderData));
+            const
