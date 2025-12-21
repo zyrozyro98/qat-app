@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سوق القات المركزي - تطبيق قات PRO</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/products.css">
+    <link rel="stylesheet" href="/css/responsive.css">
+    
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS (for maps) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <!-- Header -->
+    <header class="market-detail-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/pages/markets.html" class="back-btn">
+                    <i class="fas fa-arrow-right"></i>
+                    رجوع للأسواق
+                </a>
+                <div class="header-actions">
+                    <button class="btn-icon share-btn">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                    <button class="btn-icon report-btn">
+                        <i class="fas fa-flag"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Market Hero -->
+    <section class="market-hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="market-logo">
+                    <img src="/assets/images/market-placeholder.jpg" alt="سوق القات المركزي">
+                    <span class="verified-badge">
+                        <i class="fas fa-check-circle"></i>
+                        موثوق
+                    </span>
+                </div>
+                
+                <div class="market-info">
+                    <h1 class="market-title">سوق القات المركزي</h1>
+                    <div class="market-meta">
+                        <div class="rating">
+                            <div class="stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                                <span class="rating-value">4.8</span>
+                            </div>
+                            <span class="reviews">(245 تقييم)</span>
+                        </div>
+                        <div class="location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>الرياض، السعودية</span>
+                        </div>
+                        <div class="status open">
+                            <i class="fas fa-circle"></i>
+                            <span>مفتوح الآن</span>
+                        </div>
+                    </div>
+                    
+                    <div class="market-stats">
+                        <div class="stat">
+                            <i class="fas fa-store"></i>
+                            <div>
+                                <span class="value">15</span>
+                                <span class="label">متجر</span>
+                            </div>
+                        </div>
+                        <div class="stat">
+                            <i class="fas fa-box"></i>
+                            <div>
+                                <span class="value">500+</span>
+                                <span class="label">منتج</span>
+                            </div>
+                        </div>
+                        <div class="stat">
+                            <i class="fas fa-users"></i>
+                            <div>
+                                <span class="value">2,500+</span>
+                                <span class="label">عميل</span>
+                            </div>
+                        </div>
+                        <div class="stat">
+                            <i class="fas fa-calendar-alt"></i>
+                            <div>
+                                <span class="value">2018</span>
+                                <span class="label">سنة التأسيس</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="market-actions">
+                        <button class="btn-follow">
+                            <i class="far fa-heart"></i>
+                            متابعة السوق
+                        </button>
+                        <button class="btn-contact">
+                            <i class="fas fa-phone"></i>
+                            اتصل بنا
+                        </button>
+                        <button class="btn-share">
+                            <i class="fas fa-share"></i>
+                            مشاركة
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Market Navigation -->
+    <nav class="market-nav">
+        <div class="container">
+            <ul class="nav-links">
+                <li class="active"><a href="#overview">نظرة عامة</a></li>
+                <li><a href="#products">المنتجات</a></li>
+                <li><a href="#sellers">البائعين</a></li>
+                <li><a href="#reviews">التقييمات</a></li>
+                <li><a href="#location">الموقع</a></li>
+                <li><a href="#policies">السياسات</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="market-detail-content">
+        <div class="container">
+            <div class="content-wrapper">
+                <!-- Left Column -->
+                <div class="content-left">
+                    <!-- Overview -->
+                    <section id="overview" class="market-section">
+                        <h2 class="section-title">نظرة عامة</h2>
+                        <div class="overview-content">
+                            <p class="market-description">
+                                سوق القات المركزي هو أكبر وأشهر سوق للقات في المملكة العربية السعودية. 
+                                تم تأسيسه عام 2018 ويضم أكثر من 15 متجراً متخصصاً في بيع مختلف أنواع القات.
+                            </p>
+                            
+                            <div class="features">
+                                <h3>المميزات:</h3>
+                                <ul>
+                                    <li><i class="fas fa-check"></i> أكبر تشكيلة من أنواع القات</li>
+                                    <li><i class="fas fa-check"></i> جودة عالية وضمان المنتج</li>
+                                    <li><i class="fas fa-check"></i> أسعار تنافسية</li>
+                                    <li><i class="fas fa-check"></i> توصيل سريع داخل الرياض</li>
+                                    <li><i class="fas fa-check"></i> خدمة عملاء 24/7</li>
+                                    <li><i class="fas fa-check"></i> إرجاع واستبدال مجاني</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="working-hours">
+                                <h3>أوقات العمل:</h3>
+                                <div class="hours-table">
+                                    <div class="day">
+                                        <span>السبت - الخميس:</span>
+                                        <span>8:00 ص - 12:00 ص</span>
+                                    </div>
+                                    <div class="day">
+                                        <span>الجمعة:</span>
+                                        <span>4:00 م - 12:00 ص</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Featured Products -->
+                    <section id="products" class="market-section">
+                        <div class="section-header">
+                            <h2 class="section-title">المنتجات المميزة</h2>
+                            <a href="#" class="view-all">عرض الكل</a>
+                        </div>
+                        
+                        <div class="products-grid">
+                            <!-- Product 1 -->
+                            <div class="product-card">
+                                <div class="product-image">
+                                    <img src="/assets/images/default-product.jpg" alt="منتج">
+                                </div>
+                                <div class="product-content">
+                                    <h4 class="product-title">قات يماني ممتاز</h4>
+                                    <div class="product-price">250 ريال</div>
+                                    <div class="product-rating">
+                                        <i class="fas fa-star"></i>
+                                        <span>4.8</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Product 2 -->
+                            <div class="product-card">
+                                <div class="product-image">
+                                    <img src="/assets/images/default-product.jpg" alt="منتج">
+                                </div>
+                                <div class="product-content">
+                                    <h4 class="product-title">قات حضرمي</h4>
+                                    <div class="product-price">200 ريال</div>
+                                    <div class="product-rating">
+                                        <i class="fas fa-star"></i>
+                                        <span>4.6</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Product 3 -->
+                            <div class="product-card">
+                                <div class="product-image">
+                                    <img src="/assets/images/default-product.jpg" alt="منتج">
+                                </div>
+                                <div class="product-content">
+                                    <h4 class="product-title">قات سعودي</h4>
+                                    <div class="product-price">180 ريال</div>
+                                    <div class="product-rating">
+                                        <i class="fas fa-star"></i>
+                                        <span>4.5</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Sellers -->
+                    <section id="sellers" class="market-section">
+                        <div class="section-header">
+                            <h2 class="section-title">أفضل البائعين</h2>
+                            <a href="#" class="view-all">عرض الكل</a>
+                        </div>
+                        
+                        <div class="sellers-list">
+                            <!-- Seller 1 -->
+                            <div class="seller-card">
+                                <div class="seller-avatar">
+                                    <img src="/assets/images/default-avatar.png" alt="بائع">
+                                </div>
+                                <div class="seller-info">
+                                    <h4>مزارع اليمن</h4>
+                                    <div class="seller-rating">
+                                        <i class="fas fa-star"></i>
+                                        <span>4.9</span>
+                                        <span class="reviews">(124)</span>
+                                    </div>
+                                    <p class="seller-specialty">متخصص في القات اليمني</p>
+                                </div>
+                                <button class="btn-follow-seller">متابعة</button>
+                            </div>
+                            
+                            <!-- Seller 2 -->
+                            <div class="seller-card">
+                                <div class="seller-avatar">
+                                    <img src="/assets/images/default-avatar.png" alt="بائع">
+                                </div>
+                                <div class="seller-info">
+                                    <h4>قات السعودية</h4>
+                                    <div class="seller-rating">
+                                        <i class="fas fa-star"></i>
+                                        <span>4.8</span>
+                                        <span class="reviews">(98)</span>
+                                    </div>
+                                    <p class="seller-specialty">متخصص في القات السعودي</p>
+                                </div>
+                                <button class="btn-follow-seller">متابعة</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Reviews -->
+                    <section id="reviews" class="market-section">
+                        <h2 class="section-title">آراء العملاء (245)</h2>
+                        
+                        <div class="reviews-summary">
+                            <div class="average-rating">
+                                <div class="rating-number">4.8</div>
+                                <div class="rating-stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                </div>
+                                <p>بناءً على 245 تقييم</p>
+                            </div>
+                            
+                            <div class="rating-bars">
+                                <div class="rating-bar">
+                                    <span>5 نجوم</span>
+                                    <div class="bar">
+                                        <div class="fill" style="width: 65%"></div>
+                                    </div>
+                                    <span>65%</span>
+                                </div>
+                                <div class="rating-bar">
+                                    <span>4 نجوم</span>
+                                    <div class="bar">
+                                        <div class="fill" style="width: 25%"></div>
+                                    </div>
+                                    <span>25%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="reviews-list">
+                            <!-- Review 1 -->
+                            <div class="review-item">
+                                <div class="reviewer-info">
+                                    <img src="/assets/images/default-avatar.png" alt="مستخدم">
+                                    <div>
+                                        <h4>أحمد محمد</h4>
+                                        <div class="review-rating">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="review-text">
+                                    سوق ممتاز وجميل، التنظيم والخدمة رائعة. 
+                                    المنتجات طازجة والسعر مناسب.
+                                </p>
+                                <span class="review-date">قبل 3 أيام</span>
+                            </div>
+                            
+                            <!-- Review 2 -->
+                            <div class="review-item">
+                                <div class="reviewer-info">
+                                    <img src="/assets/images/default-avatar.png" alt="مستخدم">
+                                    <div>
+                                        <h4>سالم علي</h4>
+                                        <div class="review-rating">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star-half-alt"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="review-text">
+                                    تجربة رائعة، التوصيل كان سريعاً والمنتج ممتاز.
+                                    أنصح الجميع بالتسوق من هذا السوق.
+                                </p>
+                                <span class="review-date">قبل أسبوع</span>
+                            </div>
+                        </div>
+                        
+                        <button class="btn-load-more">عرض المزيد من التقييمات</button>
+                    </section>
+                </div>
+
+                <!-- Right Column -->
+                <div class="content-right">
+                    <!-- Contact Info -->
+                    <div class="info-card">
+                        <h3 class="card-title">معلومات الاتصال</h3>
+                        <div class="contact-info">
+                            <div class="contact-item">
+                                <i class="fas fa-phone"></i>
+                                <div>
+                                    <span class="label">الهاتف:</span>
+                                    <a href="tel:+966500000000">+966 50 000 0000</a>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <div>
+                                    <span class="label">البريد الإلكتروني:</span>
+                                    <a href="mailto:info@qatmarket.com">info@qatmarket.com</a>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fas fa-globe"></i>
+                                <div>
+                                    <span class="label">الموقع الإلكتروني:</span>
+                                    <a href="https://qatmarket.com" target="_blank">qatmarket.com</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location -->
+                    <div id="location" class="info-card">
+                        <h3 class="card-title">الموقع</h3>
+                        <div class="location-map" id="marketMap">
+                            <!-- Map will be loaded here -->
+                        </div>
+                        <div class="location-address">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>الرياض - شارع الملك فهد - مقابل مول الرياض</span>
+                        </div>
+                    </div>
+
+                    <!-- Policies -->
+                    <div id="policies" class="info-card">
+                        <h3 class="card-title">سياسات السوق</h3>
+                        <div class="policies-list">
+                            <div class="policy-item">
+                                <i class="fas fa-shipping-fast"></i>
+                                <div>
+                                    <h4>الشحن والتوصيل</h4>
+                                    <p>توصيل مجاني للطلبات فوق 500 ريال</p>
+                                </div>
+                            </div>
+                            <div class="policy-item">
+                                <i class="fas fa-undo"></i>
+                                <div>
+                                    <h4>الإرجاع والاستبدال</h4>
+                                    <p>إرجاع مجاني خلال 7 أيام</p>
+                                </div>
+                            </div>
+                            <div class="policy-item">
+                                <i class="fas fa-shield-alt"></i>
+                                <div>
+                                    <h4>الضمان</h4>
+                                    <p>ضمان جودة المنتج 100%</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Social Media -->
+                    <div class="info-card">
+                        <h3 class="card-title">وسائل التواصل الاجتماعي</h3>
+                        <div class="social-links">
+                            <a href="#" class="social-link twitter">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a href="#" class="social-link instagram">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="#" class="social-link whatsapp">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="market-detail-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-cta">
+                    <h3>تسوق الآن من سوق القات المركزي</h3>
+                    <p>احصل على أفضل المنتجات بأفضل الأسعار</p>
+                    <a href="#products" class="btn-shop-now">
+                        <i class="fas fa-shopping-cart"></i>
+                        ابدأ التسوق
+                    </a>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>© 2024 سوق القات المركزي. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/js/app.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize map
+            const map = L.map('marketMap').setView([24.7136, 46.6753], 15);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            L.marker([24.7136, 46.6753])
+                .addTo(map)
+                .bindPopup('سوق القات المركزي')
+                .openPopup();
+
+            // Navigation scroll
+            const navLinks = document.querySelectorAll('.nav-links a');
+            const sections = document.querySelectorAll('.market-section, .info-card');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetSection = document.getElementById(targetId);
+                    
+                    if (targetSection) {
+                        window.scrollTo({
+                            top: targetSection.offsetTop - 100,
+                            behavior: 'smooth'
+                        });
+                    }
+                    
+                    // Update active nav link
+                    navLinks.forEach(l => l.parentElement.classList.remove('active'));
+                    this.parentElement.classList.add('active');
+                });
+            });
+
+            // Follow buttons
+            const followBtns = document.querySelectorAll('.btn-follow, .btn-follow-seller');
+            followBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const icon = this.querySelector('i');
+                    if (icon.classList.contains('far')) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        this.style.backgroundColor = '#F44336';
+                        this.innerHTML = '<i class="fas fa-heart"></i> متبوع';
+                        alert('تمت المتابعة بنجاح');
+                    } else {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        this.style.backgroundColor = '';
+                        this.innerHTML = '<i class="far fa-heart"></i> متابعة';
+                        alert('تم إلغاء المتابعة');
+                    }
+                });
+            });
+
+            // Share button
+            const shareBtn = document.querySelector('.btn-share');
+            shareBtn.addEventListener('click', function() {
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'سوق القات المركزي',
+                        text: 'اكتشف أفضل أسواق القات على تطبيق قات PRO',
+                        url: window.location.href
+                    });
+                } else {
+                    alert('شارك الرابط: ' + window.location.href);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
