@@ -1973,4 +1973,264 @@ app.post('/api/orders', requireAuth, requireBuyer, [
         
         const transaction = db.transaction(() => {
             const orderResult = insertOrder.run(...Object.values(orderData));
-            const
+            const orderId = orderResult.lastInsertRowid;
+            
+            for (const item of orderItems) {
+                insertOrderItem.run(orderId, item.product_id, item.seller_id, item.quantity, item.unit_price, item.total_price);
+                updateProduct.run(item.quantity, item.product_id);
+            }
+            
+            if (payment_method === 'wallet') {
+                updateWallet.run(totalAmount, req.session.userId);
+                insertTransaction.run(req.session.userId, totalAmount * -1, new Date().toISOString());
+            }
+            
+            if (wash_qat) {
+                const firstProductMarket = db.prepare(
+                    'SELECT market_id FROM products WHERE id = ?'
+                ).get(orderItems[0].product_id);
+                
+                if (firstProductMarket) {
+                    const washStation = db.prepare(
+                        'SELECT id FROM wash_stations WHERE market_id = ? AND status = "active" ORDER BY RANDOM() LIMIT 1'
+                    ).get(firstProductMarket.market_id);
+                    
+                    if (washStation) {
+                        insertWashOrder.run(orderId, washStation.id, new Date().toISOString());
+                    }
+                }
+            }
+            
+            return { orderId, orderCode, totalAmount };
+        });
+        
+        const { orderId, orderCode: code, totalAmount: total } = transaction();
+        
+        for (const item of orderItems) {
+            notificationManager.sendNotification(item.seller_id, {
+                title: 'طلب جديد',
+                message: `طلب جديد للمنتج ${item.product_name}`,
+                type: 'info',
+                timestamp: new Date().toISOString()
+            });
+        }
+        
+        notificationManager.sendNotification(req.session.userId, {
+            title: 'تم إنشاء الطلب',
+            message: `تم إنشاء طلبك بنجاح برقم ${code}`,
+            type: 'success',
+            timestamp: new Date().toISOString()
+        });
+        
+        const buyer = db.prepare(
+            'SELECT name, email FROM users WHERE id = ?'
+        ).get(req.session.userId);
+        
+        if (buyer && emailService.transporter) {
+            await emailService.sendOrderConfirmation({
+                ...orderData,
+                id: orderId
+            }, buyer);
+        }
+        
+        logger.info(`✅ تم إنشاء الطلب بنجاح: ${code} (ID: ${orderId})`);
+        
+        res.json({
+            success: true,
+            message: 'تم إنشاء الطلب بنجاح',
+            data: {
+                order_id: orderId,
+                order_code: code,
+                total,
+                status: orderData.status
+            }
+        });
+    } catch (error) {
+        logger.error(`❌ خطأ في إنشاء الطلب: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في إنشاء الطلب' });
+    }
+});
+
+// 📊 تقارير الإدارة
+app.get('/api/admin/reports/sales', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const { start_date, end_date, group_by = 'day' } = req.query;
+        
+        let dateFormat;
+        switch (group_by) {
+            case 'hour':
+                dateFormat = '%Y-%m-%d %H:00';
+                break;
+            case 'day':
+                dateFormat = '%Y-%m-%d';
+                break;
+            case 'week':
+                dateFormat = '%Y-%W';
+                break;
+            case 'month':
+                dateFormat = '%Y-%m';
+                break;
+            default:
+                dateFormat = '%Y-%m-%d';
+        }
+        
+        const defaultStartDate = new Date();
+        defaultStartDate.setDate(defaultStartDate.getDate() - 30);
+        
+        const reports = db.prepare(`
+            SELECT 
+                strftime(?, o.created_at) as period,
+                COUNT(*) as order_count,
+                SUM(o.total) as total_sales,
+                AVG(o.total) as avg_order_value,
+                COUNT(DISTINCT o.buyer_id) as unique_customers
+            FROM orders o
+            WHERE o.created_at BETWEEN ? AND ?
+            GROUP BY period
+            ORDER BY period DESC
+        `).all(
+            dateFormat,
+            start_date || defaultStartDate.toISOString().split('T')[0],
+            end_date || new Date().toISOString().split('T')[0]
+        );
+        
+        res.json({
+            success: true,
+            data: reports
+        });
+    } catch (error) {
+        logger.error(`❌ خطأ في جلب تقرير المبيعات: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+    }
+});
+
+// 🔧 المهام المجدولة
+if (IS_PRODUCTION) {
+    cron.schedule('0 0 * * *', async () => {
+        try {
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - 7);
+            
+            logger.info('🧹 تم تشغيل مهمة تنظيف الجلسات القديمة');
+        } catch (error) {
+            logger.error(`❌ خطأ في مهمة التنظيف: ${error.message}`);
+        }
+    });
+    
+    cron.schedule('0 2 * * 0', async () => {
+        try {
+            const backupDir = path.join(__dirname, 'backups');
+            if (!fs.existsSync(backupDir)) {
+                await fs.mkdir(backupDir, { recursive: true });
+            }
+            
+            const backupFile = path.join(backupDir, `backup_${new Date().toISOString().split('T')[0]}.db`);
+            
+            await fs.copyFile(
+                path.join(__dirname, 'data', 'database.sqlite'),
+                backupFile
+            );
+            
+            logger.info(`💾 تم إنشاء نسخة احتياطية: ${backupFile}`);
+        } catch (error) {
+            logger.error(`❌ خطأ في النسخ الاحتياطي: ${error.message}`);
+        }
+    });
+}
+
+// 📁 خدمة الملفات المحملة
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// ⚠️ معالج الأخطاء
+app.use((err, req, res, next) => {
+    logger.error(`❌ خطأ غير متوقع: ${err.message}`, {
+        stack: err.stack,
+        path: req.path,
+        method: req.method,
+        user: req.session.userId || 'guest'
+    });
+    
+    if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({
+                success: false,
+                error: 'حجم الملف كبير جداً (الحد الأقصى 10MB)'
+            });
+        }
+        return res.status(400).json({
+            success: false,
+            error: 'خطأ في رفع الملف'
+        });
+    }
+    
+    res.status(500).json({
+        success: false,
+        error: 'حدث خطأ داخلي في الخادم',
+        message: IS_PRODUCTION ? undefined : err.message,
+        timestamp: new Date().toISOString()
+    });
+});
+
+// 404 handler
+app.use((req, res) => {
+    logger.warn(`❌ مسار غير موجود: ${req.path}`);
+    res.status(404).json({
+        success: false,
+        error: 'الصفحة غير موجودة',
+        path: req.path,
+        timestamp: new Date().toISOString()
+    });
+});
+
+// الصفحة الرئيسية
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// بدء الخادم
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    logger.info(`🚀 تطبيق قات PRO يعمل على المنفذ ${PORT}`);
+    logger.info(`🌐 الإصدار: ${VERSION}`);
+    logger.info(`⚙️  البيئة: ${process.env.NODE_ENV || 'development'}`);
+    logger.info(`📊 التطبيق جاهز للاستخدام`);
+    
+    // إنشاء المجلدات المطلوبة
+    const requiredDirs = [
+        'uploads/products',
+        'uploads/avatars',
+        'data',
+        'logs',
+        'backups'
+    ];
+    
+    requiredDirs.forEach(async (dir) => {
+        const dirPath = path.join(__dirname, dir);
+        try {
+            await fs.access(dirPath);
+        } catch {
+            await fs.mkdir(dirPath, { recursive: true });
+            logger.info(`📁 تم إنشاء مجلد: ${dir}`);
+        }
+    });
+});
+
+// معالج إيقاف التشغيل
+const shutdown = () => {
+    logger.info('🛑 إيقاف الخادم...');
+    
+    notificationManager.activeConnections.clear();
+    
+    server.close(() => {
+        logger.info('✅ تم إيقاف الخادم');
+        process.exit(0);
+    });
+    
+    setTimeout(() => {
+        logger.error('❌ تم إجبار إيقاف الخادم بعد التأخير');
+        process.exit(1);
+    }, 10000);
+};
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
