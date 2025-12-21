@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قات يماني ممتاز - تطبيق قات PRO</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/products.css">
+    <link rel="stylesheet" href="/css/responsive.css">
+    
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+</head>
+<body>
+    <!-- Loading -->
+    <div class="loading-screen">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="product-detail-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/pages/products.html" class="back-btn">
+                    <i class="fas fa-arrow-right"></i>
+                    رجوع
+                </a>
+                <div class="header-actions">
+                    <button class="btn-icon favorite-btn">
+                        <i class="far fa-heart"></i>
+                    </button>
+                    <button class="btn-icon share-btn">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Product Detail -->
+    <main class="product-detail-container">
+        <div class="container">
+            <div class="product-detail">
+                <!-- Product Gallery -->
+                <div class="product-detail-gallery">
+                    <div class="main-product-image">
+                        <img src="/assets/images/default-product.jpg" alt="قات يماني ممتاز" id="mainImage">
+                    </div>
+                    
+                    <div class="product-thumbnails">
+                        <div class="thumbnail active" data-image="/assets/images/default-product.jpg">
+                            <img src="/assets/images/default-product.jpg" alt="صورة مصغرة">
+                        </div>
+                        <div class="thumbnail" data-image="/assets/images/product-2.jpg">
+                            <img src="/assets/images/default-product.jpg" alt="صورة مصغرة">
+                        </div>
+                        <div class="thumbnail" data-image="/assets/images/product-3.jpg">
+                            <img src="/assets/images/default-product.jpg" alt="صورة مصغرة">
+                        </div>
+                        <div class="thumbnail" data-image="/assets/images/product-4.jpg">
+                            <img src="/assets/images/default-product.jpg" alt="صورة مصغرة">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Info -->
+                <div class="product-detail-info">
+                    <!-- Breadcrumb -->
+                    <nav class="breadcrumb">
+                        <a href="/">الرئيسية</a>
+                        <i class="fas fa-chevron-left"></i>
+                        <a href="/pages/products.html">المنتجات</a>
+                        <i class="fas fa-chevron-left"></i>
+                        <a href="/pages/products.html?category=يمني">قات يمني</a>
+                        <i class="fas fa-chevron-left"></i>
+                        <span class="current">قات يماني ممتاز</span>
+                    </nav>
+
+                    <!-- Product Title -->
+                    <h1 class="product-detail-title">قات يماني ممتاز</h1>
+
+                    <!-- Rating -->
+                    <div class="product-rating-section">
+                        <div class="rating-stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                            <span class="rating-value">4.5</span>
+                        </div>
+                        <span class="review-count">(124 تقييم)</span>
+                        <span class="sold-count">154 مبيعاً</span>
+                    </div>
+
+                    <!-- Price -->
+                    <div class="product-detail-price">
+                        <div class="current-price-section">
+                            <span class="detail-current-price">250 ريال</span>
+                            <span class="detail-original-price">300 ريال</span>
+                            <span class="detail-discount">خصم 16%</span>
+                        </div>
+                    </div>
+
+                    <!-- Vendor -->
+                    <div class="product-vendor-info">
+                        <div class="vendor-avatar">
+                            <img src="/assets/images/default-avatar.png" alt="البائع">
+                        </div>
+                        <div class="vendor-details">
+                            <h4>مزارع اليمن</h4>
+                            <p>بائع ممتاز ★★★★★</p>
+                            <button class="btn-follow">متابعة</button>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="product-description-section">
+                        <h3 class="section-title">وصف المنتج</h3>
+                        <p class="product-detail-description">
+                            قات يماني ممتاز من أجود الأنواع، طازج ومقطوف حديثاً. يتميز بطعمه المميز وفعاليته العالية.
+                            مناسب للاستخدام الشخصي والهدايا. منتج طبيعي 100% بدون أي إضافات كيميائية.
+                        </p>
+                    </div>
+
+                    <!-- Specifications -->
+                    <div class="product-specifications">
+                        <h3 class="section-title">المواصفات</h3>
+                        <div class="specs-grid">
+                            <div class="spec-item">
+                                <span class="spec-label">النوع:</span>
+                                <span class="spec-value">يمني</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">المنطقة:</span>
+                                <span class="spec-value">صنعاء</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">الوزن:</span>
+                                <span class="spec-value">250 جرام</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">التعبئة:</span>
+                                <span class="spec-value">علبة خشبية</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">الصلاحية:</span>
+                                <span class="spec-value">5 أيام</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">التوصيل:</span>
+                                <span class="spec-value">نفس اليوم</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quantity & Actions -->
+                    <div class="product-action-section">
+                        <div class="quantity-selector">
+                            <label for="quantity">الكمية:</label>
+                            <div class="quantity-controls">
+                                <button class="quantity-btn minus">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" id="quantity" value="1" min="1" max="10">
+                                <button class="quantity-btn plus">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button class="btn-add-to-cart">
+                                <i class="fas fa-shopping-cart"></i>
+                                أضف إلى السلة
+                            </button>
+                            <button class="btn-buy-now">
+                                <i class="fas fa-bolt"></i>
+                                شراء سريع
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Stock & Delivery -->
+                    <div class="product-meta-section">
+                        <div class="meta-item">
+                            <i class="fas fa-box"></i>
+                            <span>المخزون: <strong>45 قطعة</strong></span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-shipping-fast"></i>
+                            <span>توصيل سريع خلال 24 ساعة</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-undo"></i>
+                            <span>إرجاع مجاني خلال 7 أيام</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="product-tabs">
+                <ul class="tabs-nav">
+                    <li class="active" data-tab="description">الوصف</li>
+                    <li data-tab="specifications">المواصفات</li>
+                    <li data-tab="reviews">التقييمات</li>
+                    <li data-tab="shipping">الشحن والتوصيل</li>
+                </ul>
+
+                <div class="tabs-content">
+                    <!-- Description Tab -->
+                    <div class="tab-pane active" id="description">
+                        <h3>تفاصيل المنتج</h3>
+                        <p>قات يماني ممتاز من أجود الأنواع في السوق اليمني. يتميز بالجودة العالية والطازجة دائماً.</p>
+                        
+                        <h4>المميزات:</h4>
+                        <ul>
+                            <li>طازج ومقطوف يومياً</li>
+                            <li>طعم مميز وفعالية عالية</li>
+                            <li>تعبئة مميزة في علبة خشبية</li>
+                            <li>مناسب للهدايا والمناسبات</li>
+                        </ul>
+                    </div>
+
+                    <!-- Specifications Tab -->
+                    <div class="tab-pane" id="specifications">
+                        <table class="specs-table">
+                            <tr>
+                                <th>الوزن</th>
+                                <td>250 جرام</td>
+                            </tr>
+                            <tr>
+                                <th>النوع</th>
+                                <td>يمني أصلي</td>
+                            </tr>
+                            <tr>
+                                <th>المنطقة</th>
+                                <td>صنعاء - اليمن</td>
+                            </tr>
+                            <tr>
+                                <th>التعبئة</th>
+                                <td>علبة خشبية محكمة الإغلاق</td>
+                            </tr>
+                            <tr>
+                                <th>الصلاحية</th>
+                                <td>5 أيام في الثلاجة</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- Reviews Tab -->
+                    <div class="tab-pane" id="reviews">
+                        <div class="reviews-summary">
+                            <div class="rating-overview">
+                                <div class="average-rating">
+                                    <span class="rating-number">4.5</span>
+                                    <div class="rating-stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                    <p>124 تقييم</p>
+                                </div>
+                                <div class="rating-bars">
+                                    <div class="rating-bar">
+                                        <span>5 نجوم</span>
+                                        <div class="bar">
+                                            <div class="fill" style="width: 70%"></div>
+                                        </div>
+                                        <span>70%</span>
+                                    </div>
+                                    <div class="rating-bar">
+                                        <span>4 نجوم</span>
+                                        <div class="bar">
+                                            <div class="fill" style="width: 20%"></div>
+                                        </div>
+                                        <span>20%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="reviews-list">
+                            <div class="review-item">
+                                <div class="reviewer-info">
+                                    <img src="/assets/images/default-avatar.png" alt="المستخدم">
+                                    <div>
+                                        <h4>أحمد محمد</h4>
+                                        <div class="review-rating">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="review-text">منتج ممتاز وجودة عالية، التوصيل كان سريعاً جداً.</p>
+                                <span class="review-date">قبل يومين</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Tab -->
+                    <div class="tab-pane" id="shipping">
+                        <h3>سياسة الشحن والتوصيل</h3>
+                        <div class="shipping-info">
+                            <div class="shipping-method">
+                                <i class="fas fa-shipping-fast"></i>
+                                <div>
+                                    <h4>توصيل سريع</h4>
+                                    <p>توصيل خلال 24 ساعة - 15 ريال</p>
+                                </div>
+                            </div>
+                            <div class="shipping-method">
+                                <i class="fas fa-truck"></i>
+                                <div>
+                                    <h4>توصيل عادي</h4>
+                                    <p>توصيل خلال 3 أيام - 10 ريال</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Products -->
+            <div class="related-products">
+                <h2 class="section-title">منتجات ذات صلة</h2>
+                <div class="products-grid">
+                    <!-- Product items will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="product-detail-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="copyright">
+                    © 2024 تطبيق قات PRO. جميع الحقوق محفوظة.
+                </div>
+                <div class="footer-links">
+                    <a href="#">الشروط والأحكام</a>
+                    <a href="#">سياسة الخصوصية</a>
+                    <a href="#">اتصل بنا</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="/js/products.js"></script>
+    <script src="/js/app.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Image switching
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            const mainImage = document.getElementById('mainImage');
+            
+            thumbnails.forEach(thumb => {
+                thumb.addEventListener('click', function() {
+                    // Update main image
+                    const imageSrc = this.getAttribute('data-image');
+                    mainImage.src = imageSrc;
+                    
+                    // Update active class
+                    thumbnails.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Quantity controls
+            const quantityInput = document.getElementById('quantity');
+            const minusBtn = document.querySelector('.quantity-btn.minus');
+            const plusBtn = document.querySelector('.quantity-btn.plus');
+            
+            minusBtn.addEventListener('click', function() {
+                let value = parseInt(quantityInput.value);
+                if (value > 1) {
+                    quantityInput.value = value - 1;
+                }
+            });
+            
+            plusBtn.addEventListener('click', function() {
+                let value = parseInt(quantityInput.value);
+                if (value < 10) {
+                    quantityInput.value = value + 1;
+                }
+            });
+
+            // Tab switching
+            const tabNavs = document.querySelectorAll('.tabs-nav li');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            
+            tabNavs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Update active tab
+                    tabNavs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show corresponding pane
+                    tabPanes.forEach(pane => {
+                        pane.classList.remove('active');
+                        if (pane.id === tabId) {
+                            pane.classList.add('active');
+                        }
+                    });
+                });
+            });
+
+            // Add to cart
+            const addToCartBtn = document.querySelector('.btn-add-to-cart');
+            addToCartBtn.addEventListener('click', function() {
+                const quantity = quantityInput.value;
+                alert(`تم إضافة ${quantity} منتج إلى سلة التسوق`);
+            });
+        });
+    </script>
+</body>
+</html>
