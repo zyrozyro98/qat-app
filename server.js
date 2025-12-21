@@ -68,9 +68,22 @@ const logger = winston.createLogger({
                 winston.format.simple()
             )
         })
+        
     ]
 });
 
+// الصفحة الرئيسية
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// لوحة التحكم
+app.get('/dashboard.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
+// الملفات الثابتة
+app.use(express.static(path.join(__dirname, 'public')));
 // 📊 Morgan مع Winston
 app.use(morgan('combined', { 
     stream: { write: (message) => logger.info(message.trim()) }
@@ -2084,3 +2097,4 @@ const shutdown = () => {
 
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
+
