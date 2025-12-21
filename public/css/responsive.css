@@ -1,203 +1,380 @@
-/* Responsive Design */
+/* responsive.css - أنماط الاستجابة لجميع الأجهزة */
+/* =============================================== */
+
+/* 1. الأجهزة الكبيرة (أجهزة الكمبيوتر المكتبية الكبيرة) */
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1320px;
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+    
+    .orders-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* 2. الأجهزة المتوسطة (أجهزة الكمبيوتر المكتبية، أجهزة اللابتوب) */
 @media (max-width: 1200px) {
+    .container {
+        max-width: 1140px;
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .orders-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .wallet-quick-actions {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* 3. الأجهزة الصغيرة (الأجهزة اللوحية، الهواتف الكبيرة) */
+@media (max-width: 992px) {
     .container {
         max-width: 960px;
     }
     
-    .hero-title {
-        font-size: var(--text-3xl);
-    }
-    
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 992px) {
-    .container {
-        max-width: 720px;
-    }
-    
-    .app-header .container {
-        flex-wrap: wrap;
-        gap: var(--space-md);
-    }
-    
+    /* التنقل */
     .app-navigation {
-        order: 3;
-        width: 100%;
-        margin-top: var(--space-md);
+        flex-direction: column;
+        height: auto;
+        padding: var(--space-md);
     }
     
-    .products-grid,
-    .markets-grid {
+    .nav-menu {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .nav-item {
+        width: 100%;
+        text-align: right;
+    }
+    
+    /* الشبكات */
+    .products-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .orders-grid {
         grid-template-columns: repeat(2, 1fr);
     }
     
-    .hero-buttons {
-        flex-direction: column;
-        gap: var(--space-md);
+    .wallet-quick-actions {
+        grid-template-columns: repeat(2, 1fr);
     }
     
-    .btn-lg {
-        width: 100%;
-    }
-}
-
-@media (max-width: 768px) {
-    .container {
-        max-width: 540px;
-    }
-    
-    body {
-        font-size: var(--text-sm);
-    }
-    
-    h1 { font-size: var(--text-2xl); }
-    h2 { font-size: var(--text-xl); }
-    h3 { font-size: var(--text-lg); }
-    
-    .app-header {
-        padding: var(--space-sm) 0;
-    }
-    
-    .app-main {
-        margin-top: 70px;
-        padding: var(--space-lg) 0;
-    }
-    
-    .card {
-        padding: var(--space-md);
-    }
-    
-    .stats-grid {
-        grid-template-columns: 1fr;
-        gap: var(--space-md);
-    }
-    
-    .products-grid,
-    .markets-grid {
+    /* التخطيط */
+    .product-detail {
         grid-template-columns: 1fr;
     }
     
-    .modal-content {
-        margin: var(--space-md);
-        max-width: calc(100% - 32px);
+    .order-detail-content {
+        grid-template-columns: 1fr;
     }
     
-    .cart-sidebar,
+    /* الجداول */
+    .products-table,
+    .orders-table {
+        display: block;
+        overflow-x: auto;
+    }
+    
+    /* الشريط الجانبي */
     .app-sidebar {
-        width: 100%;
-        max-width: 100%;
-    }
-    
-    /* Mobile Navigation */
-    .menu-toggle {
-        display: block;
-    }
-    
-    .app-navigation .nav-menu {
-        display: none;
-        position: fixed;
-        top: 70px;
-        right: 0;
-        bottom: 0;
-        width: 280px;
-        background-color: var(--bg-secondary);
-        box-shadow: var(--shadow-lg);
-        padding: var(--space-lg);
-        flex-direction: column;
-        gap: var(--space-md);
-        z-index: var(--z-modal);
-        overflow-y: auto;
-    }
-    
-    .app-navigation .nav-menu.open {
-        display: flex;
-        animation: slideInRight 0.3s ease;
-    }
-    
-    .app-navigation .nav-link {
-        padding: var(--space-md);
-        border-radius: var(--radius-md);
-        transition: all var(--transition-fast);
-    }
-    
-    .app-navigation .nav-link:hover {
-        background-color: var(--bg-light);
-    }
-    
-    /* Mobile Cart */
-    .cart-toggle {
-        display: block;
+        width: 300px;
     }
     
     .cart-sidebar {
-        transform: translateX(100%);
+        width: 350px;
     }
     
-    .cart-sidebar.open {
-        transform: translateX(0);
+    /* النماذج */
+    .form-row {
+        grid-template-columns: 1fr;
     }
 }
 
-@media (max-width: 576px) {
+/* 4. الهواتف الذكية (الأفقية) */
+@media (max-width: 768px) {
     .container {
-        padding: 0 var(--space-sm);
+        max-width: 720px;
+        padding: 0 var(--space-md);
     }
     
-    .card {
-        padding: var(--space-sm);
-    }
-    
-    .btn {
-        padding: 8px 16px;
-        font-size: var(--text-sm);
-    }
-    
-    .btn-lg {
-        padding: 12px 24px;
-    }
-    
-    .form-control {
-        padding: 10px 14px;
-    }
-    
-    .hero-content {
-        text-align: center;
-    }
-    
-    .section-header {
+    /* التنقل */
+    .app-header {
         flex-direction: column;
         gap: var(--space-md);
+        padding: var(--space-md);
+    }
+    
+    .header-actions {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    /* الشبكات */
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-md);
+    }
+    
+    .orders-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .wallet-quick-actions {
+        grid-template-columns: 1fr;
+    }
+    
+    /* البطاقات */
+    .product-card {
+        max-width: 100%;
+    }
+    
+    .order-card {
+        max-width: 100%;
+    }
+    
+    /* الرؤوس */
+    .products-header,
+    .orders-header,
+    .wallet-header,
+    .notifications-header {
+        flex-direction: column;
+        gap: var(--space-md);
+        align-items: stretch;
         text-align: center;
     }
     
-    .product-card,
-    .market-card {
+    .products-actions,
+    .orders-actions,
+    .wallet-actions,
+    .notifications-actions {
+        justify-content: center;
+    }
+    
+    /* أشرطة التصفية */
+    .products-controls,
+    .orders-controls,
+    .notifications-filter-bar {
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+    
+    .status-filter-btn,
+    .filter-btn {
+        width: 100%;
+        text-align: center;
+    }
+    
+    /* الخطوط */
+    h1 { font-size: var(--text-2xl); }
+    h2 { font-size: var(--text-xl); }
+    h3 { font-size: var(--text-lg); }
+    h4 { font-size: var(--text-base); }
+    
+    /* الأزرار */
+    .btn-lg {
+        padding: 10px 20px;
+        font-size: var(--text-base);
+    }
+    
+    .btn-group {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-group .btn {
+        width: 100%;
+        margin-bottom: var(--space-sm);
+    }
+    
+    /* النماذج */
+    .product-form,
+    .order-form,
+    .wallet-form {
+        padding: var(--space-lg);
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* الشريط الجانبي */
+    .app-sidebar {
+        width: 100%;
+        right: -100%;
+    }
+    
+    .app-sidebar.active {
+        right: 0;
+    }
+    
+    .cart-sidebar {
+        width: 100%;
+        left: -100%;
+    }
+    
+    .cart-sidebar.active {
+        left: 0;
+    }
+    
+    /* المشغلات */
+    .notification-item,
+    .transaction-item {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--space-md);
+    }
+    
+    .notification-icon,
+    .transaction-icon {
+        margin-left: 0;
         margin-bottom: var(--space-md);
     }
     
-    .modal-content {
-        padding: var(--space-md);
+    .notification-actions,
+    .transaction-status {
+        margin-right: 0;
+        margin-top: var(--space-md);
+        justify-content: center;
+        width: 100%;
     }
     
-    .modal-header,
-    .modal-body,
-    .modal-footer {
-        padding: var(--space-md);
-    }
-    
-    /* Mobile Specific */
-    .mobile-only {
-        display: block !important;
-    }
-    
-    .desktop-only {
-        display: none !important;
+    /* الإحصائيات */
+    .products-stats,
+    .orders-stats,
+    .notifications-stats,
+    .wallet-statistics .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
+/* 5. الهواتف الذكية (العمودية) */
+@media (max-width: 576px) {
+    .container {
+        max-width: 100%;
+        padding: 0 var(--space-sm);
+    }
+    
+    /* الشبكات */
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .orders-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* البطاقات */
+    .product-card {
+        margin: 0 auto;
+    }
+    
+    .order-card {
+        margin: 0 auto;
+    }
+    
+    /* التخطيط */
+    .products-container,
+    .orders-container,
+    .wallet-container,
+    .notifications-container {
+        padding: var(--space-md);
+    }
+    
+    /* الرؤوس */
+    .products-title,
+    .orders-title,
+    .wallet-title,
+    .notifications-title {
+        font-size: var(--text-xl);
+    }
+    
+    /* الإحصائيات */
+    .products-stats,
+    .orders-stats,
+    .notifications-stats,
+    .wallet-statistics .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-item,
+    .order-stat,
+    .stat-card-notification,
+    .stat-card {
+        min-width: 100%;
+    }
+    
+    /* الجداول */
+    table {
+        font-size: var(--text-sm);
+    }
+    
+    th, td {
+        padding: 8px 4px;
+    }
+    
+    /* النماذج */
+    .product-form,
+    .order-form,
+    .wallet-form {
+        padding: var(--space-md);
+    }
+    
+    .form-control,
+    .form-select {
+        padding: 10px 12px;
+        font-size: var(--text-base);
+    }
+    
+    /* أشرطة النطاق */
+    .date-range-filter {
+        grid-template-columns: 1fr;
+    }
+    
+    /* الإشعارات المنبثقة */
+    .notifications-dropdown,
+    .realtime-notification {
+        width: calc(100% - 20px);
+        left: 10px;
+        right: 10px;
+    }
+    
+    .notifications-dropdown {
+        top: 60px;
+    }
+    
+    /* الترتيبات */
+    .product-detail-actions,
+    .order-actions-detail,
+    .wallet-form-actions {
+        flex-direction: column;
+    }
+    
+    /* رسائل الخطأ */
+    .error-message {
+        font-size: var(--text-sm);
+        padding: var(--space-md);
+    }
+}
+
+/* 6. الأجهزة صغيرة جداً */
 @media (max-width: 375px) {
     :root {
         --space-xs: 3px;
@@ -205,112 +382,185 @@
         --space-md: 12px;
         --space-lg: 18px;
         --space-xl: 24px;
-    }
-    
-    .text-lg { font-size: var(--text-base); }
-    .text-xl { font-size: var(--text-lg); }
-    .text-2xl { font-size: var(--text-xl); }
-    
-    .app-header {
-        padding: var(--space-xs) 0;
-    }
-    
-    .app-main {
-        margin-top: 60px;
-    }
-    
-    .card-header,
-    .card-body,
-    .card-footer {
-        padding: var(--space-sm);
-    }
-    
-    .btn {
-        padding: 6px 12px;
-        font-size: var(--text-xs);
-    }
-}
-
-/* Landscape Mode */
-@media (max-height: 600px) and (orientation: landscape) {
-    .hero-section {
-        padding: var(--space-lg) 0;
-    }
-    
-    .hero-title {
-        font-size: var(--text-xl);
-        margin-bottom: var(--space-sm);
-    }
-    
-    .hero-description {
-        font-size: var(--text-sm);
-        margin-bottom: var(--space-md);
-    }
-    
-    .modal-content {
-        max-height: 90vh;
-        overflow-y: auto;
-    }
-}
-
-/* Print Styles */
-@media print {
-    .no-print {
-        display: none !important;
-    }
-    
-    .app-header,
-    .app-footer,
-    .app-navigation,
-    .cart-sidebar,
-    .app-sidebar {
-        display: none !important;
-    }
-    
-    .app-main {
-        margin-top: 0;
-        padding: 0;
+        --space-xxl: 36px;
     }
     
     .container {
-        max-width: 100%;
-        padding: 0;
+        padding: 0 var(--space-xs);
     }
     
-    .card {
-        box-shadow: none;
-        border: 1px solid #000;
-        margin: 0 0 20px 0;
-        page-break-inside: avoid;
+    /* الخطوط */
+    body {
+        font-size: 14px;
     }
     
+    /* الأزرار */
     .btn {
-        display: none;
+        padding: 8px 16px;
+        font-size: var(--text-sm);
+    }
+    
+    /* الأيقونات */
+    .fa-2x { font-size: 1.5em; }
+    .fa-3x { font-size: 2em; }
+    
+    /* العناوين */
+    .modal-title {
+        font-size: var(--text-lg);
+    }
+    
+    /* النماذج */
+    .form-label {
+        font-size: var(--text-sm);
+    }
+}
+
+/* 7. التوجهات */
+@media (orientation: landscape) and (max-height: 500px) {
+    .app-header {
+        padding: var(--space-sm) var(--space-md);
+    }
+    
+    .app-navigation {
+        padding: var(--space-xs) var(--space-md);
+    }
+    
+    .products-grid,
+    .orders-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-sm);
+    }
+    
+    .product-card,
+    .order-card {
+        min-height: auto;
+    }
+    
+    .product-image {
+        height: 120px;
+    }
+}
+
+/* 8. الطباعة */
+@media print {
+    .app-header,
+    .app-navigation,
+    .app-footer,
+    .notifications-dropdown,
+    .realtime-notification,
+    .btn,
+    .form-actions,
+    .notification-actions,
+    .order-actions {
+        display: none !important;
+    }
+    
+    body {
+        background: white !important;
+        color: black !important;
+        font-size: 12pt !important;
+    }
+    
+    .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    .products-container,
+    .orders-container,
+    .wallet-container,
+    .notifications-container {
+        padding: 0 !important;
+        min-height: auto !important;
     }
     
     a {
-        color: #000;
-        text-decoration: none;
+        color: black !important;
+        text-decoration: none !important;
     }
     
-    @page {
-        margin: 2cm;
+    .page-break {
+        page-break-before: always;
     }
 }
 
-/* High DPI Screens */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-    .logo img {
-        image-rendering: -webkit-optimize-contrast;
-        image-rendering: crisp-edges;
+/* 9. الميزات الخاصة */
+/* الأجهزة التي تدعم hover */
+@media (hover: hover) and (pointer: fine) {
+    .product-card:hover .product-quick-actions {
+        transform: translateY(0);
     }
     
-    .hero-section {
-        background-image: url('/assets/images/hero-bg@2x.jpg');
+    .tooltip:hover::after {
+        opacity: 1;
+        visibility: visible;
     }
 }
 
-/* Reduced Motion */
+/* الأجهزة التي لا تدعم hover (شاشات اللمس) */
+@media (hover: none) and (pointer: coarse) {
+    .product-quick-actions {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    
+    .btn:active {
+        transform: scale(0.98);
+    }
+    
+    .dropdown-toggle:focus + .dropdown-menu,
+    .dropdown-menu:focus-within {
+        display: block;
+    }
+}
+
+/* الأجهزة المظلمة */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-primary: #1A1A1A;
+        --bg-secondary: #2D2D2D;
+        --bg-light: #3D3D3D;
+        --text-primary: #FFFFFF;
+        --text-secondary: #CCCCCC;
+        --text-light: #999999;
+        --border-color: #404040;
+        --border-light: #505050;
+        --border-dark: #303030;
+    }
+}
+
+/* 10. مساعدات الاستجابة */
+/* الأجهزة المتحركة */
+.touch-device .dropdown:hover .dropdown-menu {
+    display: none;
+}
+
+.touch-device .dropdown:focus-within .dropdown-menu {
+    display: block;
+}
+
+/* إخفاء العناصر على أجهزة معينة */
+.mobile-only {
+    display: none;
+}
+
+.desktop-only {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .mobile-only {
+        display: block;
+    }
+    
+    .desktop-only {
+        display: none;
+    }
+}
+
+/* تحسين الأداء على الأجهزة المنخفضة الطاقة */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -320,188 +570,171 @@
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }
-    
-    .loading-spinner {
-        animation: none;
-        border: 2px solid var(--border-color);
-        border-top-color: var(--primary-color);
-    }
 }
 
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
+/* دعم عالي التباين */
+@media (prefers-contrast: high) {
     :root {
-        --text-primary: #ffffff;
-        --text-secondary: #cccccc;
-        --text-light: #999999;
-        
-        --bg-primary: #121212;
-        --bg-secondary: #1e1e1e;
-        --bg-light: #2d2d2d;
-        
-        --border-color: #404040;
-        --border-light: #333333;
-        --border-dark: #555555;
+        --primary-color: #004400;
+        --secondary-color: #884400;
+        --border-color: #000000;
     }
     
-    .card {
-        background-color: var(--bg-secondary);
-        border-color: var(--border-color);
-    }
-    
-    .form-control {
-        background-color: var(--bg-light);
-        color: var(--text-primary);
-        border-color: var(--border-color);
-    }
-    
-    .alert {
-        background-color: rgba(255, 255, 255, 0.1);
+    .btn {
+        border: 2px solid currentColor;
     }
 }
 
-/* Touch Device Optimizations */
-@media (hover: none) and (pointer: coarse) {
+/* دعم التكبير */
+@media (prefers-reduced-data: reduce) {
+    .background-image {
+        display: none;
+    }
+    
+    .product-image img {
+        filter: blur(0);
+    }
+}
+
+/* 11. فئات مساعدة للاستجابة */
+.img-responsive {
+    max-width: 100%;
+    height: auto;
+}
+
+.embed-responsive {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    overflow: hidden;
+}
+
+.embed-responsive::before {
+    display: block;
+    content: "";
+    padding-top: 56.25%; /* نسبة 16:9 */
+}
+
+.embed-responsive-item {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.text-break {
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+.d-none {
+    display: none !important;
+}
+
+.d-block {
+    display: block !important;
+}
+
+.d-flex {
+    display: flex !important;
+}
+
+.d-grid {
+    display: grid !important;
+}
+
+@media (max-width: 768px) {
+    .d-md-none {
+        display: none !important;
+    }
+    
+    .d-md-block {
+        display: block !important;
+    }
+    
+    .d-md-flex {
+        display: flex !important;
+    }
+    
+    .d-md-grid {
+        display: grid !important;
+    }
+}
+
+.w-100 {
+    width: 100% !important;
+}
+
+.h-100 {
+    height: 100% !important;
+}
+
+.mw-100 {
+    max-width: 100% !important;
+}
+
+.mh-100 {
+    max-height: 100% !important;
+}
+
+/* 12. تحسينات الوصول للشاشات الصغيرة */
+@media (max-width: 768px) {
+    /* زيادة حجم مناطق النقر */
     .btn,
     .nav-link,
-    .product-card,
-    .market-card {
+    .dropdown-toggle,
+    .form-control,
+    .form-select {
         min-height: 44px;
         min-width: 44px;
     }
     
-    .form-control {
-        min-height: 44px;
+    /* زيادة تباعد العناصر */
+    .form-group {
+        margin-bottom: var(--space-lg);
     }
     
-    /* Larger touch targets */
-    .btn-sm {
-        padding: 12px 16px;
+    /* تحسين قابلية القراءة */
+    body {
+        line-height: 1.6;
     }
     
-    /* Remove hover effects */
-    .btn:hover,
-    .card:hover,
-    .product-card:hover,
-    .market-card:hover {
-        transform: none;
+    /* تباعد أفضل للقوائم */
+    .list-group-item {
+        padding: var(--space-md) var(--space-lg);
+    }
+    
+    /* تحسين التمرير */
+    .modal-content {
+        max-height: 90vh;
+        overflow-y: auto;
     }
 }
 
-/* Custom Animations for Mobile */
-@keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideInLeft {
-    from {
-        transform: translateX(-100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes fadeInUp {
-    from {
-        transform: translateY(20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-/* Mobile Specific Utility Classes */
-.mobile-only {
-    display: none;
-}
-
-.desktop-only {
-    display: block;
-}
-
-/* Grid System for Mobile */
-@media (max-width: 768px) {
-    .row {
-        flex-direction: column;
+/* 13. تحسينات للأجهزة القديمة */
+@supports not (display: grid) {
+    .products-grid,
+    .orders-grid,
+    .wallet-quick-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-md);
     }
     
-    .col-1, .col-2, .col-3, .col-4, .col-5, .col-6,
-    .col-7, .col-8, .col-9, .col-10, .col-11, .col-12 {
-        width: 100%;
-        margin-bottom: var(--space-md);
-    }
-    
-    .mobile-only {
-        display: block;
-    }
-    
-    .desktop-only {
-        display: none;
-    }
-}
-
-/* Safe Area Insets for Notched Phones */
-@supports (padding: max(0px)) {
-    .app-header,
-    .app-footer {
-        padding-left: max(var(--space-md), env(safe-area-inset-left));
-        padding-right: max(var(--space-md), env(safe-area-inset-right));
-    }
-    
-    .app-header {
-        padding-top: max(var(--space-md), env(safe-area-inset-top));
-    }
-    
-    .app-footer {
-        padding-bottom: max(var(--space-md), env(safe-area-inset-bottom));
-    }
-    
-    .app-main {
-        padding-left: max(0px, env(safe-area-inset-left));
-        padding-right: max(0px, env(safe-area-inset-right));
-    }
-}
-
-/* Performance Optimizations */
-@media (max-width: 768px) {
-    .lazy-load {
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-    
-    .lazy-load.loaded {
-        opacity: 1;
-    }
-    
-    /* Defer non-critical CSS */
-    .deferred-styles {
-        display: none;
-    }
-}
-
-/* Battery Saver Mode */
-@media (prefers-reduced-data: reduce) {
-    .hero-section {
-        background-image: none;
-    }
-    
-    img:not(.critical-image) {
-        display: none;
-    }
-    
-    .loading-spinner {
-        animation: none;
+    .product-card,
+    .order-card,
+    .quick-action-card {
+        flex: 1 1 300px;
+        max-width: 100%;
     }
 }
