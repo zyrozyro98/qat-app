@@ -65,7 +65,7 @@
     "cors": "^2.8.5",
     "helmet": "^7.0.0",
     "compression": "^1.7.4",
-    "express-rate-limit": "^7.1.5",
+    "express-rate-limit": "^6.0.0",
     "xlsx": "^0.18.5",
     "moment": "^2.29.4",
     "socket.io": "^4.7.2",
@@ -257,3 +257,4 @@
     "registry": "https://registry.npmjs.org/"
   }
 }
+
