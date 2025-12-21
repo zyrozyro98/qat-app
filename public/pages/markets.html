@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الأسواق - تطبيق قات PRO</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/products.css">
+    <link rel="stylesheet" href="/css/responsive.css">
+    
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="markets-header">
+        <div class="container">
+            <div class="header-content">
+                <h1 class="markets-title">
+                    <i class="fas fa-store"></i>
+                    الأسواق
+                </h1>
+                <p class="markets-subtitle">اكتشف أفضل الأسواق والبائعين</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Search & Filters -->
+    <section class="markets-filters">
+        <div class="container">
+            <div class="filters-container">
+                <!-- Search -->
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="ابحث عن سوق أو بائع...">
+                    <button class="search-btn">بحث</button>
+                </div>
+
+                <!-- Quick Filters -->
+                <div class="quick-filters">
+                    <button class="filter-btn active">جميع الأسواق</button>
+                    <button class="filter-btn">الأكثر شعبية</button>
+                    <button class="filter-btn">الجديدة</button>
+                    <button class="filter-btn">القريبة</button>
+                </div>
+
+                <!-- Advanced Filters -->
+                <div class="advanced-filters-toggle">
+                    <button class="toggle-btn">
+                        <i class="fas fa-filter"></i>
+                        تصفية متقدمة
+                    </button>
+                </div>
+            </div>
+
+            <!-- Advanced Filters (Hidden by default) -->
+            <div class="advanced-filters">
+                <div class="filter-group">
+                    <label>المدينة:</label>
+                    <select class="form-select">
+                        <option>جميع المدن</option>
+                        <option>الرياض</option>
+                        <option>جدة</option>
+                        <option>مكة</option>
+                        <option>الدمام</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>التقييم:</label>
+                    <select class="form-select">
+                        <option>جميع التقييمات</option>
+                        <option>5 نجوم</option>
+                        <option>4 نجوم فأكثر</option>
+                        <option>3 نجوم فأكثر</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>النوع:</label>
+                    <select class="form-select">
+                        <option>جميع الأنواع</option>
+                        <option>أسواق تقليدية</option>
+                        <option>أسواق إلكترونية</option>
+                        <option>بائعين أفراد</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Markets Grid -->
+    <main class="markets-container">
+        <div class="container">
+            <div class="markets-grid">
+                <!-- Market 1 -->
+                <div class="market-card">
+                    <div class="market-header">
+                        <div class="market-image">
+                            <img src="/assets/images/market-placeholder.jpg" alt="سوق القات المركزي">
+                            <span class="market-badge popular">الأكثر شعبية</span>
+                        </div>
+                    </div>
+                    
+                    <div class="market-content">
+                        <div class="market-title-section">
+                            <h3 class="market-title">سوق القات المركزي</h3>
+                            <div class="market-rating">
+                                <i class="fas fa-star"></i>
+                                <span class="rating-value">4.8</span>
+                                <span class="rating-count">(245)</span>
+                            </div>
+                        </div>
+                        
+                        <p class="market-description">
+                            أكبر سوق للقات في المنطقة، يوفر جميع الأنواع والماركات بأفضل الأسعار.
+                        </p>
+                        
+                        <div class="market-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>الرياض، السعودية</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-store"></i>
+                                <span>15 متجر</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-clock"></i>
+                                <span>مفتوح الآن</span>
+                            </div>
+                        </div>
+                        
+                        <div class="market-tags">
+                            <span class="tag">يمني</span>
+                            <span class="tag">سعودي</span>
+                            <span class="tag">طازج</span>
+                        </div>
+                        
+                        <div class="market-actions">
+                            <a href="/pages/market-detail.html" class="btn-visit">
+                                <i class="fas fa-external-link-alt"></i>
+                                زيارة السوق
+                            </a>
+                            <button class="btn-follow">
+                                <i class="far fa-heart"></i>
+                                متابعة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Market 2 -->
+                <div class="market-card">
+                    <div class="market-header">
+                        <div class="market-image">
+                            <img src="/assets/images/market-placeholder.jpg" alt="سوق اليمن للقات">
+                            <span class="market-badge new">جديد</span>
+                        </div>
+                    </div>
+                    
+                    <div class="market-content">
+                        <div class="market-title-section">
+                            <h3 class="market-title">سوق اليمن للقات</h3>
+                            <div class="market-rating">
+                                <i class="fas fa-star"></i>
+                                <span class="rating-value">4.9</span>
+                                <span class="rating-count">(189)</span>
+                            </div>
+                        </div>
+                        
+                        <p class="market-description">
+                            متخصص في القات اليمني الأصلي، يوفر منتجات عالية الجودة مباشرة من المزارع.
+                        </p>
+                        
+                        <div class="market-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>جدة، السعودية</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-store"></i>
+                                <span>8 متاجر</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-clock"></i>
+                                <span>مفتوح الآن</span>
+                            </div>
+                        </div>
+                        
+                        <div class="market-tags">
+                            <span class="tag">يمني أصلي</span>
+                            <span class="tag">مباشر من المزارع</span>
+                            <span class="tag">توصيل مجاني</span>
+                        </div>
+                        
+                        <div class="market-actions">
+                            <a href="/pages/market-detail.html" class="btn-visit">
+                                <i class="fas fa-external-link-alt"></i>
+                                زيارة السوق
+                            </a>
+                            <button class="btn-follow">
+                                <i class="far fa-heart"></i>
+                                متابعة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Market 3 -->
+                <div class="market-card">
+                    <div class="market-header">
+                        <div class="market-image">
+                            <img src="/assets/images/market-placeholder.jpg" alt="سوق القات السعودي">
+                        </div>
+                    </div>
+                    
+                    <div class="market-content">
+                        <div class="market-title-section">
+                            <h3 class="market-title">سوق القات السعودي</h3>
+                            <div class="market-rating">
+                                <i class="fas fa-star"></i>
+                                <span class="rating-value">4.6</span>
+                                <span class="rating-count">(312)</span>
+                            </div>
+                        </div>
+                        
+                        <p class="market-description">
+                            يقدم أفضل أنواع القات السعودي بأنواعه المختلفة وبأسعار مناسبة للجميع.
+                        </p>
+                        
+                        <div class="market-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>الدمام، السعودية</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-store"></i>
+                                <span>12 متجر</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-clock"></i>
+                                <span>مغلق حالياً</span>
+                            </div>
+                        </div>
+                        
+                        <div class="market-tags">
+                            <span class="tag">سعودي</span>
+                            <span class="tag">أنواع مختلفة</span>
+                            <span class="tag">أسعار مناسبة</span>
+                        </div>
+                        
+                        <div class="market-actions">
+                            <a href="/pages/market-detail.html" class="btn-visit">
+                                <i class="fas fa-external-link-alt"></i>
+                                زيارة السوق
+                            </a>
+                            <button class="btn-follow">
+                                <i class="far fa-heart"></i>
+                                متابعة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Market 4 -->
+                <div class="market-card">
+                    <div class="market-header">
+                        <div class="market-image">
+                            <img src="/assets/images/market-placeholder.jpg" alt="سوق القات التقليدي">
+                            <span class="market-badge verified">موثوق</span>
+                        </div>
+                    </div>
+                    
+                    <div class="market-content">
+                        <div class="market-title-section">
+                            <h3 class="market-title">سوق القات التقليدي</h3>
+                            <div class="market-rating">
+                                <i class="fas fa-star"></i>
+                                <span class="rating-value">4.7</span>
+                                <span class="rating-count">(167)</span>
+                            </div>
+                        </div>
+                        
+                        <p class="market-description">
+                            سوق تقليدي عريق يتميز بالأصالة والجودة والموثوقية في التعامل.
+                        </p>
+                        
+                        <div class="market-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>مكة، السعودية</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-store"></i>
+                                <span>6 متاجر</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-clock"></i>
+                                <span>مفتوح الآن</span>
+                            </div>
+                        </div>
+                        
+                        <div class="market-tags">
+                            <span class="tag">تقليدي</span>
+                            <span class="tag">موثوق</span>
+                            <span class="tag">خدمة ممتازة</span>
+                        </div>
+                        
+                        <div class="market-actions">
+                            <a href="/pages/market-detail.html" class="btn-visit">
+                                <i class="fas fa-external-link-alt"></i>
+                                زيارة السوق
+                            </a>
+                            <button class="btn-follow">
+                                <i class="far fa-heart"></i>
+                                متابعة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Market 5 -->
+                <div class="market-card">
+                    <div class="market-header">
+                        <div class="market-image">
+                            <img src="/assets/images/market-placeholder.jpg" alt="سوق القات الإلكتروني">
+                        </div>
+                    </div>
+                    
+                    <div class="market-content">
+                        <div class="market-title-section">
+                            <h3 class="market-title">سوق القات الإلكتروني</h3>
+                            <div class="market-rating">
+                                <i class="fas fa-star"></i>
+                                <span class="rating-value">4.5</span>
+                                <span class="rating-count">(98)</span>
+                            </div>
+                        </div>
+                        
+                        <p class="market-description">
+                            أول سوق إلكتروني متخصص في بيع القات مع خدمة التوصيل السريع إلى المنازل.
+                        </p>
+                        
+                        <div class="market-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>أونلاين</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-store"></i>
+                                <span>50+ بائع</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-clock"></i>
+                                <span>مفتوح 24/7</span>
+                            </div>
+                        </div>
+                        
+                        <div class="market-tags">
+                            <span class="tag">إلكتروني</span>
+                            <span class="tag">توصيل سريع</span>
+                            <span class="tag">24/7</span>
+                        </div>
+                        
+                        <div class="market-actions">
+                            <a href="/pages/market-detail.html" class="btn-visit">
+                                <i class="fas fa-external-link-alt"></i>
+                                زيارة السوق
+                            </a>
+                            <button class="btn-follow">
+                                <i class="far fa-heart"></i>
+                                متابعة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Market 6 -->
+                <div class="market-card">
+                    <div class="market-header">
+                        <div class="market-image">
+                            <img src="/assets/images/market-placeholder.jpg" alt="سوق المزارعين">
+                        </div>
+                    </div>
+                    
+                    <div class="market-content">
+                        <div class="market-title-section">
+                            <h3 class="market-title">سوق المزارعين</h3>
+                            <div class="market-rating">
+                                <i class="fas fa-star"></i>
+                                <span class="rating-value">4.9</span>
+                                <span class="rating-count">(201)</span>
+                            </div>
+                        </div>
+                        
+                        <p class="market-description">
+                            تواصل مباشر مع المزارعين، منتجات طازجة مباشرة من المزرعة إلى المستهلك.
+                        </p>
+                        
+                        <div class="market-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>الرياض، السعودية</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-store"></i>
+                                <span>25 مزارع</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-clock"></i>
+                                <span>مفتوح الآن</span>
+                            </div>
+                        </div>
+                        
+                        <div class="market-tags">
+                            <span class="tag">مباشر من المزرعة</span>
+                            <span class="tag">طازج</span>
+                            <span class="tag">أسعار الجملة</span>
+                        </div>
+                        
+                        <div class="market-actions">
+                            <a href="/pages/market-detail.html" class="btn-visit">
+                                <i class="fas fa-external-link-alt"></i>
+                                زيارة السوق
+                            </a>
+                            <button class="btn-follow">
+                                <i class="far fa-heart"></i>
+                                متابعة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <button class="pagination-btn disabled">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <button class="pagination-btn active">1</button>
+                <button class="pagination-btn">2</button>
+                <button class="pagination-btn">3</button>
+                <button class="pagination-btn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Become a Seller -->
+    <section class="become-seller">
+        <div class="container">
+            <div class="seller-cta">
+                <div class="cta-content">
+                    <h2>هل تمتلك سوقاً أو متجراً؟</h2>
+                    <p>انضم إلى منصتنا وابدأ بيع منتجاتك لملايين العملاء</p>
+                    <a href="/pages/register.html?type=seller" class="btn-join">
+                        <i class="fas fa-store"></i>
+                        انضم كبائع
+                    </a>
+                </div>
+                <div class="cta-image">
+                    <img src="/assets/images/hero-bg.jpg" alt="انضم كبائع">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="markets-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <h3>تطبيق قات PRO</h3>
+                    <p>منصة متكاملة لبيع وشراء القات بكل سهولة وأمان</p>
+                </div>
+                
+                <div class="footer-links">
+                    <div class="links-column">
+                        <h4>الأسواق</h4>
+                        <a href="#">استكشاف الأسواق</a>
+                        <a href="#">كيفية البيع</a>
+                        <a href="#">سياسة البائعين</a>
+                    </div>
+                    <div class="links-column">
+                        <h4>الدعم</h4>
+                        <a href="#">الأسئلة الشائعة</a>
+                        <a href="#">اتصل بنا</a>
+                        <a href="#">الشكاوى والاقتراحات</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>© 2024 تطبيق قات PRO. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Advanced filters toggle
+            const toggleBtn = document.querySelector('.toggle-btn');
+            const advancedFilters = document.querySelector('.advanced-filters');
+            
+            toggleBtn.addEventListener('click', function() {
+                advancedFilters.classList.toggle('active');
+                this.classList.toggle('active');
+            });
+
+            // Filter buttons
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Follow buttons
+            const followBtns = document.querySelectorAll('.btn-follow');
+            followBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const icon = this.querySelector('i');
+                    if (icon.classList.contains('far')) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        this.style.color = '#F44336';
+                        alert('تمت المتابعة بنجاح');
+                    } else {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        this.style.color = '';
+                        alert('تم إلغاء المتابعة');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
