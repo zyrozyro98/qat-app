@@ -1,57 +1,22 @@
 {
   "name": "qat-app",
-  "version": "1.0.0",
-  "description": "تطبيق بيع وتوصيل القات - نظام متكامل لإدارة البيع والتوصيل والتقييمات",
+  "version": "1.0.1",
+  "description": "تطبيق بيع وتوصيل القات - نظام متكامل",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "dev:debug": "nodemon --inspect server.js",
-    "backup": "node backup.js",
-    "backup:auto": "node backup.js --auto",
-    "backup:list": "node backup.js --list",
-    "backup:restore": "node backup.js --restore",
-    "test": "jest --testPathPattern=test/",
-    "test:watch": "jest --watch --testPathPattern=test/",
-    "test:coverage": "jest --coverage --testPathPattern=test/",
-    "lint": "eslint . --ext .js",
-    "lint:fix": "eslint . --ext .js --fix",
-    "format": "prettier --write \"**/*.js\" \"**/*.json\"",
-    "db:init": "node scripts/init-database.js",
-    "db:seed": "node scripts/seed-database.js",
-    "db:migrate": "node scripts/migrate-database.js",
-    "db:reset": "node scripts/reset-database.js",
-    "clean": "rm -rf node_modules && npm cache clean --force",
-    "audit:fix": "npm audit fix --force",
-    "build": "echo 'Build completed'"
+    "test": "echo \"No tests yet\"",
+    "clean": "rm -rf node_modules package-lock.json",
+    "reinstall": "npm run clean && npm install",
+    "audit:fix": "npm audit fix",
+    "db:reset": "rm -f data/database.sqlite && node -e \"require('./database')\""
   },
-  "keywords": [
-    "qat",
-    "khat",
-    "ecommerce",
-    "delivery",
-    "yemen",
-    "arabic",
-    "marketplace",
-    "wallet",
-    "payment"
-  ],
-  "author": {
-    "name": "تطبيق قات",
-    "email": "support@qat-app.com",
-    "url": "https://qat-app.com"
-  },
+  "keywords": ["qat", "yemen", "ecommerce", "arabic"],
+  "author": "يوسف محمد علي حمود زهير",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/zyrozyro98/qat-app.git"
-  },
-  "bugs": {
-    "url": "https://github.com/zyrozyro98/qat-app/issues"
-  },
-  "homepage": "https://qat-app.onrender.com",
   "engines": {
-    "node": ">=18.0.0 <19.0.0",
+    "node": ">=18.0.0 <23.0.0",
     "npm": ">=8.0.0"
   },
   "dependencies": {
@@ -65,196 +30,13 @@
     "cors": "^2.8.5",
     "helmet": "^7.0.0",
     "compression": "^1.7.4",
-    "express-rate-limit": "^6.0.0",
+    "express-rate-limit": "^7.1.5",
     "xlsx": "^0.18.5",
     "moment": "^2.29.4",
     "socket.io": "^4.7.2",
-    "nodemailer": "^6.9.7",
-    "validator": "^13.11.0",
-    "winston": "^3.11.0",
-    "morgan": "^1.10.0",
-    "uuid": "^9.0.1",
-    "sharp": "^0.32.6",
-    "cookie-parser": "^1.4.6",
-    "express-validator": "^7.0.1",
-    "serve-favicon": "^2.5.0",
-    "express-status-monitor": "^1.3.4",
-    "connect-flash": "^0.1.1",
-    "express-async-handler": "^1.2.0",
-    "express-useragent": "^1.0.15",
-    "geoip-lite": "^1.4.9",
-    "ioredis": "^5.3.2",
-    "http-errors": "^2.0.0",
-    "qs": "^6.11.2",
-    "lodash": "^4.17.21",
-    "async": "^3.2.5"
+    "nodemailer": "^6.9.7"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1",
-    "jest": "^29.7.0",
-    "supertest": "^6.3.3",
-    "eslint": "^8.53.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.29.0",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^6.1.1",
-    "prettier": "^3.0.3",
-    "faker": "^5.5.3",
-    "chalk": "^4.1.2",
-    "figlet": "^1.6.0",
-    "inquirer": "^8.2.6",
-    "ora": "^5.4.1",
-    "boxen": "^5.1.2"
-  },
-  "config": {
-    "port": 3000,
-    "session_secret": "qat-app-secret-key-change-in-production",
-    "jwt_secret": "qat-jwt-secret-change-in-production",
-    "database_path": "./data/database.sqlite",
-    "upload_dir": "./uploads",
-    "backup_dir": "./data/backups",
-    "max_file_size": 5242880,
-    "rate_limit_window": 900000,
-    "rate_limit_max": 100,
-    "email_service": "gmail",
-    "supported_wallets": [
-      "محفظة جيب",
-      "محفظة جوالي",
-      "محفظة موبايل موني",
-      "محفظة الشامل موني",
-      "محفظة فلوسك"
-    ]
-  },
-  "browserslist": [
-    "last 2 versions",
-    "not dead"
-  ],
-  "jest": {
-    "testEnvironment": "node",
-    "collectCoverageFrom": [
-      "server.js",
-      "database.js",
-      "controllers/**/*.js",
-      "middlewares/**/*.js",
-      "utils/**/*.js"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 70,
-        "functions": 70,
-        "lines": 70,
-        "statements": 70
-      }
-    },
-    "testMatch": [
-      "**/test/**/*.test.js"
-    ],
-    "setupFilesAfterEnv": [
-      "./test/setup.js"
-    ]
-  },
-  "nodemonConfig": {
-    "watch": [
-      "server.js",
-      "database.js",
-      "controllers",
-      "models",
-      "routes",
-      "middlewares",
-      "utils"
-    ],
-    "ext": "js,json",
-    "ignore": [
-      "node_modules/",
-      "uploads/",
-      "data/",
-      "test/",
-      ".git/"
-    ],
-    "delay": "1000",
-    "env": {
-      "NODE_ENV": "development",
-      "PORT": "3000"
-    }
-  },
-  "prettier": {
-    "semi": true,
-    "singleQuote": true,
-    "tabWidth": 2,
-    "useTabs": false,
-    "trailingComma": "es5",
-    "bracketSpacing": true,
-    "arrowParens": "avoid",
-    "printWidth": 100,
-    "endOfLine": "lf"
-  },
-  "eslintConfig": {
-    "env": {
-      "node": true,
-      "es2021": true,
-      "jest": true
-    },
-    "extends": [
-      "airbnb-base"
-    ],
-    "parserOptions": {
-      "ecmaVersion": "latest",
-      "sourceType": "module"
-    },
-    "rules": {
-      "no-console": "off",
-      "consistent-return": "warn",
-      "no-unused-vars": "warn",
-      "no-underscore-dangle": "off",
-      "camelcase": "off",
-      "max-len": ["error", { "code": 120 }],
-      "import/no-extraneous-dependencies": ["error", { "devDependencies": true }],
-      "no-param-reassign": ["error", { "props": false }]
-    }
-  },
-  "private": true,
-  "funding": {
-    "type": "individual",
-    "url": "https://paypal.me/qatapp"
-  },
-  "contributors": [
-    {
-      "name": "يوسف محمد علي حمود زهير",
-      "email": "yusef@qat-app.com",
-      "url": "https://github.com/zyrozyro98"
-    }
-  ],
-  "os": [
-    "linux",
-    "darwin",
-    "win32"
-  ],
-  "cpu": [
-    "x64",
-    "arm64"
-  ],
-  "files": [
-    "server.js",
-    "database.js",
-    "config.js",
-    "backup.js",
-    "public/",
-    "uploads/",
-    "data/",
-    "README.md",
-    "LICENSE"
-  ],
-  "directories": {
-    "test": "test",
-    "doc": "docs",
-    "example": "examples",
-    "lib": "lib",
-    "bin": "bin"
-  },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
+    "nodemon": "^3.0.1"
   }
 }
-
-
-
