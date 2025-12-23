@@ -1,6 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs').promises;
 const crypto = require('crypto');
@@ -1931,108 +1932,6 @@ app.get('/api/admin/reports/sales', requireAuth, requireAdmin, async (req, res) 
     }
 });
 
-// 🔧 المهام المجدولة
-if (IS_PRODUCTION) {
-    // تنظيف الجلسات القديمة يومياً
-    cron.schedule('0 0 * * *', async () => {
-        try {
-            const cutoff = new Date();
-            cutoff.setDate(cutoff.getDate() - 7); // جلسات أقدم من 7 أيام
-
-            // يمكن هنا إضافة منطق لتنظيف الجلسات من التخزين
-            logger.info('🧹 تم تشغيل مهمة تنظيف الجلسات القديمة');
-        } catch (error) {
-            logger.error(`❌ خطأ في مهمة التنظيف: ${error.message}`);
-        }
-    });
-
-    // نسخ احتياطي لقاعدة البيانات أسبوعياً
-    cron.schedule('0 2 * * 0', async () => {
-        try {
-            const backupDir = path.join(__dirname, 'backups');
-            if (!(await fs.access(backupDir).catch(() => false))) {
-                await fs.mkdir(backupDir, { recursive: true });
-            }
-
-            const backupFile = path.join(backupDir, `backup_${new Date().toISOString().split('T')[0]}.db`);
-
-            // نسخ قاعدة البيانات
-            await fs.copyFile(
-                path.join(__dirname, 'data', 'database.sqlite'),
-                backupFile
-            );
-
-            logger.info(`💾 تم إنشاء نسخة احتياطية: ${backupFile}`);
-        } catch (error) {
-            logger.error(`❌ خطأ في النسخ الاحتياطي: ${error.message}`);
-        }
-    });
-}
-
-// 📁 خدمة الملفات المحملة
-app.get('/uploads/*', (req, res) => {
-    const filePath = path.join(__dirname, req.path);
-
-    // التحقق من وجود الملف
-    fs.access(filePath)
-        .then(() => {
-            // تعيين رأس Cache-Control
-            res.setHeader('Cache-Control', 'public, max-age=31536000');
-            res.sendFile(filePath);
-        })
-        .catch(() => {
-            res.status(404).json({
-                success: false,
-                error: 'الملف غير موجود'
-            });
-        });
-});
-
-// ⚠️ معالج الأخطاء
-app.use((err, req, res, next) => {
-    logger.error(`❌ خطأ غير متوقع: ${err.message}`, {
-        stack: err.stack,
-        path: req.path,
-        method: req.method,
-        user: req.session.userId || 'guest'
-    });
-
-    if (err instanceof multer.MulterError) {
-        if (err.code === 'LIMIT_FILE_SIZE') {
-            return res.status(400).json({
-                success: false,
-                error: 'حجم الملف كبير جداً (الحد الأقصى 10MB)'
-            });
-        }
-        return res.status(400).json({
-            success: false,
-            error: 'خطأ في رفع الملف'
-        });
-    }
-
-    res.status(500).json({
-        success: false,
-        error: 'حدث خطأ داخلي في الخادم',
-        message: IS_PRODUCTION ? undefined : err.message,
-        timestamp: new Date().toISOString()
-    });
-});
-
-// 404 handler
-app.use((req, res) => {
-    logger.warn(`❌ مسار غير موجود: ${req.path}`);
-    res.status(404).json({
-        success: false,
-        error: 'الصفحة غير موجودة',
-        path: req.path,
-        timestamp: new Date().toISOString()
-    });
-});
-
-// الصفحة الرئيسية
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 // 🔐 مصادقة المدير
 app.post('/api/admin/login', async (req, res) => {
     try {
@@ -2054,7 +1953,7 @@ app.post('/api/admin/login', async (req, res) => {
         // إنشاء توكن
         const token = jwt.sign(
             { id: admin.id, role: admin.role, email: admin.email },
-            process.env.JWT_SECRET,
+            process.env.JWT_SECRET || 'admin-secret-key',
             { expiresIn: '8h' }
         );
 
@@ -2248,7 +2147,7 @@ app.post('/api/admin/coupons', requireAuth, requireAdmin, [
         );
 
         // إرسال إشعارات للمستخدمين المستهدفين
-        await this.sendCouponNotifications(couponData, result.lastID);
+        await sendCouponNotifications(couponData, result.lastID);
 
         res.json({
             success: true,
@@ -2455,6 +2354,233 @@ app.get('/api/admin/reports/advanced', requireAuth, requireAdmin, async (req, re
         res.status(500).json({ success: false, error: 'خطأ في الخادم' });
     }
 });
+
+// 📊 دوال التقارير المتقدمة
+async function getUserActivityReport(start_date, end_date) {
+    const query = `
+        SELECT
+            DATE(created_at) as date,
+            COUNT(*) as new_users,
+            SUM(CASE WHEN last_login IS NOT NULL THEN 1 ELSE 0 END) as active_users,
+            AVG((julianday('now') - julianday(created_at))) as avg_account_age
+        FROM users
+        WHERE created_at BETWEEN ? AND ?
+        GROUP BY DATE(created_at)
+        ORDER BY date DESC
+    `;
+
+    return db.allQuery(query, [start_date || '2023-01-01', end_date || new Date().toISOString()]);
+}
+
+async function getSellerPerformanceReport(start_date, end_date) {
+    const query = `
+        SELECT
+            s.user_id,
+            u.name as seller_name,
+            s.store_name,
+            COUNT(o.id) as total_orders,
+            SUM(o.total) as total_revenue,
+            AVG(o.total) as avg_order_value,
+            COUNT(DISTINCT o.buyer_id) as unique_customers
+        FROM sellers s
+        LEFT JOIN users u ON s.user_id = u.id
+        LEFT JOIN order_items oi ON s.user_id = oi.seller_id
+        LEFT JOIN orders o ON oi.order_id = o.id
+        WHERE o.created_at BETWEEN ? AND ?
+        GROUP BY s.user_id
+        ORDER BY total_revenue DESC
+    `;
+
+    return db.allQuery(query, [start_date || '2023-01-01', end_date || new Date().toISOString()]);
+}
+
+async function getCouponEffectivenessReport(start_date, end_date) {
+    const query = `
+        SELECT
+            gc.code,
+            gc.type,
+            gc.value,
+            COUNT(DISTINCT o.id) as times_used,
+            SUM(o.total) as total_revenue,
+            COUNT(DISTINCT o.buyer_id) as unique_users
+        FROM gift_coupons gc
+        LEFT JOIN orders o ON o.coupon_code = gc.code
+        WHERE o.created_at BETWEEN ? AND ?
+        GROUP BY gc.id
+        ORDER BY times_used DESC
+    `;
+
+    return db.allQuery(query, [start_date || '2023-01-01', end_date || new Date().toISOString()]);
+}
+
+async function getMarketAnalysisReport(start_date, end_date) {
+    const query = `
+        SELECT
+            m.id,
+            m.name,
+            m.location,
+            COUNT(DISTINCT p.id) as total_products,
+            COUNT(DISTINCT s.user_id) as total_sellers,
+            COUNT(DISTINCT o.id) as total_orders,
+            SUM(o.total) as total_revenue,
+            COUNT(DISTINCT d.id) as available_drivers
+        FROM markets m
+        LEFT JOIN products p ON m.id = p.market_id
+        LEFT JOIN sellers s ON p.seller_id = s.user_id
+        LEFT JOIN order_items oi ON p.id = oi.product_id
+        LEFT JOIN orders o ON oi.order_id = o.id
+        LEFT JOIN drivers d ON m.id = d.market_id AND d.status = 'available'
+        WHERE o.created_at BETWEEN ? AND ?
+        GROUP BY m.id
+        ORDER BY total_revenue DESC
+    `;
+
+    return db.allQuery(query, [start_date || '2023-01-01', end_date || new Date().toISOString()]);
+}
+
+async function getGeneralReport(start_date, end_date) {
+    const query = `
+        SELECT
+            'total_users' as metric,
+            COUNT(*) as value
+        FROM users
+        WHERE created_at BETWEEN ? AND ?
+        UNION ALL
+        SELECT
+            'total_orders',
+            COUNT(*)
+        FROM orders
+        WHERE created_at BETWEEN ? AND ?
+        UNION ALL
+        SELECT
+            'total_revenue',
+            SUM(total)
+        FROM orders
+        WHERE created_at BETWEEN ? AND ?
+        UNION ALL
+        SELECT
+            'active_sellers',
+            COUNT(DISTINCT seller_id)
+        FROM products
+        WHERE status = 'active'
+        UNION ALL
+        SELECT
+            'available_drivers',
+            COUNT(*)
+        FROM drivers
+        WHERE status = 'available'
+    `;
+
+    return db.allQuery(query, [
+        start_date || '2023-01-01', end_date || new Date().toISOString(),
+        start_date || '2023-01-01', end_date || new Date().toISOString(),
+        start_date || '2023-01-01', end_date || new Date().toISOString()
+    ]);
+}
+
+// 🔧 المهام المجدولة
+if (IS_PRODUCTION) {
+    // تنظيف الجلسات القديمة يومياً
+    cron.schedule('0 0 * * *', async () => {
+        try {
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - 7); // جلسات أقدم من 7 أيام
+
+            // يمكن هنا إضافة منطق لتنظيف الجلسات من التخزين
+            logger.info('🧹 تم تشغيل مهمة تنظيف الجلسات القديمة');
+        } catch (error) {
+            logger.error(`❌ خطأ في مهمة التنظيف: ${error.message}`);
+        }
+    });
+
+    // نسخ احتياطي لقاعدة البيانات أسبوعياً
+    cron.schedule('0 2 * * 0', async () => {
+        try {
+            const backupDir = path.join(__dirname, 'backups');
+            if (!(await fs.access(backupDir).catch(() => false))) {
+                await fs.mkdir(backupDir, { recursive: true });
+            }
+
+            const backupFile = path.join(backupDir, `backup_${new Date().toISOString().split('T')[0]}.db`);
+
+            // نسخ قاعدة البيانات
+            await fs.copyFile(
+                path.join(__dirname, 'data', 'database.sqlite'),
+                backupFile
+            );
+
+            logger.info(`💾 تم إنشاء نسخة احتياطية: ${backupFile}`);
+        } catch (error) {
+            logger.error(`❌ خطأ في النسخ الاحتياطي: ${error.message}`);
+        }
+    });
+}
+
+// 📁 خدمة الملفات المحملة
+app.get('/uploads/*', (req, res) => {
+    const filePath = path.join(__dirname, req.path);
+
+    // التحقق من وجود الملف
+    fs.access(filePath)
+        .then(() => {
+            // تعيين رأس Cache-Control
+            res.setHeader('Cache-Control', 'public, max-age=31536000');
+            res.sendFile(filePath);
+        })
+        .catch(() => {
+            res.status(404).json({
+                success: false,
+                error: 'الملف غير موجود'
+            });
+        });
+});
+
+// ⚠️ معالج الأخطاء
+app.use((err, req, res, next) => {
+    logger.error(`❌ خطأ غير متوقع: ${err.message}`, {
+        stack: err.stack,
+        path: req.path,
+        method: req.method,
+        user: req.session.userId || 'guest'
+    });
+
+    if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({
+                success: false,
+                error: 'حجم الملف كبير جداً (الحد الأقصى 10MB)'
+            });
+        }
+        return res.status(400).json({
+            success: false,
+            error: 'خطأ في رفع الملف'
+        });
+    }
+
+    res.status(500).json({
+        success: false,
+        error: 'حدث خطأ داخلي في الخادم',
+        message: IS_PRODUCTION ? undefined : err.message,
+        timestamp: new Date().toISOString()
+    });
+});
+
+// 404 handler
+app.use((req, res) => {
+    logger.warn(`❌ مسار غير موجود: ${req.path}`);
+    res.status(404).json({
+        success: false,
+        error: 'الصفحة غير موجودة',
+        path: req.path,
+        timestamp: new Date().toISOString()
+    });
+});
+
+// الصفحة الرئيسية
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // بدء الخادم
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
