@@ -1,32 +1,17 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs').promises;
+const { requireAuth, requireSeller } = require('../middleware/auth');
+const logger = require('../config/logger');
 
-module.exports = (db) => {
-    const productController = require('../controllers/productController')(db);
-    
-    router.get('/', productController.getProducts);
-    router.get('/:id', productController.getProductById);
-    
-    return router;
-};
-// Middleware
-const { validateRequest } = require('../middleware/validator');
-const { requireAuth, requireRole, requireSeller } = require('../config/middleware');
-
-// Models
-const { ProductModel } = require('../database/models');
-const database = require('../config/database');
-
-// تهيئة الموديل
-const productModel = new ProductModel(database);
-
-// إعدادات تحميل الملفات
+// إعداد Multer للرفع
 const storage = multer.memoryStorage();
 const upload = multer({
     storage,
     limits: {
-        fileSize: 10 * 1024 * 1024, // 10MB
-        files: 5
+        fileSize: 10 * 1024 * 1024 // 10MB
     },
     fileFilter: (req, file, cb) => {
         const allowedTypes = /jpeg|jpg|png|gif|webp/;
@@ -36,624 +21,456 @@ const upload = multer({
         if (mimetype && extname) {
             cb(null, true);
         } else {
-            cb(new Error('نوع الصورة غير مدعوم. يرجى رفع صور (JPEG, PNG, GIF, WebP) فقط'));
+            cb(new Error('نوع الملف غير مدعوم. يرجى رفع صور فقط (JPEG, PNG, GIF, WebP)'));
         }
     }
 });
 
-// مسار جلب جميع المنتجات
-router.get('/', async (req, res) => {
-    try {
-        const {
-            category,
-            market_id,
-            seller_id,
-            min_price,
-            max_price,
-            search,
-            sort_by = 'created_at',
-            sort_order = 'DESC',
-            page = 1,
-            limit = 20
-        } = req.query;
-        
-        // بناء شروط البحث
-        const conditions = { status: 'active' };
-        if (category) conditions.category = category;
-        if (market_id) conditions.market_id = market_id;
-        if (seller_id) conditions.seller_id = seller_id;
-        if (min_price) conditions.price = { $gte: min_price };
-        if (max_price) conditions.price = { $lte: max_price };
-        
-       // تحديث الجزء الخاص بالبحث النصي
-router.get('/', async (req, res) => {
-    try {
-        const {
-            category,
-            market_id,
-            seller_id,
-            min_price,
-            max_price,
-            search,
-            sort_by = 'created_at',
-            sort_order = 'DESC',
-            page = 1,
-            limit = 20,
-            featured // إضافة المعامل الجديد
-        } = req.query;
-        
-        console.log('🛒 جلب المنتجات:', req.query);
-        
-        // بناء الاستعلام الأساسي
-        let query = `
-            SELECT p.*, u.name as seller_name, u.avatar as seller_avatar,
-                   s.store_name, s.rating as seller_rating,
-                   m.name as market_name, m.location as market_location,
-                   (SELECT AVG(rating) FROM reviews WHERE product_id = p.id) as average_rating,
-                   (SELECT COUNT(*) FROM reviews WHERE product_id = p.id) as review_count
-            FROM products p
-            LEFT JOIN users u ON p.seller_id = u.id
-            LEFT JOIN sellers s ON p.seller_id = s.user_id
-            LEFT JOIN markets m ON p.market_id = m.id
-            WHERE p.status = 'active'
-        `;
-        
-        const params = [];
-        
-        // فلترة المنتجات المميزة
-        if (featured === 'true') {
-            query += ' AND p.featured = 1';
-        }
-        
-        if (category) {
-            query += ' AND p.category = ?';
-            params.push(category);
-        }
-        
-        if (market_id) {
-            query += ' AND p.market_id = ?';
-            params.push(market_id);
-        }
-        
-        if (seller_id) {
-            query += ' AND p.seller_id = ?';
-            params.push(seller_id);
-        }
-        
-        if (min_price) {
-            query += ' AND p.price >= ?';
-            params.push(min_price);
-        }
-        
-        if (max_price) {
-            query += ' AND p.price <= ?';
-            params.push(max_price);
-        }
-        
-        if (search) {
-            query += ' AND (p.name LIKE ? OR p.description LIKE ? OR p.specifications LIKE ?)';
-            const searchTerm = `%${search}%`;
-            params.push(searchTerm, searchTerm, searchTerm);
-        }
-        
-        // جلب العدد الكلي
-        const countQuery = `SELECT COUNT(*) as total ${query.substring(query.indexOf('FROM'))}`;
-        const countResult = await database.get(countQuery, params);
-        const total = countResult ? countResult.total : 0;
-        
-        // إضافة الترتيب والمحدودية
-        const validSortColumns = ['price', 'created_at', 'average_rating'];
-        const sortColumn = validSortColumns.includes(sort_by) ? sort_by : 'created_at';
-        const order = sort_order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
-        
-        query += ` ORDER BY ${sortColumn} ${order}`;
-        
-        const offset = (page - 1) * limit;
-        query += ' LIMIT ? OFFSET ?';
-        params.push(parseInt(limit), offset);
-        
-        const products = await database.all(query, params);
-        
-        console.log(`✅ تم جلب ${products.length} منتج من أصل ${total}`);
-        
-        res.json({
-            success: true,
-            data: products,
-            meta: {
-                total,
-                page: parseInt(page),
-                limit: parseInt(limit),
-                pages: Math.ceil(total / limit),
-                timestamp: new Date().toISOString()
-            }
-        });
-    } catch (error) {
-        console.error('❌ خطأ في جلب المنتجات:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: 'حدث خطأ في جلب المنتجات',
-            message: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
-    }
-});
-        
-        // جلب المنتجات مع الفلترة
-        const products = search ? searchResults : await productModel.findAll(conditions, {
-            limit: parseInt(limit),
-            offset: (page - 1) * limit,
-            orderBy: sort_by,
-            order: sort_order
-        });
-        
-        // جلب العدد الكلي
-        const total = await productModel.count(conditions);
-        
-        res.json({
-            success: true,
-            data: products,
-            meta: {
-                total,
-                page: parseInt(page),
-                limit: parseInt(limit),
-                pages: Math.ceil(total / limit)
-            }
-        });
-        
-    } catch (error) {
-        console.error('❌ خطأ في جلب المنتجات:', error);
-        res.status(500).json({
-            success: false,
-            error: 'حدث خطأ في جلب المنتجات'
-        });
-    }
-});
-
-// مسار جلب منتج معين
-router.get('/:id', async (req, res) => {
-    try {
-        const productId = req.params.id;
-        
-        const product = await productModel.findById(productId);
-        if (!product) {
-            return res.status(404).json({
-                success: false,
-                error: 'المنتج غير موجود'
-            });
-        }
-        
-        // جلب بيانات البائع
-        const seller = await database.get(
-            'SELECT name, email, phone, avatar FROM users WHERE id = ?',
-            [product.seller_id]
-        );
-        
-        // جلب بيانات السوق
-        const market = await database.get(
-            'SELECT name, location FROM markets WHERE id = ?',
-            [product.market_id]
-        );
-        
-        // جلب التقييمات
-        const reviews = await database.all(`
-            SELECT r.*, u.name as user_name, u.avatar as user_avatar
-            FROM reviews r
-            LEFT JOIN users u ON r.user_id = u.id
-            WHERE r.product_id = ?
-            ORDER BY r.created_at DESC
-            LIMIT 10
-        `, [productId]);
-        
-        // حساب متوسط التقييم
-        const avgRating = await database.get(`
-            SELECT AVG(rating) as average_rating, COUNT(*) as review_count
-            FROM reviews WHERE product_id = ?
-        `, [productId]);
-        
-        // جلب منتجات مشابهة
-        const similarProducts = await database.all(`
-            SELECT * FROM products 
-            WHERE category = ? AND id != ? AND status = 'active'
-            ORDER BY RANDOM()
-            LIMIT 6
-        `, [product.category, productId]);
-        
-        res.json({
-            success: true,
-            data: {
-                ...product,
-                seller: seller || {},
-                market: market || {},
-                reviews: reviews || [],
-                average_rating: avgRating ? avgRating.average_rating : 0,
-                review_count: avgRating ? avgRating.review_count : 0,
-                similar_products: similarProducts
-            }
-        });
-        
-    } catch (error) {
-        console.error('❌ خطأ في جلب تفاصيل المنتج:', error);
-        res.status(500).json({
-            success: false,
-            error: 'حدث خطأ في جلب تفاصيل المنتج'
-        });
-    }
-});
-
-// مسار إضافة منتج جديد
-router.post('/', requireAuth, requireSeller, upload.array('images', 5), [
-    body('name')
-        .trim()
-        .notEmpty()
-        .withMessage('اسم المنتج مطلوب')
-        .isLength({ min: 3, max: 100 })
-        .withMessage('اسم المنتج يجب أن يكون بين 3 و 100 حرف'),
-    
-    body('description')
-        .trim()
-        .optional()
-        .isLength({ max: 1000 })
-        .withMessage('الوصف يجب ألا يتجاوز 1000 حرف'),
-    
-    body('price')
-        .isFloat({ min: 1 })
-        .withMessage('السعر يجب أن يكون رقم موجب'),
-    
-    body('category')
-        .trim()
-        .notEmpty()
-        .withMessage('فئة المنتج مطلوبة'),
-    
-    body('market_id')
-        .isInt()
-        .withMessage('معرف السوق غير صحيح'),
-    
-    body('quantity')
-        .isInt({ min: 0 })
-        .withMessage('الكمية يجب أن تكون رقم صحيح موجب'),
-    
-    body('specifications')
-        .trim()
-        .optional()
-], validateRequest, async (req, res) => {
-    try {
-        const sellerId = req.session.userId;
-        const { 
-            name, description, price, category, market_id, quantity, specifications 
-        } = req.body;
-        
-        // التحقق من وجود السوق
-        const market = await database.get('SELECT id FROM markets WHERE id = ? AND status = "active"', [market_id]);
-        if (!market) {
-            return res.status(400).json({
-                success: false,
-                error: 'السوق غير موجود أو غير نشط'
-            });
-        }
-        
-        // معالجة الصور
-        let imagePaths = [];
-        if (req.files && req.files.length > 0) {
-            const uploadDir = path.join(__dirname, '..', 'uploads', 'products');
-            await fs.mkdir(uploadDir, { recursive: true });
+module.exports = (db) => {
+    // جلب جميع المنتجات
+    router.get('/', async (req, res) => {
+        try {
+            const {
+                category,
+                market_id,
+                seller_id,
+                min_price,
+                max_price,
+                search,
+                sort_by = 'created_at',
+                sort_order = 'DESC',
+                page = 1,
+                limit = 20
+            } = req.query;
             
-            for (const file of req.files) {
-                const filename = `product_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.webp`;
-                const filePath = path.join(uploadDir, filename);
-                
-                // تحسين الصورة وحفظها كـ WebP
-                await sharp(file.buffer)
-                    .resize(800, 600, { fit: 'cover' })
-                    .webp({ quality: 80 })
-                    .toFile(filePath);
-                
-                imagePaths.push(`/uploads/products/${filename}`);
+            let query = `
+                SELECT p.*, u.name as seller_name, u.avatar as seller_avatar,
+                       s.store_name, s.rating as seller_rating,
+                       m.name as market_name, m.location as market_location,
+                       (SELECT AVG(rating) FROM reviews WHERE product_id = p.id) as average_rating,
+                       (SELECT COUNT(*) FROM reviews WHERE product_id = p.id) as review_count
+                FROM products p
+                LEFT JOIN users u ON p.seller_id = u.id
+                LEFT JOIN sellers s ON p.seller_id = s.user_id
+                LEFT JOIN markets m ON p.market_id = m.id
+                WHERE p.status = 'active'
+            `;
+            
+            const params = [];
+            
+            if (category) {
+                query += ' AND p.category = ?';
+                params.push(category);
             }
-        }
-        
-        // إنشاء المنتج
-        const productData = {
-            seller_id: sellerId,
-            market_id,
-            name,
-            description: description || '',
-            price: parseFloat(price),
-            image: imagePaths.length > 0 ? imagePaths[0] : null,
-            category,
-            quantity: parseInt(quantity),
-            specifications: specifications || '',
-            status: quantity > 0 ? 'active' : 'out_of_stock'
-        };
-        
-        const product = await productModel.create(productData);
-        
-        res.status(201).json({
-            success: true,
-            message: 'تم إضافة المنتج بنجاح',
-            data: product
-        });
-        
-    } catch (error) {
-        console.error('❌ خطأ في إضافة المنتج:', error);
-        
-        if (error.code === 'LIMIT_FILE_SIZE') {
-            return res.status(400).json({
-                success: false,
-                error: 'حجم الصورة كبير جداً (الحد الأقصى 10MB)'
-            });
-        }
-        
-        res.status(500).json({
-            success: false,
-            error: 'حدث خطأ في إضافة المنتج'
-        });
-    }
-});
-
-// مسار تحديث المنتج
-router.put('/:id', requireAuth, requireSeller, [
-    body('name')
-        .optional()
-        .trim()
-        .notEmpty()
-        .withMessage('اسم المنتج لا يمكن أن يكون فارغاً')
-        .isLength({ min: 3, max: 100 })
-        .withMessage('اسم المنتج يجب أن يكون بين 3 و 100 حرف'),
-    
-    body('description')
-        .optional()
-        .trim()
-        .isLength({ max: 1000 })
-        .withMessage('الوصف يجب ألا يتجاوز 1000 حرف'),
-    
-    body('price')
-        .optional()
-        .isFloat({ min: 1 })
-        .withMessage('السعر يجب أن يكون رقم موجب'),
-    
-    body('quantity')
-        .optional()
-        .isInt({ min: 0 })
-        .withMessage('الكمية يجب أن تكون رقم صحيح موجب'),
-    
-    body('specifications')
-        .optional()
-        .trim()
-], validateRequest, async (req, res) => {
-    try {
-        const productId = req.params.id;
-        const sellerId = req.session.userId;
-        const updateData = req.body;
-        
-        // التحقق من ملكية المنتج
-        const product = await productModel.findById(productId);
-        if (!product) {
-            return res.status(404).json({
-                success: false,
-                error: 'المنتج غير موجود'
-            });
-        }
-        
-        if (product.seller_id !== sellerId) {
-            return res.status(403).json({
-                success: false,
-                error: 'لا تملك الصلاحية لتعديل هذا المنتج'
-            });
-        }
-        
-        // تحديث حالة المنتج بناءً على الكمية
-        if (updateData.quantity !== undefined) {
-            updateData.status = updateData.quantity > 0 ? 'active' : 'out_of_stock';
-        }
-        
-        // تحديث المنتج
-        const updatedProduct = await productModel.update(productId, updateData);
-        
-        res.json({
-            success: true,
-            message: 'تم تحديث المنتج بنجاح',
-            data: updatedProduct
-        });
-        
-    } catch (error) {
-        console.error('❌ خطأ في تحديث المنتج:', error);
-        res.status(500).json({
-            success: false,
-            error: 'حدث خطأ في تحديث المنتج'
-        });
-    }
-});
-
-// مسار حذف المنتج
-router.delete('/:id', requireAuth, requireSeller, async (req, res) => {
-    try {
-        const productId = req.params.id;
-        const sellerId = req.session.userId;
-        
-        // التحقق من ملكية المنتج
-        const product = await productModel.findById(productId);
-        if (!product) {
-            return res.status(404).json({
-                success: false,
-                error: 'المنتج غير موجود'
-            });
-        }
-        
-        if (product.seller_id !== sellerId) {
-            return res.status(403).json({
-                success: false,
-                error: 'لا تملك الصلاحية لحذف هذا المنتج'
-            });
-        }
-        
-        // حذف المنتج
-        await productModel.delete(productId);
-        
-        res.json({
-            success: true,
-            message: 'تم حذف المنتج بنجاح'
-        });
-        
-    } catch (error) {
-        console.error('❌ خطأ في حذف المنتج:', error);
-        res.status(500).json({
-            success: false,
-            error: 'حدث خطأ في حذف المنتج'
-        });
-    }
-});
-
-// مسار جلب منتجات البائع
-router.get('/seller/my-products', requireAuth, requireSeller, async (req, res) => {
-    try {
-        const sellerId = req.session.userId;
-        const { page = 1, limit = 20, status } = req.query;
-        
-        // بناء شروط البحث
-        const conditions = { seller_id: sellerId };
-        if (status) conditions.status = status;
-        
-        // جلب المنتجات
-        const products = await productModel.findAll(conditions, {
-            limit: parseInt(limit),
-            offset: (page - 1) * limit,
-            orderBy: 'created_at',
-            order: 'DESC'
-        });
-        
-        // جلب العدد الكلي
-        const total = await productModel.count(conditions);
-        
-        res.json({
-            success: true,
-            data: products,
-            meta: {
-                total,
-                page: parseInt(page),
-                limit: parseInt(limit),
-                pages: Math.ceil(total / limit)
+            
+            if (market_id) {
+                query += ' AND p.market_id = ?';
+                params.push(market_id);
             }
-        });
-        
-    } catch (error) {
-        console.error('❌ خطأ في جلب منتجات البائع:', error);
-        res.status(500).json({
-            success: false,
-            error: 'حدث خطأ في جلب منتجات البائع'
-        });
-    }
-});
-
-// مسار إضافة تقييم للمنتج
-router.post('/:id/reviews', requireAuth, [
-    body('rating')
-        .isInt({ min: 1, max: 5 })
-        .withMessage('التقييم يجب أن يكون بين 1 و 5'),
+            
+            if (seller_id) {
+                query += ' AND p.seller_id = ?';
+                params.push(seller_id);
+            }
+            
+            if (min_price) {
+                query += ' AND p.price >= ?';
+                params.push(min_price);
+            }
+            
+            if (max_price) {
+                query += ' AND p.price <= ?';
+                params.push(max_price);
+            }
+            
+            if (search) {
+                query += ' AND (p.name LIKE ? OR p.description LIKE ? OR p.specifications LIKE ?)';
+                const searchTerm = `%${search}%`;
+                params.push(searchTerm, searchTerm, searchTerm);
+            }
+            
+            const countQuery = `SELECT COUNT(*) as total ${query.substring(query.indexOf('FROM'))}`;
+            const countResult = await db.getQuery(countQuery, params);
+            const total = countResult ? countResult.total : 0;
+            
+            const validSortColumns = ['price', 'created_at', 'average_rating'];
+            const sortColumn = validSortColumns.includes(sort_by) ? sort_by : 'created_at';
+            const order = sort_order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+            
+            query += ` ORDER BY ${sortColumn} ${order}`;
+            
+            const offset = (page - 1) * limit;
+            query += ' LIMIT ? OFFSET ?';
+            params.push(parseInt(limit), offset);
+            
+            const products = await db.allQuery(query, params);
+            
+            logger.info(`✅ تم جلب ${products.length} منتج من أصل ${total}`);
+            
+            res.json({
+                success: true,
+                data: products,
+                meta: {
+                    total,
+                    page: parseInt(page),
+                    limit: parseInt(limit),
+                    pages: Math.ceil(total / limit),
+                    timestamp: new Date().toISOString()
+                }
+            });
+        } catch (error) {
+            logger.error(`❌ خطأ في جلب المنتجات: ${error.message}`);
+            res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+        }
+    });
     
-    body('comment')
-        .optional()
-        .trim()
-        .isLength({ max: 500 })
-        .withMessage('التعليق يجب ألا يتجاوز 500 حرف')
-], validateRequest, async (req, res) => {
-    try {
-        const productId = req.params.id;
-        const userId = req.session.userId;
-        const { rating, comment } = req.body;
-        
-        // التحقق من وجود المنتج
-        const product = await productModel.findById(productId);
-        if (!product) {
-            return res.status(404).json({
-                success: false,
-                error: 'المنتج غير موجود'
+    // جلب منتج معين
+    router.get('/:id', async (req, res) => {
+        try {
+            const product = await db.getQuery(
+                `SELECT p.*, u.name as seller_name, u.avatar as seller_avatar,
+                        s.store_name, s.rating as seller_rating, s.total_sales,
+                        m.name as market_name, m.location as market_location
+                 FROM products p
+                 LEFT JOIN users u ON p.seller_id = u.id
+                 LEFT JOIN sellers s ON p.seller_id = s.user_id
+                 LEFT JOIN markets m ON p.market_id = m.id
+                 WHERE p.id = ? AND p.status = 'active'`,
+                [req.params.id]
+            );
+            
+            if (!product) {
+                return res.status(404).json({
+                    success: false,
+                    error: 'المنتج غير موجود'
+                });
+            }
+            
+            // جلب التقييمات
+            const reviews = await db.allQuery(
+                `SELECT r.*, u.name as user_name, u.avatar as user_avatar
+                 FROM reviews r
+                 LEFT JOIN users u ON r.user_id = u.id
+                 WHERE r.product_id = ?
+                 ORDER BY r.created_at DESC
+                 LIMIT 10`,
+                [req.params.id]
+            );
+            
+            // جلب متوسط التقييم
+            const avgRating = await db.getQuery(
+                'SELECT AVG(rating) as avg_rating, COUNT(*) as total_reviews FROM reviews WHERE product_id = ?',
+                [req.params.id]
+            );
+            
+            // جلب منتجات مشابهة
+            const similarProducts = await db.allQuery(
+                `SELECT p.*, u.name as seller_name
+                 FROM products p
+                 LEFT JOIN users u ON p.seller_id = u.id
+                 WHERE p.category = ? 
+                 AND p.id != ? 
+                 AND p.status = 'active'
+                 ORDER BY RANDOM()
+                 LIMIT 4`,
+                [product.category, req.params.id]
+            );
+            
+            res.json({
+                success: true,
+                data: {
+                    ...product,
+                    reviews,
+                    rating: avgRating || { avg_rating: 0, total_reviews: 0 },
+                    similarProducts
+                }
             });
+        } catch (error) {
+            logger.error(`❌ خطأ في جلب تفاصيل المنتج: ${error.message}`);
+            res.status(500).json({ success: false, error: 'خطأ في الخادم' });
         }
-        
-        // التحقق من عدم إضافة تقييم مسبق
-        const existingReview = await database.get(
-            'SELECT id FROM reviews WHERE user_id = ? AND product_id = ?',
-            [userId, productId]
-        );
-        
-        if (existingReview) {
-            return res.status(400).json({
-                success: false,
-                error: 'لقد قمت بتقييم هذا المنتج مسبقاً'
+    });
+    
+    // إنشاء منتج جديد (للبائع فقط)
+    router.post('/', requireAuth, requireSeller, upload.single('image'), async (req, res) => {
+        try {
+            const { name, description, price, category, quantity, specifications, market_id } = req.body;
+            
+            if (!name || !price || !category || !market_id) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'الاسم والسعر والفئة والسوق مطلوبة'
+                });
+            }
+            
+            let imageUrl = '';
+            if (req.file) {
+                // حفظ الصورة
+                const uploadsDir = path.join(__dirname, '../../uploads/products');
+                await fs.mkdir(uploadsDir, { recursive: true });
+                
+                const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}${path.extname(req.file.originalname)}`;
+                const filePath = path.join(uploadsDir, fileName);
+                
+                await fs.writeFile(filePath, req.file.buffer);
+                imageUrl = `/uploads/products/${fileName}`;
+            }
+            
+            const result = await db.runQuery(
+                `INSERT INTO products (seller_id, market_id, name, description, price, image, category, quantity, specifications, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [req.session.userId, market_id, name, description || '', price, imageUrl, category, quantity || 0, specifications || '', new Date().toISOString()]
+            );
+            
+            res.json({
+                success: true,
+                message: 'تم إنشاء المنتج بنجاح',
+                data: {
+                    id: result.lastID,
+                    name,
+                    price,
+                    category,
+                    image: imageUrl
+                }
             });
+        } catch (error) {
+            logger.error(`❌ خطأ في إنشاء المنتج: ${error.message}`);
+            res.status(500).json({ success: false, error: 'خطأ في الخادم' });
         }
-        
-        // إضافة التقييم
-        await database.run(
-            `INSERT INTO reviews (user_id, product_id, rating, comment, created_at)
-             VALUES (?, ?, ?, ?, datetime('now'))`,
-            [userId, productId, rating, comment || '']
-        );
-        
-        res.status(201).json({
-            success: true,
-            message: 'تم إضافة التقييم بنجاح'
-        });
-        
-    } catch (error) {
-        console.error('❌ خطأ في إضافة التقييم:', error);
-        res.status(500).json({
-            success: false,
-            error: 'حدث خطأ في إضافة التقييم'
-        });
-    }
-});
-
-// مسار جلب فئات المنتجات
-router.get('/categories/list', async (req, res) => {
-    try {
-        const categories = await database.all(`
-            SELECT category, COUNT(*) as product_count
-            FROM products
-            WHERE status = 'active'
-            GROUP BY category
-            ORDER BY product_count DESC
-        `);
-        
-        res.json({
-            success: true,
-            data: categories
-        });
-        
-    } catch (error) {
-        console.error('❌ خطأ في جلب الفئات:', error);
-        res.status(500).json({
-            success: false,
-            error: 'حدث خطأ في جلب الفئات'
-        });
-    }
-});
-
-// مسار جلب المنتجات الرائجة
-router.get('/trending/products', async (req, res) => {
-    try {
-        const trendingProducts = await database.all(`
-            SELECT p.*, u.name as seller_name, s.store_name,
-                   (SELECT COUNT(*) FROM order_items oi WHERE oi.product_id = p.id) as order_count
-            FROM products p
-            LEFT JOIN users u ON p.seller_id = u.id
-            LEFT JOIN sellers s ON p.seller_id = s.user_id
-            WHERE p.status = 'active'
-            ORDER BY order_count DESC
-            LIMIT 10
-        `);
-        
-        res.json({
-            success: true,
-            data: trendingProducts
-        });
-        
-    } catch (error) {
-        console.error('❌ خطأ في جلب المنتجات الرائجة:', error);
-        res.status(500).json({
-            success: false,
-            error: 'حدث خطأ في جلب المنتجات الرائجة'
-        });
-    }
-});
-
-module.exports = router;
+    });
+    
+    // تحديث منتج (للبائع فقط)
+    router.put('/:id', requireAuth, requireSeller, upload.single('image'), async (req, res) => {
+        try {
+            // التحقق من ملكية المنتج
+            const product = await db.getQuery(
+                'SELECT * FROM products WHERE id = ? AND seller_id = ?',
+                [req.params.id, req.session.userId]
+            );
+            
+            if (!product) {
+                return res.status(404).json({
+                    success: false,
+                    error: 'المنتج غير موجود أو ليس لديك صلاحية لتعديله'
+                });
+            }
+            
+            const { name, description, price, category, quantity, specifications, status, market_id } = req.body;
+            
+            let imageUrl = product.image;
+            if (req.file) {
+                // حفظ الصورة الجديدة
+                const uploadsDir = path.join(__dirname, '../../uploads/products');
+                await fs.mkdir(uploadsDir, { recursive: true });
+                
+                const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}${path.extname(req.file.originalname)}`;
+                const filePath = path.join(uploadsDir, fileName);
+                
+                await fs.writeFile(filePath, req.file.buffer);
+                imageUrl = `/uploads/products/${fileName}`;
+                
+                // حذف الصورة القديمة إذا كانت موجودة
+                if (product.image && product.image.startsWith('/uploads/')) {
+                    try {
+                        await fs.unlink(path.join(__dirname, '../..', product.image));
+                    } catch (error) {
+                        logger.warn(`⚠️ خطأ في حذف الصورة القديمة: ${error.message}`);
+                    }
+                }
+            }
+            
+            await db.runQuery(
+                `UPDATE products 
+                 SET name = ?, description = ?, price = ?, image = ?, category = ?, 
+                     quantity = ?, specifications = ?, status = ?, market_id = ?, updated_at = ?
+                 WHERE id = ?`,
+                [name || product.name, 
+                 description || product.description, 
+                 price || product.price, 
+                 imageUrl,
+                 category || product.category,
+                 quantity !== undefined ? quantity : product.quantity,
+                 specifications || product.specifications,
+                 status || product.status,
+                 market_id || product.market_id,
+                 new Date().toISOString(),
+                 req.params.id]
+            );
+            
+            res.json({
+                success: true,
+                message: 'تم تحديث المنتج بنجاح'
+            });
+        } catch (error) {
+            logger.error(`❌ خطأ في تحديث المنتج: ${error.message}`);
+            res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+        }
+    });
+    
+    // حذف منتج (للبائع فقط)
+    router.delete('/:id', requireAuth, requireSeller, async (req, res) => {
+        try {
+            // التحقق من ملكية المنتج
+            const product = await db.getQuery(
+                'SELECT * FROM products WHERE id = ? AND seller_id = ?',
+                [req.params.id, req.session.userId]
+            );
+            
+            if (!product) {
+                return res.status(404).json({
+                    success: false,
+                    error: 'المنتج غير موجود أو ليس لديك صلاحية لحذفه'
+                });
+            }
+            
+            // لا يمكن حذف المنتج إذا كان لديه طلبات نشطة
+            const hasOrders = await db.getQuery(
+                'SELECT 1 FROM order_items oi LEFT JOIN orders o ON oi.order_id = o.id WHERE oi.product_id = ? AND o.status IN ("pending", "paid", "preparing") LIMIT 1',
+                [req.params.id]
+            );
+            
+            if (hasOrders) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'لا يمكن حذف المنتج لأنه لديه طلبات نشطة'
+                });
+            }
+            
+            // حذف الصورة إذا كانت موجودة
+            if (product.image && product.image.startsWith('/uploads/')) {
+                try {
+                    await fs.unlink(path.join(__dirname, '../..', product.image));
+                } catch (error) {
+                    logger.warn(`⚠️ خطأ في حذف الصورة: ${error.message}`);
+                }
+            }
+            
+            // حذف المنتج (تحديث الحالة بدلاً من الحذف الفعلي)
+            await db.runQuery(
+                'UPDATE products SET status = "inactive", updated_at = ? WHERE id = ?',
+                [new Date().toISOString(), req.params.id]
+            );
+            
+            res.json({
+                success: true,
+                message: 'تم حذف المنتج بنجاح'
+            });
+        } catch (error) {
+            logger.error(`❌ خطأ في حذف المنتج: ${error.message}`);
+            res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+        }
+    });
+    
+    // إضافة تقييم للمنتج
+    router.post('/:id/reviews', requireAuth, async (req, res) => {
+        try {
+            const { rating, comment } = req.body;
+            
+            if (!rating || rating < 1 || rating > 5) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'التقييم يجب أن يكون بين 1 و 5'
+                });
+            }
+            
+            // التحقق من أن المستخدم قد اشترى هذا المنتج
+            const hasPurchased = await db.getQuery(
+                `SELECT 1 FROM order_items oi 
+                 LEFT JOIN orders o ON oi.order_id = o.id 
+                 WHERE oi.product_id = ? AND o.buyer_id = ? AND o.status = "delivered" 
+                 LIMIT 1`,
+                [req.params.id, req.session.userId]
+            );
+            
+            if (!hasPurchased) {
+                return res.status(403).json({
+                    success: false,
+                    error: 'يجب شراء المنتج أولاً قبل تقييمه'
+                });
+            }
+            
+            // التحقق من عدم إضافة تقييم سابق
+            const existingReview = await db.getQuery(
+                'SELECT id FROM reviews WHERE product_id = ? AND user_id = ?',
+                [req.params.id, req.session.userId]
+            );
+            
+            if (existingReview) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'لقد قمت بتقييم هذا المنتج مسبقاً'
+                });
+            }
+            
+            await db.runQuery(
+                'INSERT INTO reviews (user_id, product_id, rating, comment, created_at) VALUES (?, ?, ?, ?, ?)',
+                [req.session.userId, req.params.id, rating, comment || '', new Date().toISOString()]
+            );
+            
+            res.json({
+                success: true,
+                message: 'تم إضافة التقييم بنجاح'
+            });
+        } catch (error) {
+            logger.error(`❌ خطأ في إضافة التقييم: ${error.message}`);
+            res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+        }
+    });
+    
+    // جلب منتجات البائع
+    router.get('/seller/products', requireAuth, requireSeller, async (req, res) => {
+        try {
+            const { status, page = 1, limit = 20 } = req.query;
+            
+            let query = `
+                SELECT p.*, m.name as market_name
+                FROM products p
+                LEFT JOIN markets m ON p.market_id = m.id
+                WHERE p.seller_id = ?
+            `;
+            
+            const params = [req.session.userId];
+            
+            if (status) {
+                query += ' AND p.status = ?';
+                params.push(status);
+            }
+            
+            query += ' ORDER BY p.created_at DESC';
+            
+            const offset = (page - 1) * limit;
+            query += ' LIMIT ? OFFSET ?';
+            params.push(parseInt(limit), offset);
+            
+            const products = await db.allQuery(query, params);
+            
+            // حساب الإحصائيات
+            const stats = await db.getQuery(`
+                SELECT 
+                    (SELECT COUNT(*) FROM products WHERE seller_id = ? AND status = 'active') as active_products,
+                    (SELECT COUNT(*) FROM products WHERE seller_id = ? AND status = 'out_of_stock') as out_of_stock_products,
+                    (SELECT COUNT(*) FROM products WHERE seller_id = ? AND status = 'inactive') as inactive_products,
+                    (SELECT SUM(total_sales) FROM order_items oi 
+                     LEFT JOIN products p ON oi.product_id = p.id 
+                     WHERE p.seller_id = ?) as total_sales_amount
+            `, [req.session.userId, req.session.userId, req.session.userId, req.session.userId]);
+            
+            res.json({
+                success: true,
+                data: {
+                    products,
+                    stats: stats || {}
+                },
+                meta: {
+                    page: parseInt(page),
+                    limit: parseInt(limit)
+                }
+            });
+        } catch (error) {
+            logger.error(`❌ خطأ في جلب منتجات البائع: ${error.message}`);
+            res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+        }
+    });
+    
+    return router;
+};
