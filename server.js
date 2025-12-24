@@ -25,7 +25,7 @@ require('moment-hijri');
 const cron = require('node-cron');
 const geoip = require('geoip-lite');
 const uaParser = require('ua-parser-js');
-const sqlite3 = require('sqlite3').verbose(); // إضافة sqlite3 مباشرة
+const sqlite3 = require('sqlite3').verbose();
 
 // تهيئة التطبيق
 const app = express();
@@ -294,12 +294,14 @@ const createTables = async (db) => {
         `CREATE TABLE IF NOT EXISTS drivers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER UNIQUE NOT NULL,
+            market_id INTEGER,
             vehicle_type TEXT,
             rating REAL DEFAULT 0,
             status TEXT DEFAULT 'available' CHECK(status IN ('available', 'busy', 'offline')),
             current_location TEXT,
             created_at DATETIME NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (market_id) REFERENCES markets(id) ON DELETE SET NULL
         )`,
 
         // جدول الأسواق
@@ -1048,7 +1050,7 @@ app.post('/api/register', [
     body('role').isIn(['buyer', 'seller', 'driver']).withMessage('نوع الحساب غير صحيح')
 ], validateRequest, async (req, res) => {
     try {
-        const { name, email, phone, password, role, storeName, vehicleType } = req.body;
+        const { name, email, phone, password, role, storeName, vehicleType, market_id } = req.body;
         
         logger.info(`📝 محاولة تسجيل جديد: ${email}`);
         
@@ -1102,9 +1104,9 @@ app.post('/api/register', [
             
             if (role === 'driver' && vehicleType) {
                 await db.runQuery(
-                    `INSERT INTO drivers (user_id, vehicle_type, rating, status, created_at)
-                     VALUES (?, ?, 0, 'available', ?)`,
-                    [userId, vehicleType, createdAt]
+                    `INSERT INTO drivers (user_id, market_id, vehicle_type, rating, status, created_at)
+                     VALUES (?, ?, ?, 0, 'available', ?)`,
+                    [userId, market_id || null, vehicleType, createdAt]
                 );
             }
             
@@ -1127,7 +1129,8 @@ app.post('/api/register', [
                 phone,
                 role,
                 storeName: role === 'seller' ? storeName : undefined,
-                vehicleType: role === 'driver' ? vehicleType : undefined
+                vehicleType: role === 'driver' ? vehicleType : undefined,
+                market_id: role === 'driver' ? market_id : undefined
             };
             
             if (emailService.transporter) {
@@ -1225,7 +1228,7 @@ app.post('/api/login', [
             additionalInfo = sellerInfo || {};
         } else if (user.role === 'driver') {
             const driverInfo = await db.getQuery(
-                'SELECT vehicle_type, rating, status FROM drivers WHERE user_id = ?',
+                'SELECT vehicle_type, rating, status, market_id FROM drivers WHERE user_id = ?',
                 [user.id]
             );
             additionalInfo = driverInfo || {};
@@ -1321,11 +1324,13 @@ app.get('/api/profile', requireAuth, async (req, res) => {
         const user = await db.getQuery(
             `SELECT u.*, w.balance, 
                     s.store_name, s.rating as seller_rating, s.total_sales,
-                    d.vehicle_type, d.rating as driver_rating, d.status as driver_status
+                    d.vehicle_type, d.rating as driver_rating, d.status as driver_status,
+                    d.market_id, m.name as market_name
              FROM users u
              LEFT JOIN wallets w ON u.id = w.user_id
              LEFT JOIN sellers s ON u.id = s.user_id
              LEFT JOIN drivers d ON u.id = d.user_id
+             LEFT JOIN markets m ON d.market_id = m.id
              WHERE u.id = ?`,
             [req.session.userId]
         );
@@ -1552,6 +1557,421 @@ app.get('/api/wallet', requireAuth, async (req, res) => {
     }
 });
 
+// 📋 الطلبات
+app.get('/api/orders', requireAuth, async (req, res) => {
+    try {
+        const { status, page = 1, limit = 10 } = req.query;
+        
+        let query = `
+            SELECT o.*, 
+                   u.name as buyer_name,
+                   d.user_id as driver_user_id,
+                   du.name as driver_name,
+                   COUNT(oi.id) as item_count
+            FROM orders o
+            LEFT JOIN users u ON o.buyer_id = u.id
+            LEFT JOIN drivers d ON o.driver_id = d.id
+            LEFT JOIN users du ON d.user_id = du.id
+            LEFT JOIN order_items oi ON o.id = oi.order_id
+            WHERE o.buyer_id = ?
+        `;
+        
+        const params = [req.session.userId];
+        
+        if (status) {
+            query += ' AND o.status = ?';
+            params.push(status);
+        }
+        
+        query += ' GROUP BY o.id ORDER BY o.created_at DESC';
+        
+        const offset = (page - 1) * limit;
+        query += ' LIMIT ? OFFSET ?';
+        params.push(parseInt(limit), offset);
+        
+        const orders = await db.allQuery(query, params);
+        
+        // جلب العناصر لكل طلب
+        for (const order of orders) {
+            const items = await db.allQuery(
+                `SELECT oi.*, p.name as product_name, p.image as product_image
+                 FROM order_items oi
+                 LEFT JOIN products p ON oi.product_id = p.id
+                 WHERE oi.order_id = ?`,
+                [order.id]
+            );
+            order.items = items;
+        }
+        
+        res.json({
+            success: true,
+            data: orders,
+            meta: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                timestamp: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        logger.error(`❌ خطأ في جلب الطلبات: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+    }
+});
+
+app.post('/api/orders', requireAuth, requireBuyer, async (req, res) => {
+    try {
+        const { items, shipping_address, payment_method, wash_qat = 0 } = req.body;
+        
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'يجب اختيار منتجات للطلب'
+            });
+        }
+        
+        if (!shipping_address) {
+            return res.status(400).json({
+                success: false,
+                error: 'عنوان التوصيل مطلوب'
+            });
+        }
+        
+        await db.runQuery('BEGIN TRANSACTION');
+        
+        try {
+            // حساب المجموع
+            let total = 0;
+            const orderItems = [];
+            
+            for (const item of items) {
+                const product = await db.getQuery(
+                    'SELECT id, seller_id, price, quantity, name FROM products WHERE id = ? AND status = "active"',
+                    [item.product_id]
+                );
+                
+                if (!product) {
+                    throw new Error(`المنتج غير موجود: ${item.product_id}`);
+                }
+                
+                if (product.quantity < item.quantity) {
+                    throw new Error(`الكمية غير متوفرة للمنتج: ${product.name}`);
+                }
+                
+                const itemTotal = product.price * item.quantity;
+                total += itemTotal;
+                
+                orderItems.push({
+                    product_id: product.id,
+                    seller_id: product.seller_id,
+                    quantity: item.quantity,
+                    unit_price: product.price,
+                    total_price: itemTotal
+                });
+                
+                // تحديث كمية المنتج
+                await db.runQuery(
+                    'UPDATE products SET quantity = quantity - ? WHERE id = ?',
+                    [item.quantity, product.id]
+                );
+            }
+            
+            // خصم تكلفة الغسيل إن وجدت
+            if (wash_qat > 0) {
+                total += wash_qat * 500; // سعر افتراضي للغسيل
+            }
+            
+            // التحقق من رصيد المحفظة إذا كان الدفع بالمحفظة
+            if (payment_method === 'wallet') {
+                const wallet = await db.getQuery(
+                    'SELECT balance FROM wallets WHERE user_id = ?',
+                    [req.session.userId]
+                );
+                
+                if (!wallet || wallet.balance < total) {
+                    throw new Error('رصيد المحفظة غير كافي');
+                }
+            }
+            
+            // إنشاء الطلب
+            const orderCode = helpers.generateOrderCode();
+            const orderResult = await db.runQuery(
+                `INSERT INTO orders (buyer_id, total, shipping_address, payment_method, wash_qat, order_code, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [req.session.userId, total, shipping_address, payment_method, wash_qat, orderCode, new Date().toISOString()]
+            );
+            
+            const orderId = orderResult.lastID;
+            
+            // إضافة عناصر الطلب
+            for (const item of orderItems) {
+                await db.runQuery(
+                    `INSERT INTO order_items (order_id, product_id, seller_id, quantity, unit_price, total_price)
+                     VALUES (?, ?, ?, ?, ?, ?)`,
+                    [orderId, item.product_id, item.seller_id, item.quantity, item.unit_price, item.total_price]
+                );
+            }
+            
+            // خصم المبلغ من المحفظة إذا كان الدفع بالمحفظة
+            if (payment_method === 'wallet') {
+                await db.runQuery(
+                    'UPDATE wallets SET balance = balance - ? WHERE user_id = ?',
+                    [total, req.session.userId]
+                );
+                
+                // تسجيل المعاملة
+                await db.runQuery(
+                    `INSERT INTO transactions (user_id, amount, type, method, status, created_at)
+                     VALUES (?, ?, 'purchase', 'wallet', 'completed', ?)`,
+                    [req.session.userId, total, new Date().toISOString()]
+                );
+            }
+            
+            // إنشاء إشعار للمشتري
+            await db.runQuery(
+                `INSERT INTO notifications (user_id, title, message, type, created_at)
+                 VALUES (?, ?, ?, 'success', ?)`,
+                [req.session.userId, 'طلب جديد', `تم إنشاء طلبك #${orderCode} بنجاح`, new Date().toISOString()]
+            );
+            
+            // إشعار البائعين
+            const sellerIds = [...new Set(orderItems.map(item => item.seller_id))];
+            for (const sellerId of sellerIds) {
+                await db.runQuery(
+                    `INSERT INTO notifications (user_id, title, message, type, created_at)
+                     VALUES (?, ?, ?, 'info', ?)`,
+                    [sellerId, 'طلب جديد', `لديك طلب جديد #${orderCode}`, new Date().toISOString()]
+                );
+                
+                // إرسال إشعار عبر WebSocket
+                notificationManager.sendNotification(sellerId, {
+                    title: 'طلب جديد',
+                    message: `لديك طلب جديد #${orderCode}`,
+                    type: 'info',
+                    timestamp: new Date().toISOString()
+                });
+            }
+            
+            // إرسال بريد تأكيد
+            const buyer = await db.getQuery('SELECT name, email FROM users WHERE id = ?', [req.session.userId]);
+            const order = await db.getQuery('SELECT * FROM orders WHERE id = ?', [orderId]);
+            
+            if (emailService.transporter && buyer && order) {
+                try {
+                    await emailService.sendOrderConfirmation(order, buyer);
+                } catch (emailError) {
+                    logger.error(`❌ خطأ في إرسال بريد التأكيد: ${emailError.message}`);
+                }
+            }
+            
+            await db.runQuery('COMMIT');
+            
+            res.json({
+                success: true,
+                message: 'تم إنشاء الطلب بنجاح',
+                order: {
+                    id: orderId,
+                    order_code: orderCode,
+                    total,
+                    status: 'pending'
+                }
+            });
+            
+        } catch (error) {
+            await db.runQuery('ROLLBACK');
+            throw error;
+        }
+        
+    } catch (error) {
+        logger.error(`❌ خطأ في إنشاء الطلب: ${error.message}`);
+        res.status(500).json({
+            success: false,
+            error: 'حدث خطأ أثناء إنشاء الطلب',
+            details: IS_PRODUCTION ? undefined : error.message
+        });
+    }
+});
+
+// 🚗 السائقين
+app.get('/api/drivers', async (req, res) => {
+    try {
+        const { market_id, status = 'available' } = req.query;
+        
+        let query = `
+            SELECT d.*, u.name, u.phone, u.avatar, m.name as market_name
+            FROM drivers d
+            LEFT JOIN users u ON d.user_id = u.id
+            LEFT JOIN markets m ON d.market_id = m.id
+            WHERE d.status = ?
+        `;
+        
+        const params = [status];
+        
+        if (market_id) {
+            query += ' AND d.market_id = ?';
+            params.push(market_id);
+        }
+        
+        query += ' ORDER BY d.rating DESC';
+        
+        const drivers = await db.allQuery(query, params);
+        
+        res.json({
+            success: true,
+            data: drivers,
+            meta: {
+                count: drivers.length,
+                timestamp: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        logger.error(`❌ خطأ في جلب السائقين: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+    }
+});
+
+// 🔔 الإشعارات
+app.get('/api/notifications', requireAuth, async (req, res) => {
+    try {
+        const { page = 1, limit = 20, unread_only } = req.query;
+        
+        let query = 'SELECT * FROM notifications WHERE user_id = ?';
+        const params = [req.session.userId];
+        
+        if (unread_only === 'true') {
+            query += ' AND is_read = 0';
+        }
+        
+        query += ' ORDER BY created_at DESC';
+        
+        const offset = (page - 1) * limit;
+        query += ' LIMIT ? OFFSET ?';
+        params.push(parseInt(limit), offset);
+        
+        const notifications = await db.allQuery(query, params);
+        
+        res.json({
+            success: true,
+            data: notifications,
+            meta: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                timestamp: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        logger.error(`❌ خطأ في جلب الإشعارات: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+    }
+});
+
+app.put('/api/notifications/:id/read', requireAuth, async (req, res) => {
+    try {
+        await db.runQuery(
+            'UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?',
+            [req.params.id, req.session.userId]
+        );
+        
+        res.json({
+            success: true,
+            message: 'تم تحديث حالة الإشعار'
+        });
+    } catch (error) {
+        logger.error(`❌ خطأ في تحديث الإشعار: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+    }
+});
+
+// 📊 التقارير
+app.get('/api/reports/sales', requireAuth, requireAdminOrSeller, async (req, res) => {
+    try {
+        const { start_date, end_date } = req.query;
+        
+        let query = `
+            SELECT 
+                DATE(o.created_at) as date,
+                COUNT(*) as order_count,
+                SUM(o.total) as total_sales,
+                AVG(o.total) as avg_order_value
+            FROM orders o
+            WHERE 1=1
+        `;
+        
+        const params = [];
+        
+        if (start_date) {
+            query += ' AND DATE(o.created_at) >= ?';
+            params.push(start_date);
+        }
+        
+        if (end_date) {
+            query += ' AND DATE(o.created_at) <= ?';
+            params.push(end_date);
+        }
+        
+        if (req.session.role === 'seller') {
+            query += `
+                AND o.id IN (
+                    SELECT oi.order_id 
+                    FROM order_items oi 
+                    WHERE oi.seller_id = ?
+                )
+            `;
+            params.push(req.session.userId);
+        }
+        
+        query += ' GROUP BY DATE(o.created_at) ORDER BY date DESC';
+        
+        const report = await db.allQuery(query, params);
+        
+        res.json({
+            success: true,
+            data: report,
+            meta: {
+                period: `${start_date || 'البداية'} - ${end_date || 'النهاية'}`,
+                timestamp: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        logger.error(`❌ خطأ في جلب تقرير المبيعات: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+    }
+});
+
+// 📥 رفع الملفات
+app.post('/api/upload', requireAuth, upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                error: 'لم يتم رفع أي ملف'
+            });
+        }
+        
+        const uploadsDir = path.join(__dirname, 'uploads');
+        await fs.mkdir(uploadsDir, { recursive: true });
+        
+        const fileExt = path.extname(req.file.originalname);
+        const fileName = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${fileExt}`;
+        const filePath = path.join(uploadsDir, fileName);
+        
+        await fs.writeFile(filePath, req.file.buffer);
+        
+        res.json({
+            success: true,
+            data: {
+                filename: fileName,
+                originalname: req.file.originalname,
+                mimetype: req.file.mimetype,
+                size: req.file.size,
+                path: `/uploads/${fileName}`
+            }
+        });
+    } catch (error) {
+        logger.error(`❌ خطأ في رفع الملف: ${error.message}`);
+        res.status(500).json({ success: false, error: 'خطأ في رفع الملف' });
+    }
+});
+
 // 📁 خدمة الملفات المحملة
 app.get('/uploads/*', (req, res) => {
     const filePath = path.join(__dirname, req.path);
@@ -1622,6 +2042,7 @@ const startServer = async () => {
     try {
         // إنشاء المجلدات المطلوبة
         const requiredDirs = [
+            'uploads',
             'uploads/products',
             'uploads/ads',
             'uploads/avatars',
@@ -1709,6 +2130,7 @@ const startServer = async () => {
             <p><a href="/api/health">فحص صحة الخادم</a></p>
             <p><a href="/api/markets">قائمة الأسواق</a></p>
             <p><a href="/api/products">المنتجات</a></p>
+            <p><a href="/api/drivers">السائقين المتاحين</a></p>
         </div>
     </div>
 </body>
