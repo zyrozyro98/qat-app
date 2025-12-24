@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الملف الشخصي - تطبيق قات PRO</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/responsive.css">
+    
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="profile-container">
+        <!-- Header -->
+        <header class="profile-header">
+            <div class="container">
+                <div class="header-content">
+                    <a href="/pages/dashboard.html" class="back-btn">
+                        <i class="fas fa-arrow-right"></i>
+                        رجوع
+                    </a>
+                    <h1 class="profile-title">الملف الشخصي</h1>
+                    <button class="btn-edit-profile">
+                        <i class="fas fa-edit"></i>
+                        تعديل
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Profile Content -->
+        <main class="profile-content">
+            <div class="container">
+                <div class="profile-grid">
+                    <!-- Left Column -->
+                    <div class="profile-left">
+                        <!-- Profile Card -->
+                        <div class="profile-card">
+                            <div class="profile-avatar">
+                                <img src="/assets/images/default-avatar.png" alt="صورة الملف الشخصي" id="profileImage">
+                                <div class="avatar-overlay">
+                                    <button class="btn-change-avatar">
+                                        <i class="fas fa-camera"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="profile-info">
+                                <h2 class="profile-name">محمد أحمد</h2>
+                                <p class="profile-email">mohammed@example.com</p>
+                                <div class="profile-role">
+                                    <span class="role-badge">بائع</span>
+                                    <span class="member-since">عضو منذ 2023</span>
+                                </div>
+                                
+                                <div class="profile-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-value">154</span>
+                                        <span class="stat-label">الطلبات</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">4.8</span>
+                                        <span class="stat-label">التقييم</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">98%</span>
+                                        <span class="stat-label">الرضا</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="profile-actions">
+                                <button class="btn-action">
+                                    <i class="fas fa-share-alt"></i>
+                                    مشاركة الملف
+                                </button>
+                                <button class="btn-action">
+                                    <i class="fas fa-qrcode"></i>
+                                    كود QR
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Verification Status -->
+                        <div class="verification-card">
+                            <h3 class="card-title">حالة التحقق</h3>
+                            <div class="verification-steps">
+                                <div class="step verified">
+                                    <div class="step-icon">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div class="step-content">
+                                        <h4>البريد الإلكتروني</h4>
+                                        <p>تم التحقق</p>
+                                    </div>
+                                </div>
+                                <div class="step verified">
+                                    <div class="step-icon">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div class="step-content">
+                                        <h4>الهاتف</h4>
+                                        <p>تم التحقق</p>
+                                    </div>
+                                </div>
+                                <div class="step pending">
+                                    <div class="step-icon">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div class="step-content">
+                                        <h4>الهوية</h4>
+                                        <p>قيد المراجعة</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn-verify">اكمال التحقق</button>
+                        </div>
+
+                        <!-- Social Links -->
+                        <div class="social-card">
+                            <h3 class="card-title">وسائل التواصل</h3>
+                            <div class="social-links">
+                                <a href="#" class="social-link">
+                                    <i class="fab fa-twitter"></i>
+                                </a>
+                                <a href="#" class="social-link">
+                                    <i class="fab fa-instagram"></i>
+                                </a>
+                                <a href="#" class="social-link">
+                                    <i class="fab fa-whatsapp"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="profile-right">
+                        <!-- Tabs Navigation -->
+                        <nav class="profile-tabs">
+                            <ul class="tabs-nav">
+                                <li class="active" data-tab="info">المعلومات الشخصية</li>
+                                <li data-tab="security">الأمان</li>
+                                <li data-tab="addresses">العناوين</li>
+                                <li data-tab="preferences">التفضيلات</li>
+                                <li data-tab="activity">النشاطات</li>
+                            </ul>
+                        </nav>
+
+                        <!-- Tabs Content -->
+                        <div class="tabs-content">
+                            <!-- Personal Info Tab -->
+                            <div class="tab-pane active" id="info">
+                                <div class="form-section">
+                                    <h3 class="section-title">المعلومات الأساسية</h3>
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label>الاسم الأول</label>
+                                            <input type="text" class="form-control" value="محمد" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>اسم العائلة</label>
+                                            <input type="text" class="form-control" value="أحمد" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>البريد الإلكتروني</label>
+                                            <input type="email" class="form-control" value="mohammed@example.com" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>رقم الهاتف</label>
+                                            <input type="tel" class="form-control" value="+966500000000" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>تاريخ الميلاد</label>
+                                            <input type="date" class="form-control" value="1990-05-15" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>الجنس</label>
+                                            <select class="form-control" disabled>
+                                                <option selected>ذكر</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <h3 class="section-title">معلومات إضافية</h3>
+                                    <div class="form-group">
+                                        <label>نبذة عني</label>
+                                        <textarea class="form-control" rows="4" readonly>
+بائع محترف في مجال القات منذ 5 سنوات، أهتم بتقديم أفضل المنتجات للعملاء.
+                                        </textarea>
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button class="btn-edit-tab">تعديل المعلومات</button>
+                                </div>
+                            </div>
+
+                            <!-- Security Tab -->
+                            <div class="tab-pane" id="security">
+                                <div class="form-section">
+                                    <h3 class="section-title">كلمة المرور</h3>
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label>كلمة المرور الحالية</label>
+                                            <input type="password" class="form-control" value="********" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>كلمة المرور الجديدة</label>
+                                            <input type="password" class="form-control" placeholder="أدخل كلمة المرور الجديدة" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>تأكيد كلمة المرور</label>
+                                            <input type="password" class="form-control" placeholder="أعد إدخال كلمة المرور" readonly>
+                                        </div>
+                                    </div>
+                                    <button class="btn-change-password">تغيير كلمة المرور</button>
+                                </div>
+
+                                <div class="form-section">
+                                    <h3 class="section-title">جلسات تسجيل الدخول</h3>
+                                    <div class="sessions-list">
+                                        <div class="session-item current">
+                                            <div class="session-info">
+                                                <h4>هذا الجهاز</h4>
+                                                <p>متصفح Chrome - Windows</p>
+                                                <span class="session-time">نشط الآن</span>
+                                            </div>
+                                            <button class="btn-logout-session">تسجيل الخروج</button>
+                                        </div>
+                                        <div class="session-item">
+                                            <div class="session-info">
+                                                <h4>جدة، السعودية</h4>
+                                                <p>متصفح Safari - iPhone</p>
+                                                <span class="session-time">قبل يومين</span>
+                                            </div>
+                                            <button class="btn-logout-session">تسجيل الخروج</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <h3 class="section-title">المصادقة الثنائية</h3>
+                                    <div class="two-factor">
+                                        <div class="two-factor-info">
+                                            <i class="fas fa-shield-alt"></i>
+                                            <div>
+                                                <h4>المصادقة الثنائية</h4>
+                                                <p>لزيادة أمان حسابك</p>
+                                            </div>
+                                        </div>
+                                        <label class="toggle-switch">
+                                            <input type="checkbox">
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Addresses Tab -->
+                            <div class="tab-pane" id="addresses">
+                                <div class="addresses-header">
+                                    <h3 class="section-title">العناوين المحفوظة</h3>
+                                    <button class="btn-add-address">
+                                        <i class="fas fa-plus"></i>
+                                        إضافة عنوان جديد
+                                    </button>
+                                </div>
+
+                                <div class="addresses-grid">
+                                    <div class="address-card default">
+                                        <div class="address-header">
+                                            <h4>المنزل</h4>
+                                            <span class="address-default">افتراضي</span>
+                                        </div>
+                                        <div class="address-content">
+                                            <p>الرياض - حي النخيل</p>
+                                            <p>شارع الملك فهد، رقم 123</p>
+                                            <p>مبنى 5، شقة 12</p>
+                                            <p class="phone">+966500000000</p>
+                                        </div>
+                                        <div class="address-actions">
+                                            <button class="btn-edit-address">تعديل</button>
+                                            <button class="btn-delete-address">حذف</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="address-card">
+                                        <div class="address-header">
+                                            <h4>العمل</h4>
+                                        </div>
+                                        <div class="address-content">
+                                            <p>الرياض - حي العليا</p>
+                                            <p>شارع العروبة، مركز تجاري</p>
+                                            <p>الدور الثالث، مكتب 305</p>
+                                            <p class="phone">+966500000001</p>
+                                        </div>
+                                        <div class="address-actions">
+                                            <button class="btn-edit-address">تعديل</button>
+                                            <button class="btn-set-default">تعيين افتراضي</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preferences Tab -->
+                            <div class="tab-pane" id="preferences">
+                                <div class="form-section">
+                                    <h3 class="section-title">إعدادات اللغة</h3>
+                                    <div class="form-group">
+                                        <label>اللغة المفضلة</label>
+                                        <select class="form-control">
+                                            <option selected>العربية</option>
+                                            <option>الإنجليزية</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <h3 class="section-title">إعدادات الإشعارات</h3>
+                                    <div class="notifications-settings">
+                                        <div class="notification-item">
+                                            <div class="notification-info">
+                                                <h4>إشعارات الطلبات</h4>
+                                                <p>إشعارات عن حالة الطلبات والتحديثات</p>
+                                            </div>
+                                            <label class="toggle-switch">
+                                                <input type="checkbox" checked>
+                                                <span class="toggle-slider"></span>
+                                            </label>
+                                        </div>
+                                        <div class="notification-item">
+                                            <div class="notification-info">
+                                                <h4>عروض وتخفيضات</h4>
+                                                <p>إشعارات عن العروض الخاصة والتخفيضات</p>
+                                            </div>
+                                            <label class="toggle-switch">
+                                                <input type="checkbox" checked>
+                                                <span class="toggle-slider"></span>
+                                            </label>
+                                        </div>
+                                        <div class="notification-item">
+                                            <div class="notification-info">
+                                                <h4>النشرة الإخبارية</h4>
+                                                <p>أخبار وتحديثات عن التطبيق</p>
+                                            </div>
+                                            <label class="toggle-switch">
+                                                <input type="checkbox">
+                                                <span class="toggle-slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <h3 class="section-title">خصوصية الحساب</h3>
+                                    <div class="privacy-settings">
+                                        <div class="privacy-item">
+                                            <div class="privacy-info">
+                                                <h4>حساب خاص</h4>
+                                                <p>إخفاء معلومات الحساب عن المستخدمين الآخرين</p>
+                                            </div>
+                                            <label class="toggle-switch">
+                                                <input type="checkbox">
+                                                <span class="toggle-slider"></span>
+                                            </label>
+                                        </div>
+                                        <div class="privacy-item">
+                                            <div class="privacy-info">
+                                                <h4>إظهار حالة التواجد</h4>
+                                                <p>إظهار حالتك للمستخدمين الآخرين</p>
+                                            </div>
+                                            <label class="toggle-switch">
+                                                <input type="checkbox" checked>
+                                                <span class="toggle-slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Activity Tab -->
+                            <div class="tab-pane" id="activity">
+                                <div class="activity-filters">
+                                    <button class="filter-btn active">الكل</button>
+                                    <button class="filter-btn">المشتريات</button>
+                                    <button class="filter-btn">المبيعات</button>
+                                    <button class="filter-btn">التسجيل</button>
+                                </div>
+
+                                <div class="activity-timeline">
+                                    <div class="activity-item">
+                                        <div class="activity-icon success">
+                                            <i class="fas fa-shopping-cart"></i>
+                                        </div>
+                                        <div class="activity-content">
+                                            <h4>طلب جديد</h4>
+                                            <p>تم إنشاء طلب جديد #ORD-2456</p>
+                                            <span class="activity-time">قبل 15 دقيقة</span>
+                                        </div>
+                                    </div>
+                                    <div class="activity-item">
+                                        <div class="activity-icon info">
+                                            <i class="fas fa-user-plus"></i>
+                                        </div>
+                                        <div class="activity-content">
+                                            <h4>متابعة جديدة</h4>
+                                            <p>قام أحمد بمتابعة متجرك</p>
+                                            <span class="activity-time">قبل ساعتين</span>
+                                        </div>
+                                    </div>
+                                    <div class="activity-item">
+                                        <div class="activity-icon warning">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                        </div>
+                                        <div class="activity-content">
+                                            <h4>تحديث كلمة المرور</h4>
+                                            <p>تم تحديث كلمة مرور الحساب</p>
+                                            <span class="activity-time">قبل 3 أيام</span>
+                                        </div>
+                                    </div>
+                                    <div class="activity-item">
+                                        <div class="activity-icon primary">
+                                            <i class="fas fa-credit-card"></i>
+                                        </div>
+                                        <div class="activity-content">
+                                            <h4>دفع ناجح</h4>
+                                            <p>تم سداد فاتورة بقيمة 1,250 ريال</p>
+                                            <span class="activity-time">قبل أسبوع</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="btn-load-more">تحميل المزيد</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="profile-footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-links">
+                        <a href="#">سياسة الخصوصية</a>
+                        <a href="#">شروط الاستخدام</a>
+                        <a href="#">المساعدة</a>
+                    </div>
+                    <button class="btn-logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        تسجيل الخروج
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching
+            const tabNavs = document.querySelectorAll('.tabs-nav li');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            
+            tabNavs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Update active tab
+                    tabNavs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show corresponding pane
+                    tabPanes.forEach(pane => {
+                        pane.classList.remove('active');
+                        if (pane.id === tabId) {
+                            pane.classList.add('active');
+                        }
+                    });
+                });
+            });
+
+            // Edit profile
+            const editBtn = document.querySelector('.btn-edit-profile');
+            const editTabBtn = document.querySelector('.btn-edit-tab');
+            const formInputs = document.querySelectorAll('#info .form-control, #info select');
+            let isEditing = false;
+            
+            function toggleEditMode() {
+                isEditing = !isEditing;
+                formInputs.forEach(input => {
+                    if (input.type !== 'date') {
+                        input.readOnly = !isEditing;
+                    }
+                    input.disabled = !isEditing;
+                });
+                
+                if (isEditing) {
+                    editTabBtn.innerHTML = '<i class="fas fa-save"></i> حفظ التغييرات';
+                    editTabBtn.classList.add('save');
+                } else {
+                    editTabBtn.innerHTML = '<i class="fas fa-edit"></i> تعديل المعلومات';
+                    editTabBtn.classList.remove('save');
+                    alert('تم حفظ التغييرات بنجاح');
+                }
+            }
+            
+            editBtn.addEventListener('click', toggleEditMode);
+            editTabBtn.addEventListener('click', toggleEditMode);
+
+            // Change avatar
+            const changeAvatarBtn = document.querySelector('.btn-change-avatar');
+            const profileImage = document.getElementById('profileImage');
+            
+            changeAvatarBtn.addEventListener('click', function() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                
+                input.onchange = function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            profileImage.src = event.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+                
+                input.click();
+            });
+
+            // Logout
+            const logoutBtn = document.querySelector('.btn-logout');
+            logoutBtn.addEventListener('click', function() {
+                if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+                    window.location.href = '/pages/login.html';
+                }
+            });
+
+            // Address actions
+            const setDefaultBtns = document.querySelectorAll('.btn-set-default');
+            setDefaultBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const addressCard = this.closest('.address-card');
+                    document.querySelectorAll('.address-card').forEach(card => {
+                        card.classList.remove('default');
+                        card.querySelector('.address-default')?.remove();
+                    });
+                    
+                    addressCard.classList.add('default');
+                    const header = addressCard.querySelector('.address-header');
+                    const defaultSpan = document.createElement('span');
+                    defaultSpan.className = 'address-default';
+                    defaultSpan.textContent = 'افتراضي';
+                    header.appendChild(defaultSpan);
+                    
+                    this.textContent = 'افتراضي';
+                    this.classList.remove('btn-set-default');
+                    this.classList.add('btn-edit-address');
+                });
+            });
+
+            // Filter buttons
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
