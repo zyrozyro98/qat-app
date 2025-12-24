@@ -3,541 +3,877 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الأسواق - تطبيق قات PRO</title>
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/css/products.css">
-    <link rel="stylesheet" href="/css/responsive.css">
-    
-    <!-- Fonts & Icons -->
+    <title>الأسواق - قات PRO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2E7D32;
+            --primary-dark: #1B5E20;
+            --secondary: #FF9800;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --radius: 8px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* شريط التنقل */
+        .navbar {
+            background: white;
+            box-shadow: var(--shadow);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        
+        .logo img {
+            height: 40px;
+            width: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .nav-link {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: var(--light-gray);
+            color: var(--primary);
+        }
+        
+        .nav-link.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* محتوى الصفحة */
+        .page-header {
+            padding: 40px 0;
+            text-align: center;
+        }
+        
+        .page-title {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .page-subtitle {
+            color: var(--gray);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* عوامل التصفية */
+        .filters-section {
+            background: white;
+            padding: 25px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+        
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .filter-group {
+            margin-bottom: 15px;
+        }
+        
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        .filter-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            transition: border 0.3s ease;
+        }
+        
+        .filter-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+        }
+        
+        /* الشبكة */
+        .markets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .market-card {
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .market-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        
+        .market-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .market-content {
+            padding: 20px;
+        }
+        
+        .market-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        
+        .market-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .market-status {
+            background: #d4edda;
+            color: #155724;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .market-description {
+            color: var(--gray);
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+        
+        .market-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+        
+        .market-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* الأزرار */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        /* التذييل */
+        .footer {
+            background: var(--dark);
+            color: white;
+            padding: 60px 0 30px;
+            margin-top: 60px;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .footer-section h3 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: var(--secondary);
+        }
+        
+        .footer-links {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+        
+        .footer-links a {
+            color: var(--light-gray);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: var(--secondary);
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .social-links a {
+            color: white;
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            color: var(--secondary);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: var(--light-gray);
+            font-size: 0.9rem;
+        }
+        
+        /* التحميل */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--light-gray);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* الترقيم */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 40px;
+            padding: 20px 0;
+        }
+        
+        .page-link {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--radius);
+            color: var(--dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .page-link:hover {
+            background: var(--light-gray);
+            border-color: var(--primary);
+        }
+        
+        .page-link.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        /* التجاوب */
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .markets-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-title {
+                font-size: 2rem;
+            }
+        }
+        
+        /* الرسائل */
+        .alert {
+            padding: 15px 20px;
+            border-radius: var(--radius);
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="markets-header">
-        <div class="container">
-            <div class="header-content">
-                <h1 class="markets-title">
-                    <i class="fas fa-store"></i>
-                    الأسواق
-                </h1>
-                <p class="markets-subtitle">اكتشف أفضل الأسواق والبائعين</p>
+    <!-- شريط التنقل -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <img src="https://cdn-icons-png.flaticon.com/512/2917/2917633.png" alt="قات PRO">
+                <span class="logo-text">قات PRO</span>
+            </a>
+            
+            <div class="nav-links">
+                <a href="/" class="nav-link">الرئيسية</a>
+                <a href="/markets.html" class="nav-link active">الأسواق</a>
+                <a href="/products.html" class="nav-link">المنتجات</a>
+                <a href="/dashboard.html" class="nav-link">لوحة التحكم</a>
+            </div>
+            
+            <div class="auth-buttons" id="authButtons">
+                <!-- سيتم تعبئته بواسطة JavaScript -->
             </div>
         </div>
-    </header>
+    </nav>
 
-    <!-- Search & Filters -->
-    <section class="markets-filters">
-        <div class="container">
-            <div class="filters-container">
-                <!-- Search -->
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="ابحث عن سوق أو بائع...">
-                    <button class="search-btn">بحث</button>
-                </div>
+    <!-- محتوى الصفحة -->
+    <main class="container">
+        <!-- عنوان الصفحة -->
+        <div class="page-header">
+            <h1 class="page-title">أسواق قات PRO</h1>
+            <p class="page-subtitle">
+                اكتشف أفضل أسواق القات في منطقتك. اختر من بين مجموعة متنوعة من الأسواق المعتمدة والمضمونة الجودة.
+            </p>
+        </div>
 
-                <!-- Quick Filters -->
-                <div class="quick-filters">
-                    <button class="filter-btn active">جميع الأسواق</button>
-                    <button class="filter-btn">الأكثر شعبية</button>
-                    <button class="filter-btn">الجديدة</button>
-                    <button class="filter-btn">القريبة</button>
-                </div>
-
-                <!-- Advanced Filters -->
-                <div class="advanced-filters-toggle">
-                    <button class="toggle-btn">
-                        <i class="fas fa-filter"></i>
-                        تصفية متقدمة
-                    </button>
-                </div>
-            </div>
-
-            <!-- Advanced Filters (Hidden by default) -->
-            <div class="advanced-filters">
+        <!-- عوامل التصفية -->
+        <div class="filters-section">
+            <div class="filters-grid">
                 <div class="filter-group">
-                    <label>المدينة:</label>
-                    <select class="form-select">
-                        <option>جميع المدن</option>
-                        <option>الرياض</option>
-                        <option>جدة</option>
-                        <option>مكة</option>
-                        <option>الدمام</option>
+                    <label for="search"><i class="fas fa-search"></i> البحث</label>
+                    <input type="text" id="search" class="filter-control" placeholder="ابحث عن سوق معين..." oninput="filterMarkets()">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="sort"><i class="fas fa-sort"></i> الترتيب</label>
+                    <select id="sort" class="filter-control" onchange="filterMarkets()">
+                        <option value="name">الاسم (أ-ي)</option>
+                        <option value="name_desc">الاسم (ي-أ)</option>
+                        <option value="products">الأكثر منتجات</option>
+                        <option value="sellers">الأكثر بائعين</option>
                     </select>
                 </div>
+                
                 <div class="filter-group">
-                    <label>التقييم:</label>
-                    <select class="form-select">
-                        <option>جميع التقييمات</option>
-                        <option>5 نجوم</option>
-                        <option>4 نجوم فأكثر</option>
-                        <option>3 نجوم فأكثر</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label>النوع:</label>
-                    <select class="form-select">
-                        <option>جميع الأنواع</option>
-                        <option>أسواق تقليدية</option>
-                        <option>أسواق إلكترونية</option>
-                        <option>بائعين أفراد</option>
-                    </select>
+                    <label><i class="fas fa-filter"></i> التصفية</label>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-outline" onclick="resetFilters()">
+                            <i class="fas fa-redo"></i>
+                            إعادة تعيين
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </section>
 
-    <!-- Markets Grid -->
-    <main class="markets-container">
-        <div class="container">
-            <div class="markets-grid">
-                <!-- Market 1 -->
-                <div class="market-card">
-                    <div class="market-header">
-                        <div class="market-image">
-                            <img src="/assets/images/market-placeholder.jpg" alt="سوق القات المركزي">
-                            <span class="market-badge popular">الأكثر شعبية</span>
-                        </div>
-                    </div>
-                    
-                    <div class="market-content">
-                        <div class="market-title-section">
-                            <h3 class="market-title">سوق القات المركزي</h3>
-                            <div class="market-rating">
-                                <i class="fas fa-star"></i>
-                                <span class="rating-value">4.8</span>
-                                <span class="rating-count">(245)</span>
-                            </div>
-                        </div>
-                        
-                        <p class="market-description">
-                            أكبر سوق للقات في المنطقة، يوفر جميع الأنواع والماركات بأفضل الأسعار.
-                        </p>
-                        
-                        <div class="market-meta">
-                            <div class="meta-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>الرياض، السعودية</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-store"></i>
-                                <span>15 متجر</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-clock"></i>
-                                <span>مفتوح الآن</span>
-                            </div>
-                        </div>
-                        
-                        <div class="market-tags">
-                            <span class="tag">يمني</span>
-                            <span class="tag">سعودي</span>
-                            <span class="tag">طازج</span>
-                        </div>
-                        
-                        <div class="market-actions">
-                            <a href="/pages/market-detail.html" class="btn-visit">
-                                <i class="fas fa-external-link-alt"></i>
-                                زيارة السوق
-                            </a>
-                            <button class="btn-follow">
-                                <i class="far fa-heart"></i>
-                                متابعة
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Market 2 -->
-                <div class="market-card">
-                    <div class="market-header">
-                        <div class="market-image">
-                            <img src="/assets/images/market-placeholder.jpg" alt="سوق اليمن للقات">
-                            <span class="market-badge new">جديد</span>
-                        </div>
-                    </div>
-                    
-                    <div class="market-content">
-                        <div class="market-title-section">
-                            <h3 class="market-title">سوق اليمن للقات</h3>
-                            <div class="market-rating">
-                                <i class="fas fa-star"></i>
-                                <span class="rating-value">4.9</span>
-                                <span class="rating-count">(189)</span>
-                            </div>
-                        </div>
-                        
-                        <p class="market-description">
-                            متخصص في القات اليمني الأصلي، يوفر منتجات عالية الجودة مباشرة من المزارع.
-                        </p>
-                        
-                        <div class="market-meta">
-                            <div class="meta-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>جدة، السعودية</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-store"></i>
-                                <span>8 متاجر</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-clock"></i>
-                                <span>مفتوح الآن</span>
-                            </div>
-                        </div>
-                        
-                        <div class="market-tags">
-                            <span class="tag">يمني أصلي</span>
-                            <span class="tag">مباشر من المزارع</span>
-                            <span class="tag">توصيل مجاني</span>
-                        </div>
-                        
-                        <div class="market-actions">
-                            <a href="/pages/market-detail.html" class="btn-visit">
-                                <i class="fas fa-external-link-alt"></i>
-                                زيارة السوق
-                            </a>
-                            <button class="btn-follow">
-                                <i class="far fa-heart"></i>
-                                متابعة
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Market 3 -->
-                <div class="market-card">
-                    <div class="market-header">
-                        <div class="market-image">
-                            <img src="/assets/images/market-placeholder.jpg" alt="سوق القات السعودي">
-                        </div>
-                    </div>
-                    
-                    <div class="market-content">
-                        <div class="market-title-section">
-                            <h3 class="market-title">سوق القات السعودي</h3>
-                            <div class="market-rating">
-                                <i class="fas fa-star"></i>
-                                <span class="rating-value">4.6</span>
-                                <span class="rating-count">(312)</span>
-                            </div>
-                        </div>
-                        
-                        <p class="market-description">
-                            يقدم أفضل أنواع القات السعودي بأنواعه المختلفة وبأسعار مناسبة للجميع.
-                        </p>
-                        
-                        <div class="market-meta">
-                            <div class="meta-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>الدمام، السعودية</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-store"></i>
-                                <span>12 متجر</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-clock"></i>
-                                <span>مغلق حالياً</span>
-                            </div>
-                        </div>
-                        
-                        <div class="market-tags">
-                            <span class="tag">سعودي</span>
-                            <span class="tag">أنواع مختلفة</span>
-                            <span class="tag">أسعار مناسبة</span>
-                        </div>
-                        
-                        <div class="market-actions">
-                            <a href="/pages/market-detail.html" class="btn-visit">
-                                <i class="fas fa-external-link-alt"></i>
-                                زيارة السوق
-                            </a>
-                            <button class="btn-follow">
-                                <i class="far fa-heart"></i>
-                                متابعة
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Market 4 -->
-                <div class="market-card">
-                    <div class="market-header">
-                        <div class="market-image">
-                            <img src="/assets/images/market-placeholder.jpg" alt="سوق القات التقليدي">
-                            <span class="market-badge verified">موثوق</span>
-                        </div>
-                    </div>
-                    
-                    <div class="market-content">
-                        <div class="market-title-section">
-                            <h3 class="market-title">سوق القات التقليدي</h3>
-                            <div class="market-rating">
-                                <i class="fas fa-star"></i>
-                                <span class="rating-value">4.7</span>
-                                <span class="rating-count">(167)</span>
-                            </div>
-                        </div>
-                        
-                        <p class="market-description">
-                            سوق تقليدي عريق يتميز بالأصالة والجودة والموثوقية في التعامل.
-                        </p>
-                        
-                        <div class="market-meta">
-                            <div class="meta-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>مكة، السعودية</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-store"></i>
-                                <span>6 متاجر</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-clock"></i>
-                                <span>مفتوح الآن</span>
-                            </div>
-                        </div>
-                        
-                        <div class="market-tags">
-                            <span class="tag">تقليدي</span>
-                            <span class="tag">موثوق</span>
-                            <span class="tag">خدمة ممتازة</span>
-                        </div>
-                        
-                        <div class="market-actions">
-                            <a href="/pages/market-detail.html" class="btn-visit">
-                                <i class="fas fa-external-link-alt"></i>
-                                زيارة السوق
-                            </a>
-                            <button class="btn-follow">
-                                <i class="far fa-heart"></i>
-                                متابعة
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Market 5 -->
-                <div class="market-card">
-                    <div class="market-header">
-                        <div class="market-image">
-                            <img src="/assets/images/market-placeholder.jpg" alt="سوق القات الإلكتروني">
-                        </div>
-                    </div>
-                    
-                    <div class="market-content">
-                        <div class="market-title-section">
-                            <h3 class="market-title">سوق القات الإلكتروني</h3>
-                            <div class="market-rating">
-                                <i class="fas fa-star"></i>
-                                <span class="rating-value">4.5</span>
-                                <span class="rating-count">(98)</span>
-                            </div>
-                        </div>
-                        
-                        <p class="market-description">
-                            أول سوق إلكتروني متخصص في بيع القات مع خدمة التوصيل السريع إلى المنازل.
-                        </p>
-                        
-                        <div class="market-meta">
-                            <div class="meta-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>أونلاين</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-store"></i>
-                                <span>50+ بائع</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-clock"></i>
-                                <span>مفتوح 24/7</span>
-                            </div>
-                        </div>
-                        
-                        <div class="market-tags">
-                            <span class="tag">إلكتروني</span>
-                            <span class="tag">توصيل سريع</span>
-                            <span class="tag">24/7</span>
-                        </div>
-                        
-                        <div class="market-actions">
-                            <a href="/pages/market-detail.html" class="btn-visit">
-                                <i class="fas fa-external-link-alt"></i>
-                                زيارة السوق
-                            </a>
-                            <button class="btn-follow">
-                                <i class="far fa-heart"></i>
-                                متابعة
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Market 6 -->
-                <div class="market-card">
-                    <div class="market-header">
-                        <div class="market-image">
-                            <img src="/assets/images/market-placeholder.jpg" alt="سوق المزارعين">
-                        </div>
-                    </div>
-                    
-                    <div class="market-content">
-                        <div class="market-title-section">
-                            <h3 class="market-title">سوق المزارعين</h3>
-                            <div class="market-rating">
-                                <i class="fas fa-star"></i>
-                                <span class="rating-value">4.9</span>
-                                <span class="rating-count">(201)</span>
-                            </div>
-                        </div>
-                        
-                        <p class="market-description">
-                            تواصل مباشر مع المزارعين، منتجات طازجة مباشرة من المزرعة إلى المستهلك.
-                        </p>
-                        
-                        <div class="market-meta">
-                            <div class="meta-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>الرياض، السعودية</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-store"></i>
-                                <span>25 مزارع</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-clock"></i>
-                                <span>مفتوح الآن</span>
-                            </div>
-                        </div>
-                        
-                        <div class="market-tags">
-                            <span class="tag">مباشر من المزرعة</span>
-                            <span class="tag">طازج</span>
-                            <span class="tag">أسعار الجملة</span>
-                        </div>
-                        
-                        <div class="market-actions">
-                            <a href="/pages/market-detail.html" class="btn-visit">
-                                <i class="fas fa-external-link-alt"></i>
-                                زيارة السوق
-                            </a>
-                            <button class="btn-follow">
-                                <i class="far fa-heart"></i>
-                                متابعة
-                            </button>
-                        </div>
-                    </div>
+        <!-- الشبكة -->
+        <div class="markets-container">
+            <div id="marketsGrid" class="markets-grid">
+                <!-- سيتم تعبئته بواسطة JavaScript -->
+                <div class="loading">
+                    <div class="spinner"></div>
                 </div>
             </div>
-
-            <!-- Pagination -->
-            <div class="pagination">
-                <button class="pagination-btn disabled">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-                <button class="pagination-btn active">1</button>
-                <button class="pagination-btn">2</button>
-                <button class="pagination-btn">3</button>
-                <button class="pagination-btn">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
+            
+            <!-- الرسائل -->
+            <div id="noResults" class="alert alert-info" style="display: none;">
+                <i class="fas fa-info-circle"></i>
+                <span>لا توجد نتائج تطابق معايير البحث. حاول تغيير عوامل التصفية.</span>
+            </div>
+            
+            <div id="errorMessage" class="alert alert-error" style="display: none;">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>حدث خطأ في تحميل الأسواق. يرجى المحاولة مرة أخرى.</span>
+            </div>
+            
+            <!-- الترقيم -->
+            <div class="pagination" id="pagination">
+                <!-- سيتم تعبئته بواسطة JavaScript -->
             </div>
         </div>
     </main>
 
-    <!-- Become a Seller -->
-    <section class="become-seller">
-        <div class="container">
-            <div class="seller-cta">
-                <div class="cta-content">
-                    <h2>هل تمتلك سوقاً أو متجراً؟</h2>
-                    <p>انضم إلى منصتنا وابدأ بيع منتجاتك لملايين العملاء</p>
-                    <a href="/pages/register.html?type=seller" class="btn-join">
-                        <i class="fas fa-store"></i>
-                        انضم كبائع
-                    </a>
-                </div>
-                <div class="cta-image">
-                    <img src="/assets/images/hero-bg.jpg" alt="انضم كبائع">
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="markets-footer">
+    <!-- التذييل -->
+    <footer class="footer">
         <div class="container">
             <div class="footer-content">
-                <div class="footer-info">
-                    <h3>تطبيق قات PRO</h3>
-                    <p>منصة متكاملة لبيع وشراء القات بكل سهولة وأمان</p>
+                <div class="footer-section">
+                    <h3>عن قات PRO</h3>
+                    <p>منصة رائدة في بيع وتوصيل القات، نسعى لتقديم أفضل تجربة تسوق لعملائنا الكرام.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
                 </div>
                 
-                <div class="footer-links">
-                    <div class="links-column">
-                        <h4>الأسواق</h4>
-                        <a href="#">استكشاف الأسواق</a>
-                        <a href="#">كيفية البيع</a>
-                        <a href="#">سياسة البائعين</a>
-                    </div>
-                    <div class="links-column">
-                        <h4>الدعم</h4>
-                        <a href="#">الأسئلة الشائعة</a>
-                        <a href="#">اتصل بنا</a>
-                        <a href="#">الشكاوى والاقتراحات</a>
+                <div class="footer-section">
+                    <h3>روابط سريعة</h3>
+                    <ul class="footer-links">
+                        <li><a href="/">الرئيسية</a></li>
+                        <li><a href="/markets.html">الأسواق</a></li>
+                        <li><a href="/products.html">المنتجات</a></li>
+                        <li><a href="/dashboard.html">لوحة التحكم</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>معلومات الاتصال</h3>
+                    <div style="color: var(--light-gray); line-height: 1.8;">
+                        <p><i class="fas fa-map-marker-alt"></i> صنعاء، اليمن</p>
+                        <p><i class="fas fa-phone"></i> +967 777 777 777</p>
+                        <p><i class="fas fa-envelope"></i> info@qat-pro.com</p>
                     </div>
                 </div>
             </div>
             
-            <div class="footer-bottom">
+            <div class="copyright">
                 <p>© 2024 تطبيق قات PRO. جميع الحقوق محفوظة.</p>
             </div>
         </div>
     </footer>
 
-    <!-- JavaScript -->
-    <script src="/js/app.js"></script>
     <script>
+        // بيانات التطبيق
+        let allMarkets = [];
+        let currentPage = 1;
+        const itemsPerPage = 12;
+        
         document.addEventListener('DOMContentLoaded', function() {
-            // Advanced filters toggle
-            const toggleBtn = document.querySelector('.toggle-btn');
-            const advancedFilters = document.querySelector('.advanced-filters');
+            // التحقق من حالة المصادقة
+            checkAuthStatus();
             
-            toggleBtn.addEventListener('click', function() {
-                advancedFilters.classList.toggle('active');
-                this.classList.toggle('active');
+            // تحميل الأسواق
+            loadMarkets();
+            
+            // إضافة تفاعلية لعوامل التصفية
+            setupFilters();
+        });
+        
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch('/api/auth/check');
+                const data = await response.json();
+                
+                const authButtons = document.getElementById('authButtons');
+                
+                if (data.isAuthenticated) {
+                    authButtons.innerHTML = `
+                        <a href="/dashboard.html" class="btn btn-outline">
+                            <i class="fas fa-user"></i>
+                            ${data.user.name}
+                        </a>
+                    `;
+                } else {
+                    authButtons.innerHTML = `
+                        <a href="/login.html" class="btn btn-outline">
+                            <i class="fas fa-sign-in-alt"></i>
+                            تسجيل دخول
+                        </a>
+                        <a href="/register.html" class="btn btn-primary">
+                            <i class="fas fa-user-plus"></i>
+                            إنشاء حساب
+                        </a>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error checking auth status:', error);
+            }
+        }
+        
+        async function loadMarkets() {
+            try {
+                showLoading();
+                
+                const response = await fetch('/api/markets');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allMarkets = data.data;
+                    displayMarkets();
+                } else {
+                    showError('خطأ في تحميل الأسواق');
+                }
+            } catch (error) {
+                console.error('Error loading markets:', error);
+                showError('خطأ في الاتصال بالخادم');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        function displayMarkets() {
+            const container = document.getElementById('marketsGrid');
+            const noResults = document.getElementById('noResults');
+            
+            // تطبيق التصفية
+            const filteredMarkets = filterMarketsData();
+            
+            if (filteredMarkets.length === 0) {
+                noResults.style.display = 'flex';
+                container.innerHTML = '';
+                updatePagination(0);
+                return;
+            }
+            
+            noResults.style.display = 'none';
+            
+            // حساب الصفحات
+            const totalPages = Math.ceil(filteredMarkets.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedMarkets = filteredMarkets.slice(startIndex, endIndex);
+            
+            // إنشاء HTML للأسواق
+            let marketsHTML = '';
+            
+            paginatedMarkets.forEach(market => {
+                marketsHTML += createMarketCard(market);
             });
-
-            // Filter buttons
-            const filterBtns = document.querySelectorAll('.filter-btn');
-            filterBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    filterBtns.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                });
+            
+            container.innerHTML = marketsHTML;
+            updatePagination(totalPages);
+        }
+        
+        function createMarketCard(market) {
+            const imageUrl = market.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80';
+            
+            return `
+                <div class="market-card">
+                    <img src="${imageUrl}" alt="${market.name}" class="market-image">
+                    <div class="market-content">
+                        <div class="market-header">
+                            <div>
+                                <h3 class="market-title">${market.name}</h3>
+                                <p style="color: var(--gray); font-size: 0.9rem;">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    ${market.location || 'موقع غير محدد'}
+                                </p>
+                            </div>
+                            <span class="market-status">نشط</span>
+                        </div>
+                        
+                        <p class="market-description">
+                            ${market.description || 'سوق متخصص في بيع أجود أنواع القات.'}
+                        </p>
+                        
+                        <div class="market-stats">
+                            <div class="stat-item">
+                                <span class="stat-number">${market.product_count || 0}</span>
+                                <span class="stat-label">منتج</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">${market.seller_count || 0}</span>
+                                <span class="stat-label">بائع</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">${market.driver_count || 0}</span>
+                                <span class="stat-label">سائق</span>
+                            </div>
+                        </div>
+                        
+                        <div class="market-actions">
+                            <a href="/market-detail.html?id=${market.id}" class="btn btn-primary" style="flex: 1;">
+                                <i class="fas fa-eye"></i>
+                                عرض التفاصيل
+                            </a>
+                            <a href="/products.html?market_id=${market.id}" class="btn btn-outline" style="flex: 1;">
+                                <i class="fas fa-shopping-bag"></i>
+                                المنتجات
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function filterMarketsData() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            const sortBy = document.getElementById('sort').value;
+            
+            // التصفية حسب البحث
+            let filtered = allMarkets.filter(market => {
+                if (!searchTerm) return true;
+                
+                return market.name.toLowerCase().includes(searchTerm) ||
+                       (market.description && market.description.toLowerCase().includes(searchTerm)) ||
+                       (market.location && market.location.toLowerCase().includes(searchTerm));
             });
-
-            // Follow buttons
-            const followBtns = document.querySelectorAll('.btn-follow');
-            followBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const icon = this.querySelector('i');
-                    if (icon.classList.contains('far')) {
-                        icon.classList.remove('far');
-                        icon.classList.add('fas');
-                        this.style.color = '#F44336';
-                        alert('تمت المتابعة بنجاح');
-                    } else {
-                        icon.classList.remove('fas');
-                        icon.classList.add('far');
-                        this.style.color = '';
-                        alert('تم إلغاء المتابعة');
-                    }
-                });
+            
+            // الترتيب
+            filtered.sort((a, b) => {
+                switch (sortBy) {
+                    case 'name':
+                        return a.name.localeCompare(b.name);
+                    case 'name_desc':
+                        return b.name.localeCompare(a.name);
+                    case 'products':
+                        return (b.product_count || 0) - (a.product_count || 0);
+                    case 'sellers':
+                        return (b.seller_count || 0) - (a.seller_count || 0);
+                    default:
+                        return 0;
+                }
+            });
+            
+            return filtered;
+        }
+        
+        function filterMarkets() {
+            currentPage = 1; // العودة للصفحة الأولى عند التصفية
+            displayMarkets();
+        }
+        
+        function resetFilters() {
+            document.getElementById('search').value = '';
+            document.getElementById('sort').value = 'name';
+            filterMarkets();
+        }
+        
+        function updatePagination(totalPages) {
+            const container = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let paginationHTML = '';
+            
+            // زر الصفحة السابقة
+            if (currentPage > 1) {
+                paginationHTML += `
+                    <a href="#" class="page-link" onclick="changePage(${currentPage - 1})">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                `;
+            }
+            
+            // أرقام الصفحات
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentPage) {
+                    paginationHTML += `<span class="page-link active">${i}</span>`;
+                } else {
+                    paginationHTML += `
+                        <a href="#" class="page-link" onclick="changePage(${i})">${i}</a>
+                    `;
+                }
+            }
+            
+            // زر الصفحة التالية
+            if (currentPage < totalPages) {
+                paginationHTML += `
+                    <a href="#" class="page-link" onclick="changePage(${currentPage + 1})">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                `;
+            }
+            
+            container.innerHTML = paginationHTML;
+        }
+        
+        function changePage(page) {
+            currentPage = page;
+            displayMarkets();
+            
+            // التمرير لأعلى الصفحة
+            window.scrollTo({
+                top: document.querySelector('.filters-section').offsetTop - 100,
+                behavior: 'smooth'
+            });
+        }
+        
+        function setupFilters() {
+            // إضافة حدث البحث أثناء الكتابة مع تأخير
+            let searchTimeout;
+            document.getElementById('search').addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(filterMarkets, 300);
+            });
+        }
+        
+        function showLoading() {
+            const container = document.getElementById('marketsGrid');
+            container.innerHTML = `
+                <div class="loading" style="grid-column: 1 / -1;">
+                    <div class="spinner"></div>
+                </div>
+            `;
+            document.getElementById('noResults').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+        
+        function hideLoading() {
+            // تم التعامل معه في displayMarkets
+        }
+        
+        function showError(message) {
+            const container = document.getElementById('marketsGrid');
+            container.innerHTML = '';
+            
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.querySelector('span').textContent = message;
+            errorDiv.style.display = 'flex';
+            
+            document.getElementById('noResults').style.display = 'none';
+        }
+        
+        // إضافة تفاعلية للتنقل
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function() {
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
             });
         });
     </script>
