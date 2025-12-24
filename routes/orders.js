@@ -1,7 +1,198 @@
 const express = require('express');
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
-const crypto = require('crypto');
+const { requireAuth, requireBuyer } = require('../middleware/auth');
+const logger = require('../config/logger');
+const helpers = require('../utils/helpers');
+
+module.exports = (db) => {
+    router.get('/', requireAuth, async (req, res) => {
+        try {
+            const { status, page = 1, limit = 10 } = req.query;
+            
+            let query = `
+                SELECT o.*, 
+                       u.name as buyer_name,
+                       d.user_id as driver_user_id,
+                       du.name as driver_name,
+                       COUNT(oi.id) as item_count
+                FROM orders o
+                LEFT JOIN users u ON o.buyer_id = u.id
+                LEFT JOIN drivers d ON o.driver_id = d.id
+                LEFT JOIN users du ON d.user_id = du.id
+                LEFT JOIN order_items oi ON o.id = oi.order_id
+                WHERE o.buyer_id = ?
+            `;
+            
+            const params = [req.session.userId];
+            
+            if (status) {
+                query += ' AND o.status = ?';
+                params.push(status);
+            }
+            
+            query += ' GROUP BY o.id ORDER BY o.created_at DESC';
+            
+            const offset = (page - 1) * limit;
+            query += ' LIMIT ? OFFSET ?';
+            params.push(parseInt(limit), offset);
+            
+            const orders = await db.allQuery(query, params);
+            
+            for (const order of orders) {
+                const items = await db.allQuery(
+                    `SELECT oi.*, p.name as product_name, p.image as product_image
+                     FROM order_items oi
+                     LEFT JOIN products p ON oi.product_id = p.id
+                     WHERE oi.order_id = ?`,
+                    [order.id]
+                );
+                order.items = items;
+            }
+            
+            res.json({
+                success: true,
+                data: orders,
+                meta: {
+                    page: parseInt(page),
+                    limit: parseInt(limit),
+                    timestamp: new Date().toISOString()
+                }
+            });
+        } catch (error) {
+            logger.error(`❌ خطأ في جلب الطلبات: ${error.message}`);
+            res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+        }
+    });
+    
+    router.post('/', requireAuth, requireBuyer, async (req, res) => {
+        try {
+            const { items, shipping_address, payment_method, wash_qat = 0 } = req.body;
+            
+            if (!items || !Array.isArray(items) || items.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'يجب اختيار منتجات للطلب'
+                });
+            }
+            
+            if (!shipping_address) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'عنوان التوصيل مطلوب'
+                });
+            }
+            
+            await db.runQuery('BEGIN TRANSACTION');
+            
+            try {
+                let total = 0;
+                const orderItems = [];
+                
+                for (const item of items) {
+                    const product = await db.getQuery(
+                        'SELECT id, seller_id, price, quantity, name FROM products WHERE id = ? AND status = "active"',
+                        [item.product_id]
+                    );
+                    
+                    if (!product) {
+                        throw new Error(`المنتج غير موجود: ${item.product_id}`);
+                    }
+                    
+                    if (product.quantity < item.quantity) {
+                        throw new Error(`الكمية غير متوفرة للمنتج: ${product.name}`);
+                    }
+                    
+                    const itemTotal = product.price * item.quantity;
+                    total += itemTotal;
+                    
+                    orderItems.push({
+                        product_id: product.id,
+                        seller_id: product.seller_id,
+                        quantity: item.quantity,
+                        unit_price: product.price,
+                        total_price: itemTotal
+                    });
+                    
+                    await db.runQuery(
+                        'UPDATE products SET quantity = quantity - ? WHERE id = ?',
+                        [item.quantity, product.id]
+                    );
+                }
+                
+                if (wash_qat > 0) {
+                    total += wash_qat * 500;
+                }
+                
+                if (payment_method === 'wallet') {
+                    const wallet = await db.getQuery(
+                        'SELECT balance FROM wallets WHERE user_id = ?',
+                        [req.session.userId]
+                    );
+                    
+                    if (!wallet || wallet.balance < total) {
+                        throw new Error('رصيد المحفظة غير كافي');
+                    }
+                }
+                
+                const orderCode = helpers.generateOrderCode();
+                const orderResult = await db.runQuery(
+                    `INSERT INTO orders (buyer_id, total, shipping_address, payment_method, wash_qat, order_code, created_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                    [req.session.userId, total, shipping_address, payment_method, wash_qat, orderCode, new Date().toISOString()]
+                );
+                
+                const orderId = orderResult.lastID;
+                
+                for (const item of orderItems) {
+                    await db.runQuery(
+                        `INSERT INTO order_items (order_id, product_id, seller_id, quantity, unit_price, total_price)
+                         VALUES (?, ?, ?, ?, ?, ?)`,
+                        [orderId, item.product_id, item.seller_id, item.quantity, item.unit_price, item.total_price]
+                    );
+                }
+                
+                if (payment_method === 'wallet') {
+                    await db.runQuery(
+                        'UPDATE wallets SET balance = balance - ? WHERE user_id = ?',
+                        [total, req.session.userId]
+                    );
+                    
+                    await db.runQuery(
+                        `INSERT INTO transactions (user_id, amount, type, method, status, created_at)
+                         VALUES (?, ?, 'purchase', 'wallet', 'completed', ?)`,
+                        [req.session.userId, total, new Date().toISOString()]
+                    );
+                }
+                
+                await db.runQuery('COMMIT');
+                
+                res.json({
+                    success: true,
+                    message: 'تم إنشاء الطلب بنجاح',
+                    order: {
+                        id: orderId,
+                        order_code: orderCode,
+                        total,
+                        status: 'pending'
+                    }
+                });
+                
+            } catch (error) {
+                await db.runQuery('ROLLBACK');
+                throw error;
+            }
+            
+        } catch (error) {
+            logger.error(`❌ خطأ في إنشاء الطلب: ${error.message}`);
+            res.status(500).json({
+                success: false,
+                error: 'حدث خطأ أثناء إنشاء الطلب'
+            });
+        }
+    });
+    
+    return router;
+};
 
 // Middleware
 const { validateRequest } = require('../middleware/validator');
