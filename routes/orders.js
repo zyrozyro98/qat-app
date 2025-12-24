@@ -194,19 +194,6 @@ module.exports = (db) => {
     return router;
 };
 
-// Middleware
-const { validateRequest } = require('../middleware/validator');
-const { 
-    requireAuth, 
-    requireRole, 
-    requireBuyer,
-    requireSeller,
-    requireDriver 
-} = require('../config/middleware');
-
-// Models
-const { OrderModel, ProductModel, WalletModel } = require('../database/models');
-const database = require('../config/database');
 
 // تهيئة الموديلات
 const orderModel = new OrderModel(database);
