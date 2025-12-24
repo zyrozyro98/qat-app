@@ -1,160 +1,159 @@
 const express = require('express');
 const router = express.Router();
+const logger = require('../config/logger');
 
-// Database
-const database = require('../config/database');
-
-// مسار إحصائيات الصفحة الرئيسية
-router.get('/stats/home', async (req, res) => {
-    try {
-        // جلب إحصائيات سريعة للصفحة الرئيسية
-        const stats = await database.all(`
-            SELECT 
-                (SELECT COUNT(*) FROM users WHERE role = 'buyer' AND status = 'active') as total_buyers,
-                (SELECT COUNT(*) FROM users WHERE role = 'seller' AND status = 'active') as total_sellers,
-                (SELECT COUNT(*) FROM products WHERE status = 'active') as active_products,
-                (SELECT COUNT(*) FROM orders WHERE DATE(created_at) = DATE('now')) as today_orders,
-                (SELECT SUM(total) FROM orders WHERE DATE(created_at) = DATE('now')) as today_revenue,
-                (SELECT COUNT(*) FROM markets WHERE status = 'active') as active_markets,
-                (SELECT COUNT(*) FROM drivers WHERE status = 'available') as available_drivers
-        `);
-        
-        res.json({
-            success: true,
-            data: stats[0] || {}
-        });
-        
-    } catch (error) {
-        console.error('❌ خطأ في جلب إحصائيات الصفحة الرئيسية:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: 'حدث خطأ في جلب الإحصائيات'
-        });
-    }
-});
-
-// مسار المنتجات المميزة (مع الحل السليم)
-router.get('/featured/products', async (req, res) => {
-    try {
-        const { limit = 8 } = req.query;
-        
-        // جلب المنتجات المميزة
-        const featuredProducts = await database.all(`
-            SELECT p.*, u.name as seller_name, s.store_name,
-                   m.name as market_name,
-                   (SELECT AVG(rating) FROM reviews WHERE product_id = p.id) as average_rating
-            FROM products p
-            LEFT JOIN users u ON p.seller_id = u.id
-            LEFT JOIN sellers s ON p.seller_id = s.user_id
-            LEFT JOIN markets m ON p.market_id = m.id
-            WHERE p.status = 'active'
-            ORDER BY p.created_at DESC
-            LIMIT ?
-        `, [parseInt(limit)]);
-        
-        res.json({
-            success: true,
-            data: featuredProducts
-        });
-        
-    } catch (error) {
-        console.error('❌ خطأ في جلب المنتجات المميزة:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: 'حدث خطأ في جلب المنتجات المميزة'
-        });
-    }
-});
-
-// مسار الأسواق المميزة
-router.get('/featured/markets', async (req, res) => {
-    try {
-        const { limit = 3 } = req.query;
-        
-        const featuredMarkets = await database.all(`
-            SELECT m.*,
-                   COUNT(DISTINCT p.id) as product_count,
-                   COUNT(DISTINCT d.id) as driver_count
-            FROM markets m
-            LEFT JOIN products p ON m.id = p.market_id AND p.status = 'active'
-            LEFT JOIN drivers d ON m.id = d.market_id AND d.status = 'available'
-            WHERE m.status = 'active'
-            GROUP BY m.id
-            ORDER BY product_count DESC
-            LIMIT ?
-        `, [parseInt(limit)]);
-        
-        res.json({
-            success: true,
-            data: featuredMarkets
-        });
-        
-    } catch (error) {
-        console.error('❌ خطأ في جلب الأسواق المميزة:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: 'حدث خطأ في جلب الأسواق المميزة'
-        });
-    }
-});
-
-// مسار أحدث الطلبات (للعرض العام)
-router.get('/recent/orders', async (req, res) => {
-    try {
-        const { limit = 5 } = req.query;
-        
-        const recentOrders = await database.all(`
-            SELECT o.*, u.name as buyer_name,
-                   (SELECT COUNT(*) FROM order_items WHERE order_id = o.id) as item_count
-            FROM orders o
-            LEFT JOIN users u ON o.buyer_id = u.id
-            WHERE o.status IN ('delivered', 'shipping')
-            ORDER BY o.created_at DESC
-            LIMIT ?
-        `, [parseInt(limit)]);
-        
-        res.json({
-            success: true,
-            data: recentOrders
-        });
-        
-    } catch (error) {
-        console.error('❌ خطأ في جلب أحدث الطلبات:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: 'حدث خطأ في جلب أحدث الطلبات'
-        });
-    }
-});
-
-// مسار فئات المنتجات الرئيسية
-router.get('/categories/main', async (req, res) => {
-    try {
-        const mainCategories = await database.all(`
-            SELECT category, 
-                   COUNT(*) as product_count,
-                   MIN(price) as min_price,
-                   MAX(price) as max_price,
-                   AVG(price) as avg_price
-            FROM products
-            WHERE status = 'active'
-            GROUP BY category
-            ORDER BY product_count DESC
-            LIMIT 6
-        `);
-        
-        res.json({
-            success: true,
-            data: mainCategories
-        });
-        
-    } catch (error) {
-        console.error('❌ خطأ في جلب الفئات الرئيسية:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: 'حدث خطأ في جلب الفئات الرئيسية'
-        });
-    }
-});
-
-module.exports = router;
+module.exports = (db) => {
+    // الصفحة الرئيسية - جلب الإحصائيات العامة
+    router.get('/stats', async (req, res) => {
+        try {
+            const stats = await db.allQuery(`
+                SELECT 
+                    (SELECT COUNT(*) FROM markets WHERE status = 'active') as total_markets,
+                    (SELECT COUNT(*) FROM products WHERE status = 'active') as total_products,
+                    (SELECT COUNT(*) FROM drivers WHERE status = 'available') as available_drivers,
+                    (SELECT COUNT(DISTINCT seller_id) FROM products WHERE status = 'active') as active_sellers
+            `);
+            
+            // جلب المنتجات الأكثر مبيعاً
+            const topProducts = await db.allQuery(`
+                SELECT p.*, 
+                       COUNT(oi.product_id) as sales_count,
+                       u.name as seller_name,
+                       s.store_name
+                FROM products p
+                LEFT JOIN order_items oi ON p.id = oi.product_id
+                LEFT JOIN users u ON p.seller_id = u.id
+                LEFT JOIN sellers s ON p.seller_id = s.user_id
+                WHERE p.status = 'active'
+                GROUP BY p.id
+                ORDER BY sales_count DESC
+                LIMIT 10
+            `);
+            
+            // جلب أحدث المنتجات
+            const latestProducts = await db.allQuery(`
+                SELECT p.*, u.name as seller_name, s.store_name
+                FROM products p
+                LEFT JOIN users u ON p.seller_id = u.id
+                LEFT JOIN sellers s ON p.seller_id = s.user_id
+                WHERE p.status = 'active'
+                ORDER BY p.created_at DESC
+                LIMIT 10
+            `);
+            
+            // جلب الأسواق النشطة
+            const activeMarkets = await db.allQuery(`
+                SELECT m.*, 
+                       COUNT(DISTINCT p.id) as product_count,
+                       COUNT(DISTINCT d.id) as driver_count
+                FROM markets m
+                LEFT JOIN products p ON m.id = p.market_id AND p.status = 'active'
+                LEFT JOIN drivers d ON m.id = d.market_id AND d.status = 'available'
+                WHERE m.status = 'active'
+                GROUP BY m.id
+                ORDER BY product_count DESC
+                LIMIT 5
+            `);
+            
+            res.json({
+                success: true,
+                data: {
+                    stats: stats[0] || {},
+                    topProducts,
+                    latestProducts,
+                    activeMarkets
+                }
+            });
+        } catch (error) {
+            logger.error(`❌ خطأ في جلب إحصائيات الصفحة الرئيسية: ${error.message}`);
+            res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+        }
+    });
+    
+    // جلب الفئات الرئيسية
+    router.get('/categories', async (req, res) => {
+        try {
+            const categories = await db.allQuery(`
+                SELECT category, 
+                       COUNT(*) as product_count,
+                       AVG(price) as avg_price
+                FROM products 
+                WHERE status = 'active'
+                GROUP BY category
+                ORDER BY product_count DESC
+            `);
+            
+            res.json({
+                success: true,
+                data: categories
+            });
+        } catch (error) {
+            logger.error(`❌ خطأ في جلب الفئات: ${error.message}`);
+            res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+        }
+    });
+    
+    // البحث العام
+    router.get('/search', async (req, res) => {
+        try {
+            const { q, type = 'all' } = req.query;
+            
+            if (!q || q.trim().length < 2) {
+                return res.json({
+                    success: true,
+                    data: {
+                        products: [],
+                        markets: [],
+                        sellers: []
+                    }
+                });
+            }
+            
+            const searchTerm = `%${q.trim()}%`;
+            const results = {};
+            
+            if (type === 'all' || type === 'products') {
+                results.products = await db.allQuery(`
+                    SELECT p.*, u.name as seller_name, s.store_name
+                    FROM products p
+                    LEFT JOIN users u ON p.seller_id = u.id
+                    LEFT JOIN sellers s ON p.seller_id = s.user_id
+                    WHERE p.status = 'active'
+                    AND (p.name LIKE ? OR p.description LIKE ? OR p.category LIKE ?)
+                    LIMIT 10
+                `, [searchTerm, searchTerm, searchTerm]);
+            }
+            
+            if (type === 'all' || type === 'markets') {
+                results.markets = await db.allQuery(`
+                    SELECT * FROM markets 
+                    WHERE status = 'active'
+                    AND (name LIKE ? OR description LIKE ? OR location LIKE ?)
+                    LIMIT 5
+                `, [searchTerm, searchTerm, searchTerm]);
+            }
+            
+            if (type === 'all' || type === 'sellers') {
+                results.sellers = await db.allQuery(`
+                    SELECT u.*, s.store_name, s.rating, s.total_sales
+                    FROM users u
+                    LEFT JOIN sellers s ON u.id = s.user_id
+                    WHERE u.role = 'seller' 
+                    AND u.status = 'active'
+                    AND (u.name LIKE ? OR s.store_name LIKE ?)
+                    LIMIT 5
+                `, [searchTerm, searchTerm]);
+            }
+            
+            res.json({
+                success: true,
+                data: results
+            });
+        } catch (error) {
+            logger.error(`❌ خطأ في البحث: ${error.message}`);
+            res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+        }
+    });
+    
+    return router;
+};
