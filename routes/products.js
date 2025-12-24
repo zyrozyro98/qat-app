@@ -1,11 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs').promises;
-const sharp = require('sharp');
 
+module.exports = (db) => {
+    const productController = require('../controllers/productController')(db);
+    
+    router.get('/', productController.getProducts);
+    router.get('/:id', productController.getProductById);
+    
+    return router;
+};
 // Middleware
 const { validateRequest } = require('../middleware/validator');
 const { requireAuth, requireRole, requireSeller } = require('../config/middleware');
