@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق قات - البائع</title>
+</head>
+<body>
+    <div id="sellerApp">
+        <!-- تخطيط تطبيق البائع -->
+        <section id="sellerDashboard">
+            <h1><i class="fas fa-store"></i> لوحة تحكم البائع</h1>
+
+            <!-- قسم تسجيل البائع -->
+            <section id="sellerRegistration" style="display: none;">
+                <h3>إكمال بيانات البائع</h3>
+                <form id="sellerForm">
+                    <input type="text" placeholder="اسم المتجر (اختياري)" id="storeName">
+                    <select id="marketSelect" required>
+                        <option value="">اختر السوق</option>
+                        <!-- سيتم تعبئتها -->
+                    </select>
+                    <textarea placeholder="وصف المتجر" id="storeDescription"></textarea>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i> تسجيل كبائع
+                    </button>
+                </form>
+            </section>
+
+            <!-- قسم المنتجات -->
+            <section id="sellerProducts">
+                <h3><i class="fas fa-boxes"></i> منتجاتي</h3>
+                <button class="btn btn-success" onclick="showAddProductModal()">
+                    <i class="fas fa-plus"></i> إضافة منتج جديد
+                </button>
+                <!-- قائمة المنتجات -->
+            </section>
+
+            <!-- قسم الطلبات -->
+            <section id="sellerOrders">
+                <h3><i class="fas fa-shopping-cart"></i> طلباتي</h3>
+                <!-- قائمة الطلبات -->
+            </section>
+
+            <!-- قسم الإحصائيات -->
+            <section id="sellerStats">
+                <h3><i class="fas fa-chart-line"></i> إحصائيات</h3>
+                <!-- المخططات البيانية -->
+            </section>
+        </section>
+    </div>
+
+    <script>
+        class SellerApp {
+            constructor() {
+                this.seller = null;
+                this.init();
+            }
+
+            async init() {
+                await this.checkAuth();
+                await this.checkSellerProfile();
+                this.loadMarkets();
+                this.loadProducts();
+                this.loadOrders();
+            }
+
+            async checkAuth() {
+                const token = localStorage.getItem('user_token');
+                if (!token) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                const response = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                this.user = await response.json();
+
+                if (this.user.role !== 'seller') {
+                    window.location.href = '/user-app.html';
+                }
+            }
+
+            async checkSellerProfile() {
+                const response = await fetch('/api/seller/profile', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('user_token')}` }
+                });
+
+                if (response.status === 404) {
+                    // لم يسجل كبائع بعد
+                    document.getElementById('sellerRegistration').style.display = 'block';
+                } else {
+                    this.seller = await response.json();
+                }
+            }
+
+            async loadMarkets() {
+                const response = await fetch('/api/markets');
+                const markets = await response.json();
+
+                const select = document.getElementById('marketSelect');
+                select.innerHTML = '<option value="">اختر السوق</option>' +
+                    markets.map(market => `
+                        <option value="${market.id}">${market.name} - ${market.location}</option>
+                    `).join('');
+            }
+
+            async registerSeller(formData) {
+                const response = await fetch('/api/seller/register', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('user_token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    alert('تم تسجيلك كبائع بنجاح!');
+                    window.location.reload();
+                }
+            }
+        }
+
+        const sellerApp = new SellerApp();
+    </script>
+</body>
+</html>
