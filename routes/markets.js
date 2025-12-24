@@ -37,13 +37,6 @@ module.exports = (db) => {
     return router;
 };
 
-// Middleware
-const { validateRequest } = require('../middleware/validator');
-const { requireAuth, requireAdmin } = require('../config/middleware');
-
-// Models
-const { MarketModel } = require('../database/models');
-const database = require('../config/database');
 
 // تهيئة الموديل
 const marketModel = new MarketModel(database);
