@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق قات - المستخدم</title>
+    <style>
+        /* تنسيقات متقدمة */
+        .location-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+        .market-distance {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin: 5px;
+        }
+        .id-verification {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="userApp">
+        <!-- قسم تحديد الموقع -->
+        <section class="location-section">
+            <h3><i class="fas fa-map-marker-alt"></i> تحديد موقعك</h3>
+            <button class="btn btn-light" onclick="getUserLocation()">
+                <i class="fas fa-location-crosshairs"></i> استخدام الموقع الحالي
+            </button>
+            <div id="locationStatus"></div>
+        </section>
+
+        <!-- قسم الأسواق القريبة -->
+        <section id="nearbyMarkets">
+            <h3><i class="fas fa-store"></i> الأسواق القريبة منك</h3>
+            <div id="marketsList">
+                <!-- سيتم تعبئتها -->
+            </div>
+        </section>
+
+        <!-- قسم التحقق من الهوية -->
+        <section class="id-verification" id="idVerificationSection" style="display: none;">
+            <h3><i class="fas fa-id-card"></i> تحقق من هويتك</h3>
+            <p>يرجى رفع صور البطاقة الشخصية (الأمام والخلف) للتحقق</p>
+            <div class="id-upload">
+                <div class="upload-box">
+                    <input type="file" id="idFront" accept="image/*" capture="environment">
+                    <label for="idFront">
+                        <i class="fas fa-camera"></i>
+                        <span>صورة البطاقة الأمام</span>
+                    </label>
+                </div>
+                <div class="upload-box">
+                    <input type="file" id="idBack" accept="image/*" capture="environment">
+                    <label for="idBack">
+                        <i class="fas fa-camera"></i>
+                        <span>صورة البطاقة الخلف</span>
+                    </label>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="submitIdVerification()">
+                <i class="fas fa-check"></i> إرسال للتحقق
+            </button>
+        </section>
+    </div>
+
+    <script>
+        class UserApp {
+            constructor() {
+                this.user = null;
+                this.location = null;
+                this.init();
+            }
+
+            async init() {
+                await this.checkAuth();
+                await this.getUserLocation();
+                this.loadNearbyMarkets();
+                this.checkVerificationStatus();
+            }
+
+            async checkAuth() {
+                const token = localStorage.getItem('user_token');
+                if (!token) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/auth/me', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    this.user = await response.json();
+                } catch (error) {
+                    window.location.href = '/login.html';
+                }
+            }
+
+            async getUserLocation() {
+                if (!navigator.geolocation) {
+                    alert('متصفحك لا يدعم الموقع الجغرافي');
+                    return;
+                }
+
+                try {
+                    const position = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject);
+                    });
+
+                    this.location = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    };
+
+                    // تحديث الموقع في السيرفر
+                    await fetch('/api/user/location', {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('user_token')}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(this.location)
+                    });
+
+                    document.getElementById('locationStatus').innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i>
+                            تم تحديد موقعك بنجاح
+                        </div>
+                    `;
+
+                } catch (error) {
+                    console.error('خطأ في الحصول على الموقع:', error);
+                    document.getElementById('locationStatus').innerHTML = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            تعذر تحديد الموقع. يرجى المحاولة مرة أخرى
+                        </div>
+                    `;
+                }
+            }
+
+            async loadNearbyMarkets() {
+                if (!this.location) return;
+
+                const response = await fetch('/api/markets/nearby', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('user_token')}` }
+                });
+                const markets = await response.json();
+                this.renderMarkets(markets);
+            }
+
+            renderMarkets(markets) {
+                const container = document.getElementById('marketsList');
+                container.innerHTML = markets.map(market => `
+                    <div class="market-card">
+                        <div class="market-header">
+                            <h4>${market.name}</h4>
+                            <div class="market-distance">
+                                <i class="fas fa-road"></i>
+                                ${market.distance_km} كم
+                                <small>(${market.estimated_time_minutes} دقيقة)</small>
+                            </div>
+                        </div>
+                        <p><i class="fas fa-map-marker-alt"></i> ${market.location}</p>
+                        <div class="market-stats">
+                            <span><i class="fas fa-store"></i> ${market.seller_count} بائع</span>
+                            <span><i class="fas fa-box"></i> ${market.product_count} منتج</span>
+                            <span><i class="fas fa-star"></i> ${market.rating || 'جديد'}</span>
+                        </div>
+                        <button class="btn btn-primary" onclick="visitMarket(${market.id})">
+                            <i class="fas fa-shopping-cart"></i> التبضع من هذا السوق
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            async checkVerificationStatus() {
+                if (this.user.verification_status === 'unverified') {
+                    document.getElementById('idVerificationSection').style.display = 'block';
+                }
+            }
+
+            async submitIdVerification() {
+                const idFront = document.getElementById('idFront').files[0];
+                const idBack = document.getElementById('idBack').files[0];
+
+                if (!idFront || !idBack) {
+                    alert('يرجى رفع صورتين للبطاقة');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('id_front', idFront);
+                formData.append('id_back', idBack);
+
+                try {
+                    const response = await fetch('/api/user/verify-id', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('user_token')}`
+                        },
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        alert('تم إرسال صور البطاقة للتحقق. سيتم مراجعتها خلال 24 ساعة.');
+                        document.getElementById('idVerificationSection').style.display = 'none';
+                    }
+                } catch (error) {
+                    alert('حدث خطأ في رفع الصور');
+                }
+            }
+        }
+
+        // تهيئة التطبيق
+        const userApp = new UserApp();
+    </script>
+</body>
+</html>
