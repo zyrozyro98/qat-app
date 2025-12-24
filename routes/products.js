@@ -62,14 +62,117 @@ router.get('/', async (req, res) => {
         if (min_price) conditions.price = { $gte: min_price };
         if (max_price) conditions.price = { $lte: max_price };
         
-        // البحث النصي
-        let searchResults = [];
-        if (search) {
-            searchResults = await productModel.search(search, {
-                limit: parseInt(limit),
-                offset: (page - 1) * limit
-            });
+       // تحديث الجزء الخاص بالبحث النصي
+router.get('/', async (req, res) => {
+    try {
+        const {
+            category,
+            market_id,
+            seller_id,
+            min_price,
+            max_price,
+            search,
+            sort_by = 'created_at',
+            sort_order = 'DESC',
+            page = 1,
+            limit = 20,
+            featured // إضافة المعامل الجديد
+        } = req.query;
+        
+        console.log('🛒 جلب المنتجات:', req.query);
+        
+        // بناء الاستعلام الأساسي
+        let query = `
+            SELECT p.*, u.name as seller_name, u.avatar as seller_avatar,
+                   s.store_name, s.rating as seller_rating,
+                   m.name as market_name, m.location as market_location,
+                   (SELECT AVG(rating) FROM reviews WHERE product_id = p.id) as average_rating,
+                   (SELECT COUNT(*) FROM reviews WHERE product_id = p.id) as review_count
+            FROM products p
+            LEFT JOIN users u ON p.seller_id = u.id
+            LEFT JOIN sellers s ON p.seller_id = s.user_id
+            LEFT JOIN markets m ON p.market_id = m.id
+            WHERE p.status = 'active'
+        `;
+        
+        const params = [];
+        
+        // فلترة المنتجات المميزة
+        if (featured === 'true') {
+            query += ' AND p.featured = 1';
         }
+        
+        if (category) {
+            query += ' AND p.category = ?';
+            params.push(category);
+        }
+        
+        if (market_id) {
+            query += ' AND p.market_id = ?';
+            params.push(market_id);
+        }
+        
+        if (seller_id) {
+            query += ' AND p.seller_id = ?';
+            params.push(seller_id);
+        }
+        
+        if (min_price) {
+            query += ' AND p.price >= ?';
+            params.push(min_price);
+        }
+        
+        if (max_price) {
+            query += ' AND p.price <= ?';
+            params.push(max_price);
+        }
+        
+        if (search) {
+            query += ' AND (p.name LIKE ? OR p.description LIKE ? OR p.specifications LIKE ?)';
+            const searchTerm = `%${search}%`;
+            params.push(searchTerm, searchTerm, searchTerm);
+        }
+        
+        // جلب العدد الكلي
+        const countQuery = `SELECT COUNT(*) as total ${query.substring(query.indexOf('FROM'))}`;
+        const countResult = await database.get(countQuery, params);
+        const total = countResult ? countResult.total : 0;
+        
+        // إضافة الترتيب والمحدودية
+        const validSortColumns = ['price', 'created_at', 'average_rating'];
+        const sortColumn = validSortColumns.includes(sort_by) ? sort_by : 'created_at';
+        const order = sort_order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+        
+        query += ` ORDER BY ${sortColumn} ${order}`;
+        
+        const offset = (page - 1) * limit;
+        query += ' LIMIT ? OFFSET ?';
+        params.push(parseInt(limit), offset);
+        
+        const products = await database.all(query, params);
+        
+        console.log(`✅ تم جلب ${products.length} منتج من أصل ${total}`);
+        
+        res.json({
+            success: true,
+            data: products,
+            meta: {
+                total,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                pages: Math.ceil(total / limit),
+                timestamp: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        console.error('❌ خطأ في جلب المنتجات:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'حدث خطأ في جلب المنتجات',
+            message: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
         
         // جلب المنتجات مع الفلترة
         const products = search ? searchResults : await productModel.findAll(conditions, {
