@@ -1,9 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
-const bcrypt = require('bcryptjs');
-const cryptoJS = require('crypto-js');
-const moment = require('moment');
+const { registerValidations, loginValidations, validateRequest } = require('../middleware/validator');
+const { requireAuth } = require('../middleware/auth');
+
+module.exports = (db) => {
+    const authController = require('../controllers/authController')(db);
+    
+    router.post('/register', registerValidations, validateRequest, authController.register);
+    router.post('/login', loginValidations, validateRequest, authController.login);
+    router.post('/logout', requireAuth, authController.logout);
+    router.get('/check', authController.checkAuth);
+    
+    return router;
+};
 
 // Middleware
 const { validateRequest } = require('../middleware/validator');
