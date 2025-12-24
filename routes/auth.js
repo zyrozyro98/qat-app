@@ -14,14 +14,6 @@ module.exports = (db) => {
     return router;
 };
 
-// Middleware
-const { validateRequest } = require('../middleware/validator');
-const { requireAuth, requireRole } = require('../config/middleware');
-
-// Models
-const { UserModel, WalletModel } = require('../database/models');
-const database = require('../config/database');
-
 // تهيئة الموديلات
 const userModel = new UserModel(database);
 const walletModel = new WalletModel(database);
