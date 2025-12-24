@@ -3,582 +3,1551 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الملف الشخصي - تطبيق قات PRO</title>
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/css/responsive.css">
-    
-    <!-- Fonts & Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <title>الملف الشخصي - تطبيق قات</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2E7D32;
+            --primary-dark: #1B5E20;
+            --primary-light: #4CAF50;
+            --secondary: #FF9800;
+            --danger: #F44336;
+            --warning: #FFC107;
+            --info: #2196F3;
+            --light: #F5F5F5;
+            --dark: #212121;
+            --gray: #757575;
+            --border: #E0E0E0;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+            --radius: 10px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            height: fit-content;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .profile-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+        
+        /* رأس الملف الشخصي */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--light);
+        }
+        
+        .avatar-container {
+            position: relative;
+        }
+        
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary);
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.2);
+        }
+        
+        .avatar-upload-btn {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: var(--primary);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 3px solid white;
+            transition: all 0.3s;
+        }
+        
+        .avatar-upload-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+        
+        .profile-info h1 {
+            color: var(--dark);
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .user-role {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .user-role.buyer { background: var(--info); }
+        .user-role.seller { background: var(--secondary); }
+        .user-role.driver { background: var(--warning); color: var(--dark); }
+        .user-role.admin { background: var(--danger); }
+        
+        .user-status {
+            color: var(--primary);
+            font-weight: 500;
+        }
+        
+        /* إحصائيات سريعة */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: var(--shadow);
+        }
+        
+        .stat-card:nth-child(2) {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .stat-card:nth-child(3) {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .stat-card:nth-child(4) {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        
+        .stat-icon {
+            font-size: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .stat-info h3 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .stat-info p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        /* علامات التبويب */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            background: var(--light);
+            padding: 5px;
+            border-radius: var(--radius);
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            color: var(--gray);
+            font-family: 'Cairo', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+            text-align: center;
+            min-width: 120px;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(46, 125, 50, 0.1);
+            color: var(--primary);
+        }
+        
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* محتوى علامات التبويب */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* معلومات الحساب */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .info-item {
+            background: var(--light);
+            padding: 20px;
+            border-radius: var(--radius);
+            border-right: 4px solid var(--primary);
+        }
+        
+        .info-item label {
+            display: block;
+            color: var(--gray);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .info-item .value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+            word-break: break-word;
+        }
+        
+        /* النشاط الحديث */
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            transition: transform 0.3s;
+        }
+        
+        .activity-item:hover {
+            transform: translateX(-5px);
+            border-color: var(--primary);
+        }
+        
+        .activity-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+        
+        .activity-icon.order { background: var(--info); }
+        .activity-icon.review { background: var(--warning); color: var(--dark); }
+        .activity-icon.wallet { background: var(--success); }
+        .activity-icon.notification { background: var(--danger); }
+        
+        .activity-content {
+            flex: 1;
+        }
+        
+        .activity-content h4 {
+            margin-bottom: 5px;
+            color: var(--dark);
+        }
+        
+        .activity-time {
+            color: var(--gray);
+            font-size: 13px;
+        }
+        
+        /* إعدادات الحساب */
+        .settings-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .form-control {
+            padding: 12px 15px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            font-family: 'Cairo', sans-serif;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: var(--radius);
+            font-family: 'Cairo', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 16px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 125, 50, 0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--light);
+            color: var(--dark);
+            border: 2px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        /* نافذة تعديل الصورة */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: var(--radius);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalFadeIn 0.3s ease;
+        }
+        
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light);
+        }
+        
+        .modal-header h2 {
+            color: var(--dark);
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray);
+            transition: color 0.3s;
+        }
+        
+        .close-modal:hover {
+            color: var(--danger);
+        }
+        
+        .image-preview {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px dashed var(--border);
+            margin: 20px auto;
+            display: block;
+            cursor: pointer;
+        }
+        
+        /* تنبيهات */
+        .alert {
+            padding: 15px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        /* قسم البائع/السائق */
+        .role-specific {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-top: 20px;
+        }
+        
+        .role-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light);
+        }
+        
+        .role-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        
+        .role-stat {
+            background: var(--light);
+            padding: 15px;
+            border-radius: var(--radius);
+            text-align: center;
+        }
+        
+        .role-stat h3 {
+            font-size: 24px;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .role-stat p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        /* تذييل */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid var(--light);
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        /* تحسينات للجوال */
+        @media (max-width: 992px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                order: 2;
+            }
+            
+            .main-content {
+                order: 1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .tab-btn {
+                min-width: 100px;
+                font-size: 14px;
+                padding: 10px 15px;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .role-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="profile-container">
-        <!-- Header -->
-        <header class="profile-header">
-            <div class="container">
-                <div class="header-content">
-                    <a href="/pages/dashboard.html" class="back-btn">
-                        <i class="fas fa-arrow-right"></i>
-                        رجوع
-                    </a>
-                    <h1 class="profile-title">الملف الشخصي</h1>
-                    <button class="btn-edit-profile">
-                        <i class="fas fa-edit"></i>
-                        تعديل
-                    </button>
+    <div class="container">
+        <!-- الشريط الجانبي -->
+        <aside class="sidebar">
+            <div class="user-summary">
+                <div class="avatar-container">
+                    <img id="userAvatar" src="../assets/default-avatar.png" alt="صورة المستخدم" class="avatar">
+                    <div class="avatar-upload-btn" onclick="openAvatarModal()">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <h3 id="userName">جاري التحميل...</h3>
+                    <div class="user-role" id="userRoleBadge">مشتر</div>
+                    <p class="user-status" id="userStatus">نشط</p>
                 </div>
             </div>
-        </header>
-
-        <!-- Profile Content -->
-        <main class="profile-content">
-            <div class="container">
-                <div class="profile-grid">
-                    <!-- Left Column -->
-                    <div class="profile-left">
-                        <!-- Profile Card -->
-                        <div class="profile-card">
-                            <div class="profile-avatar">
-                                <img src="/assets/images/default-avatar.png" alt="صورة الملف الشخصي" id="profileImage">
-                                <div class="avatar-overlay">
-                                    <button class="btn-change-avatar">
-                                        <i class="fas fa-camera"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="profile-info">
-                                <h2 class="profile-name">محمد أحمد</h2>
-                                <p class="profile-email">mohammed@example.com</p>
-                                <div class="profile-role">
-                                    <span class="role-badge">بائع</span>
-                                    <span class="member-since">عضو منذ 2023</span>
-                                </div>
-                                
-                                <div class="profile-stats">
-                                    <div class="stat-item">
-                                        <span class="stat-value">154</span>
-                                        <span class="stat-label">الطلبات</span>
-                                    </div>
-                                    <div class="stat-item">
-                                        <span class="stat-value">4.8</span>
-                                        <span class="stat-label">التقييم</span>
-                                    </div>
-                                    <div class="stat-item">
-                                        <span class="stat-value">98%</span>
-                                        <span class="stat-label">الرضا</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="profile-actions">
-                                <button class="btn-action">
-                                    <i class="fas fa-share-alt"></i>
-                                    مشاركة الملف
-                                </button>
-                                <button class="btn-action">
-                                    <i class="fas fa-qrcode"></i>
-                                    كود QR
-                                </button>
-                            </div>
+            
+            <div style="margin-top: 30px;">
+                <h4 style="color: var(--dark); margin-bottom: 15px;"><i class="fas fa-wallet"></i> رصيد المحفظة</h4>
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: var(--radius);">
+                    <div style="font-size: 24px; font-weight: bold;" id="walletBalance">0 ريال</div>
+                    <a href="wallet.html" style="color: white; text-decoration: none; display: inline-block; margin-top: 10px; font-size: 14px;">
+                        <i class="fas fa-arrow-left"></i> إدارة المحفظة
+                    </a>
+                </div>
+            </div>
+            
+            <div style="margin-top: 25px;">
+                <h4 style="color: var(--dark); margin-bottom: 15px;"><i class="fas fa-link"></i> روابط سريعة</h4>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <a href="../index.html" class="btn btn-secondary" style="justify-content: flex-start;">
+                        <i class="fas fa-home"></i> الرئيسية
+                    </a>
+                    <a href="orders.html" class="btn btn-secondary" style="justify-content: flex-start;">
+                        <i class="fas fa-shopping-cart"></i> طلباتي
+                    </a>
+                    <a href="wallet.html" class="btn btn-secondary" style="justify-content: flex-start;">
+                        <i class="fas fa-wallet"></i> المحفظة
+                    </a>
+                    <a href="#" class="btn btn-secondary" style="justify-content: flex-start;">
+                        <i class="fas fa-question-circle"></i> المساعدة
+                    </a>
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid var(--light);">
+                <button class="btn btn-danger" onclick="logout()" style="width: 100%;">
+                    <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+                </button>
+            </div>
+        </aside>
+        
+        <!-- المحتوى الرئيسي -->
+        <main class="main-content">
+            <!-- تنبيهات -->
+            <div id="alert" class="alert" style="display: none;"></div>
+            
+            <!-- بطاقة الملف الشخصي -->
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="avatar-container">
+                        <img id="profileAvatar" src="../assets/default-avatar.png" alt="صورة البروفايل" class="avatar">
+                    </div>
+                    <div class="profile-info">
+                        <h1 id="profileName">جاري التحميل...</h1>
+                        <div class="user-role" id="profileRole">مشتر</div>
+                        <p class="user-status" id="profileStatus">العضوية منذ: جاري التحميل...</p>
+                    </div>
+                </div>
+                
+                <!-- إحصائيات سريعة -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart"></i>
                         </div>
-
-                        <!-- Verification Status -->
-                        <div class="verification-card">
-                            <h3 class="card-title">حالة التحقق</h3>
-                            <div class="verification-steps">
-                                <div class="step verified">
-                                    <div class="step-icon">
-                                        <i class="fas fa-check-circle"></i>
-                                    </div>
-                                    <div class="step-content">
-                                        <h4>البريد الإلكتروني</h4>
-                                        <p>تم التحقق</p>
-                                    </div>
-                                </div>
-                                <div class="step verified">
-                                    <div class="step-icon">
-                                        <i class="fas fa-check-circle"></i>
-                                    </div>
-                                    <div class="step-content">
-                                        <h4>الهاتف</h4>
-                                        <p>تم التحقق</p>
-                                    </div>
-                                </div>
-                                <div class="step pending">
-                                    <div class="step-icon">
-                                        <i class="fas fa-clock"></i>
-                                    </div>
-                                    <div class="step-content">
-                                        <h4>الهوية</h4>
-                                        <p>قيد المراجعة</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <button class="btn-verify">اكمال التحقق</button>
-                        </div>
-
-                        <!-- Social Links -->
-                        <div class="social-card">
-                            <h3 class="card-title">وسائل التواصل</h3>
-                            <div class="social-links">
-                                <a href="#" class="social-link">
-                                    <i class="fab fa-twitter"></i>
-                                </a>
-                                <a href="#" class="social-link">
-                                    <i class="fab fa-instagram"></i>
-                                </a>
-                                <a href="#" class="social-link">
-                                    <i class="fab fa-whatsapp"></i>
-                                </a>
-                            </div>
+                        <div class="stat-info">
+                            <h3 id="totalOrders">0</h3>
+                            <p>إجمالي الطلبات</p>
                         </div>
                     </div>
-
-                    <!-- Right Column -->
-                    <div class="profile-right">
-                        <!-- Tabs Navigation -->
-                        <nav class="profile-tabs">
-                            <ul class="tabs-nav">
-                                <li class="active" data-tab="info">المعلومات الشخصية</li>
-                                <li data-tab="security">الأمان</li>
-                                <li data-tab="addresses">العناوين</li>
-                                <li data-tab="preferences">التفضيلات</li>
-                                <li data-tab="activity">النشاطات</li>
-                            </ul>
-                        </nav>
-
-                        <!-- Tabs Content -->
-                        <div class="tabs-content">
-                            <!-- Personal Info Tab -->
-                            <div class="tab-pane active" id="info">
-                                <div class="form-section">
-                                    <h3 class="section-title">المعلومات الأساسية</h3>
-                                    <div class="form-grid">
-                                        <div class="form-group">
-                                            <label>الاسم الأول</label>
-                                            <input type="text" class="form-control" value="محمد" readonly>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>اسم العائلة</label>
-                                            <input type="text" class="form-control" value="أحمد" readonly>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>البريد الإلكتروني</label>
-                                            <input type="email" class="form-control" value="mohammed@example.com" readonly>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>رقم الهاتف</label>
-                                            <input type="tel" class="form-control" value="+966500000000" readonly>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>تاريخ الميلاد</label>
-                                            <input type="date" class="form-control" value="1990-05-15" readonly>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>الجنس</label>
-                                            <select class="form-control" disabled>
-                                                <option selected>ذكر</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="form-section">
-                                    <h3 class="section-title">معلومات إضافية</h3>
-                                    <div class="form-group">
-                                        <label>نبذة عني</label>
-                                        <textarea class="form-control" rows="4" readonly>
-بائع محترف في مجال القات منذ 5 سنوات، أهتم بتقديم أفضل المنتجات للعملاء.
-                                        </textarea>
-                                    </div>
-                                </div>
-
-                                <div class="form-actions">
-                                    <button class="btn-edit-tab">تعديل المعلومات</button>
-                                </div>
-                            </div>
-
-                            <!-- Security Tab -->
-                            <div class="tab-pane" id="security">
-                                <div class="form-section">
-                                    <h3 class="section-title">كلمة المرور</h3>
-                                    <div class="form-grid">
-                                        <div class="form-group">
-                                            <label>كلمة المرور الحالية</label>
-                                            <input type="password" class="form-control" value="********" readonly>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>كلمة المرور الجديدة</label>
-                                            <input type="password" class="form-control" placeholder="أدخل كلمة المرور الجديدة" readonly>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>تأكيد كلمة المرور</label>
-                                            <input type="password" class="form-control" placeholder="أعد إدخال كلمة المرور" readonly>
-                                        </div>
-                                    </div>
-                                    <button class="btn-change-password">تغيير كلمة المرور</button>
-                                </div>
-
-                                <div class="form-section">
-                                    <h3 class="section-title">جلسات تسجيل الدخول</h3>
-                                    <div class="sessions-list">
-                                        <div class="session-item current">
-                                            <div class="session-info">
-                                                <h4>هذا الجهاز</h4>
-                                                <p>متصفح Chrome - Windows</p>
-                                                <span class="session-time">نشط الآن</span>
-                                            </div>
-                                            <button class="btn-logout-session">تسجيل الخروج</button>
-                                        </div>
-                                        <div class="session-item">
-                                            <div class="session-info">
-                                                <h4>جدة، السعودية</h4>
-                                                <p>متصفح Safari - iPhone</p>
-                                                <span class="session-time">قبل يومين</span>
-                                            </div>
-                                            <button class="btn-logout-session">تسجيل الخروج</button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="form-section">
-                                    <h3 class="section-title">المصادقة الثنائية</h3>
-                                    <div class="two-factor">
-                                        <div class="two-factor-info">
-                                            <i class="fas fa-shield-alt"></i>
-                                            <div>
-                                                <h4>المصادقة الثنائية</h4>
-                                                <p>لزيادة أمان حسابك</p>
-                                            </div>
-                                        </div>
-                                        <label class="toggle-switch">
-                                            <input type="checkbox">
-                                            <span class="toggle-slider"></span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Addresses Tab -->
-                            <div class="tab-pane" id="addresses">
-                                <div class="addresses-header">
-                                    <h3 class="section-title">العناوين المحفوظة</h3>
-                                    <button class="btn-add-address">
-                                        <i class="fas fa-plus"></i>
-                                        إضافة عنوان جديد
-                                    </button>
-                                </div>
-
-                                <div class="addresses-grid">
-                                    <div class="address-card default">
-                                        <div class="address-header">
-                                            <h4>المنزل</h4>
-                                            <span class="address-default">افتراضي</span>
-                                        </div>
-                                        <div class="address-content">
-                                            <p>الرياض - حي النخيل</p>
-                                            <p>شارع الملك فهد، رقم 123</p>
-                                            <p>مبنى 5، شقة 12</p>
-                                            <p class="phone">+966500000000</p>
-                                        </div>
-                                        <div class="address-actions">
-                                            <button class="btn-edit-address">تعديل</button>
-                                            <button class="btn-delete-address">حذف</button>
-                                        </div>
-                                    </div>
-
-                                    <div class="address-card">
-                                        <div class="address-header">
-                                            <h4>العمل</h4>
-                                        </div>
-                                        <div class="address-content">
-                                            <p>الرياض - حي العليا</p>
-                                            <p>شارع العروبة، مركز تجاري</p>
-                                            <p>الدور الثالث، مكتب 305</p>
-                                            <p class="phone">+966500000001</p>
-                                        </div>
-                                        <div class="address-actions">
-                                            <button class="btn-edit-address">تعديل</button>
-                                            <button class="btn-set-default">تعيين افتراضي</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Preferences Tab -->
-                            <div class="tab-pane" id="preferences">
-                                <div class="form-section">
-                                    <h3 class="section-title">إعدادات اللغة</h3>
-                                    <div class="form-group">
-                                        <label>اللغة المفضلة</label>
-                                        <select class="form-control">
-                                            <option selected>العربية</option>
-                                            <option>الإنجليزية</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="form-section">
-                                    <h3 class="section-title">إعدادات الإشعارات</h3>
-                                    <div class="notifications-settings">
-                                        <div class="notification-item">
-                                            <div class="notification-info">
-                                                <h4>إشعارات الطلبات</h4>
-                                                <p>إشعارات عن حالة الطلبات والتحديثات</p>
-                                            </div>
-                                            <label class="toggle-switch">
-                                                <input type="checkbox" checked>
-                                                <span class="toggle-slider"></span>
-                                            </label>
-                                        </div>
-                                        <div class="notification-item">
-                                            <div class="notification-info">
-                                                <h4>عروض وتخفيضات</h4>
-                                                <p>إشعارات عن العروض الخاصة والتخفيضات</p>
-                                            </div>
-                                            <label class="toggle-switch">
-                                                <input type="checkbox" checked>
-                                                <span class="toggle-slider"></span>
-                                            </label>
-                                        </div>
-                                        <div class="notification-item">
-                                            <div class="notification-info">
-                                                <h4>النشرة الإخبارية</h4>
-                                                <p>أخبار وتحديثات عن التطبيق</p>
-                                            </div>
-                                            <label class="toggle-switch">
-                                                <input type="checkbox">
-                                                <span class="toggle-slider"></span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="form-section">
-                                    <h3 class="section-title">خصوصية الحساب</h3>
-                                    <div class="privacy-settings">
-                                        <div class="privacy-item">
-                                            <div class="privacy-info">
-                                                <h4>حساب خاص</h4>
-                                                <p>إخفاء معلومات الحساب عن المستخدمين الآخرين</p>
-                                            </div>
-                                            <label class="toggle-switch">
-                                                <input type="checkbox">
-                                                <span class="toggle-slider"></span>
-                                            </label>
-                                        </div>
-                                        <div class="privacy-item">
-                                            <div class="privacy-info">
-                                                <h4>إظهار حالة التواجد</h4>
-                                                <p>إظهار حالتك للمستخدمين الآخرين</p>
-                                            </div>
-                                            <label class="toggle-switch">
-                                                <input type="checkbox" checked>
-                                                <span class="toggle-slider"></span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Activity Tab -->
-                            <div class="tab-pane" id="activity">
-                                <div class="activity-filters">
-                                    <button class="filter-btn active">الكل</button>
-                                    <button class="filter-btn">المشتريات</button>
-                                    <button class="filter-btn">المبيعات</button>
-                                    <button class="filter-btn">التسجيل</button>
-                                </div>
-
-                                <div class="activity-timeline">
-                                    <div class="activity-item">
-                                        <div class="activity-icon success">
-                                            <i class="fas fa-shopping-cart"></i>
-                                        </div>
-                                        <div class="activity-content">
-                                            <h4>طلب جديد</h4>
-                                            <p>تم إنشاء طلب جديد #ORD-2456</p>
-                                            <span class="activity-time">قبل 15 دقيقة</span>
-                                        </div>
-                                    </div>
-                                    <div class="activity-item">
-                                        <div class="activity-icon info">
-                                            <i class="fas fa-user-plus"></i>
-                                        </div>
-                                        <div class="activity-content">
-                                            <h4>متابعة جديدة</h4>
-                                            <p>قام أحمد بمتابعة متجرك</p>
-                                            <span class="activity-time">قبل ساعتين</span>
-                                        </div>
-                                    </div>
-                                    <div class="activity-item">
-                                        <div class="activity-icon warning">
-                                            <i class="fas fa-exclamation-triangle"></i>
-                                        </div>
-                                        <div class="activity-content">
-                                            <h4>تحديث كلمة المرور</h4>
-                                            <p>تم تحديث كلمة مرور الحساب</p>
-                                            <span class="activity-time">قبل 3 أيام</span>
-                                        </div>
-                                    </div>
-                                    <div class="activity-item">
-                                        <div class="activity-icon primary">
-                                            <i class="fas fa-credit-card"></i>
-                                        </div>
-                                        <div class="activity-content">
-                                            <h4>دفع ناجح</h4>
-                                            <p>تم سداد فاتورة بقيمة 1,250 ريال</p>
-                                            <span class="activity-time">قبل أسبوع</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <button class="btn-load-more">تحميل المزيد</button>
-                            </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalReviews">0</h3>
+                            <p>التقييمات</p>
                         </div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalSpent">0 ريال</h3>
+                            <p>إجمالي المشتريات</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="successRate">0%</h3>
+                            <p>معدل النجاح</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- علامات التبويب -->
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('account')">
+                        <i class="fas fa-user"></i> معلومات الحساب
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('activity')">
+                        <i class="fas fa-history"></i> النشاط الحديث
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('settings')">
+                        <i class="fas fa-cog"></i> الإعدادات
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('security')">
+                        <i class="fas fa-shield-alt"></i> الأمان
+                    </button>
+                </div>
+                
+                <!-- محتوى علامات التبويب -->
+                <div id="account-tab" class="tab-content active">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label><i class="fas fa-envelope"></i> البريد الإلكتروني</label>
+                            <div class="value" id="userEmail">جاري التحميل...</div>
+                        </div>
+                        <div class="info-item">
+                            <label><i class="fas fa-phone"></i> رقم الهاتف</label>
+                            <div class="value" id="userPhone">جاري التحميل...</div>
+                        </div>
+                        <div class="info-item">
+                            <label><i class="fas fa-calendar"></i> تاريخ التسجيل</label>
+                            <div class="value" id="joinDate">جاري التحميل...</div>
+                        </div>
+                        <div class="info-item">
+                            <label><i class="fas fa-clock"></i> آخر دخول</label>
+                            <div class="value" id="lastLogin">جاري التحميل...</div>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="openEditModal()">
+                            <i class="fas fa-edit"></i> تعديل المعلومات
+                        </button>
+                        <button class="btn btn-secondary" onclick="downloadUserData()">
+                            <i class="fas fa-download"></i> تحميل بياناتي
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="activity-tab" class="tab-content">
+                    <div class="activity-list" id="activityList">
+                        <!-- سيتم تعبئته بالبيانات -->
+                    </div>
+                </div>
+                
+                <div id="settings-tab" class="tab-content">
+                    <form class="settings-form" id="settingsForm">
+                        <div class="form-group">
+                            <label><i class="fas fa-bell"></i> الإشعارات عبر البريد</label>
+                            <select class="form-control" id="emailNotifications">
+                                <option value="all">جميع الإشعارات</option>
+                                <option value="important">المهمة فقط</option>
+                                <option value="none">لا شيء</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-sms"></i> إشعارات SMS</label>
+                            <select class="form-control" id="smsNotifications">
+                                <option value="yes">مفعلة</option>
+                                <option value="no">معطلة</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-language"></i> اللغة</label>
+                            <select class="form-control" id="language">
+                                <option value="ar">العربية</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-palette"></i> السمة</label>
+                            <select class="form-control" id="theme">
+                                <option value="light">فاتحة</option>
+                                <option value="dark">داكنة</option>
+                                <option value="auto">تلقائي</option>
+                            </select>
+                        </div>
+                        
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-primary" onclick="saveSettings()">
+                                <i class="fas fa-save"></i> حفظ الإعدادات
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div id="security-tab" class="tab-content">
+                    <form class="settings-form" id="passwordForm">
+                        <div class="form-group">
+                            <label><i class="fas fa-lock"></i> كلمة المرور الحالية</label>
+                            <input type="password" class="form-control" id="currentPassword" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-key"></i> كلمة المرور الجديدة</label>
+                            <input type="password" class="form-control" id="newPassword" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-key"></i> تأكيد كلمة المرور الجديدة</label>
+                            <input type="password" class="form-control" id="confirmPassword" required>
+                        </div>
+                        
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-primary" onclick="changePassword()">
+                                <i class="fas fa-sync-alt"></i> تغيير كلمة المرور
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid var(--light);">
+                        <h4 style="color: var(--dark); margin-bottom: 15px;"><i class="fas fa-shield-alt"></i> جلسات الدخول</h4>
+                        <div id="sessionsList">
+                            <!-- سيتم تعبئته بالبيانات -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- قسم خاص بالدور (البائع/السائق) -->
+            <div id="roleSpecificSection" class="role-specific" style="display: none;">
+                <div class="role-header">
+                    <h2><i class="fas fa-chart-line"></i> <span id="roleTitle">إحصائيات البائع</span></h2>
+                    <a href="#" class="btn btn-primary" id="roleDashboardLink">
+                        <i class="fas fa-tachometer-alt"></i> لوحة التحكم
+                    </a>
+                </div>
+                
+                <div class="role-stats" id="roleStats">
+                    <!-- سيتم تعبئته بالبيانات -->
                 </div>
             </div>
         </main>
-
-        <!-- Footer -->
-        <footer class="profile-footer">
-            <div class="container">
-                <div class="footer-content">
-                    <div class="footer-links">
-                        <a href="#">سياسة الخصوصية</a>
-                        <a href="#">شروط الاستخدام</a>
-                        <a href="#">المساعدة</a>
-                    </div>
-                    <button class="btn-logout">
-                        <i class="fas fa-sign-out-alt"></i>
-                        تسجيل الخروج
+    </div>
+    
+    <!-- نافذة تعديل الصورة -->
+    <div class="modal-overlay" id="avatarModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-camera"></i> تغيير صورة البروفايل</h2>
+                <button class="close-modal" onclick="closeAvatarModal()">&times;</button>
+            </div>
+            
+            <img id="imagePreview" src="../assets/default-avatar.png" alt="معاينة الصورة" class="image-preview" onclick="document.getElementById('avatarInput').click()">
+            <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="previewImage(event)">
+            
+            <div class="btn-group" style="justify-content: center; margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="closeAvatarModal()">
+                    <i class="fas fa-times"></i> إلغاء
+                </button>
+                <button class="btn btn-primary" onclick="uploadAvatar()">
+                    <i class="fas fa-upload"></i> رفع الصورة
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- نافذة تعديل المعلومات -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit"></i> تعديل المعلومات الشخصية</h2>
+                <button class="close-modal" onclick="closeEditModal()">&times;</button>
+            </div>
+            
+            <form id="editForm">
+                <div class="form-group">
+                    <label>الاسم الكامل</label>
+                    <input type="text" class="form-control" id="editName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>رقم الهاتف</label>
+                    <input type="tel" class="form-control" id="editPhone" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" class="form-control" id="editEmail" required>
+                </div>
+                
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">
+                        <i class="fas fa-times"></i> إلغاء
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="saveProfile()">
+                        <i class="fas fa-save"></i> حفظ التغييرات
                     </button>
                 </div>
-            </div>
-        </footer>
+            </form>
+        </div>
     </div>
-
-    <!-- JavaScript -->
-    <script src="/js/app.js"></script>
+    
+    <!-- التذييل -->
+    <div class="footer">
+        <p>© 2024 تطبيق قات. جميع الحقوق محفوظة.</p>
+        <p style="margin-top: 10px; font-size: 12px;">
+            <a href="#" style="color: var(--gray); text-decoration: none; margin: 0 10px;">سياسة الخصوصية</a> | 
+            <a href="#" style="color: var(--gray); text-decoration: none; margin: 0 10px;">الشروط والأحكام</a> | 
+            <a href="#" style="color: var(--gray); text-decoration: none; margin: 0 10px;">الدعم الفني</a>
+        </p>
+    </div>
+    
     <script>
+        // بيانات المستخدم
+        let userData = {};
+        let userStats = {};
+        
+        // تهيئة الصفحة
         document.addEventListener('DOMContentLoaded', function() {
-            // Tab switching
-            const tabNavs = document.querySelectorAll('.tabs-nav li');
-            const tabPanes = document.querySelectorAll('.tab-pane');
-            
-            tabNavs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const tabId = this.getAttribute('data-tab');
-                    
-                    // Update active tab
-                    tabNavs.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Show corresponding pane
-                    tabPanes.forEach(pane => {
-                        pane.classList.remove('active');
-                        if (pane.id === tabId) {
-                            pane.classList.add('active');
-                        }
-                    });
-                });
-            });
-
-            // Edit profile
-            const editBtn = document.querySelector('.btn-edit-profile');
-            const editTabBtn = document.querySelector('.btn-edit-tab');
-            const formInputs = document.querySelectorAll('#info .form-control, #info select');
-            let isEditing = false;
-            
-            function toggleEditMode() {
-                isEditing = !isEditing;
-                formInputs.forEach(input => {
-                    if (input.type !== 'date') {
-                        input.readOnly = !isEditing;
-                    }
-                    input.disabled = !isEditing;
-                });
+            checkAuth();
+            loadUserProfile();
+            loadUserStats();
+            loadRecentActivity();
+        });
+        
+        // التحقق من المصادقة
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/auth/check');
+                const data = await response.json();
                 
-                if (isEditing) {
-                    editTabBtn.innerHTML = '<i class="fas fa-save"></i> حفظ التغييرات';
-                    editTabBtn.classList.add('save');
+                if (!data.isAuthenticated) {
+                    window.location.href = '../index.html';
                 } else {
-                    editTabBtn.innerHTML = '<i class="fas fa-edit"></i> تعديل المعلومات';
-                    editTabBtn.classList.remove('save');
-                    alert('تم حفظ التغييرات بنجاح');
+                    userData = data.user;
+                    updateUserDisplay();
                 }
+            } catch (error) {
+                showAlert('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+        
+        // تحميل الملف الشخصي
+        async function loadUserProfile() {
+            try {
+                const response = await fetch('/api/users/profile');
+                const data = await response.json();
+                
+                if (data.success) {
+                    userData = data.data;
+                    updateUserDisplay();
+                    loadRoleSpecificData();
+                }
+            } catch (error) {
+                showAlert('خطأ في تحميل بيانات الملف الشخصي', 'error');
+            }
+        }
+        
+        // تحميل الإحصائيات
+        async function loadUserStats() {
+            try {
+                const response = await fetch('/api/users/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    userStats = data.data;
+                    updateStatsDisplay();
+                }
+            } catch (error) {
+                showAlert('خطأ في تحميل الإحصائيات', 'error');
+            }
+        }
+        
+        // تحميل النشاط الحديث
+        async function loadRecentActivity() {
+            try {
+                const response = await fetch('/api/users/activity');
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateActivityDisplay(data.data);
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل النشاط:', error);
+            }
+        }
+        
+        // تحديث عرض بيانات المستخدم
+        function updateUserDisplay() {
+            // معلومات المستخدم
+            document.getElementById('userName').textContent = userData.name;
+            document.getElementById('profileName').textContent = userData.name;
+            document.getElementById('userEmail').textContent = userData.email;
+            document.getElementById('userPhone').textContent = userData.phone;
+            document.getElementById('editName').value = userData.name;
+            document.getElementById('editPhone').value = userData.phone;
+            document.getElementById('editEmail').value = userData.email;
+            
+            // الدور
+            const roleNames = {
+                'buyer': 'مشتر',
+                'seller': 'بائع',
+                'driver': 'سائق',
+                'admin': 'مسؤول'
+            };
+            
+            const roleElement = document.getElementById('userRoleBadge');
+            roleElement.textContent = roleNames[userData.role] || userData.role;
+            roleElement.className = 'user-role ' + userData.role;
+            
+            document.getElementById('profileRole').textContent = roleNames[userData.role] || userData.role;
+            document.getElementById('profileRole').className = 'user-role ' + userData.role;
+            
+            // الصورة
+            if (userData.avatar) {
+                document.getElementById('userAvatar').src = userData.avatar;
+                document.getElementById('profileAvatar').src = userData.avatar;
+                document.getElementById('imagePreview').src = userData.avatar;
             }
             
-            editBtn.addEventListener('click', toggleEditMode);
-            editTabBtn.addEventListener('click', toggleEditMode);
-
-            // Change avatar
-            const changeAvatarBtn = document.querySelector('.btn-change-avatar');
-            const profileImage = document.getElementById('profileImage');
+            // التواريخ
+            if (userData.created_at) {
+                document.getElementById('joinDate').textContent = formatDate(userData.created_at);
+                document.getElementById('profileStatus').textContent = `العضوية منذ: ${formatDate(userData.created_at)}`;
+            }
             
-            changeAvatarBtn.addEventListener('click', function() {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
+            if (userData.last_login) {
+                document.getElementById('lastLogin').textContent = formatDate(userData.last_login);
+            }
+            
+            // رصيد المحفظة
+            if (userData.balance !== undefined) {
+                document.getElementById('walletBalance').textContent = formatCurrency(userData.balance);
+            }
+        }
+        
+        // تحديث عرض الإحصائيات
+        function updateStatsDisplay() {
+            document.getElementById('totalOrders').textContent = userStats.total_orders || 0;
+            document.getElementById('totalReviews').textContent = userStats.total_reviews || 0;
+            document.getElementById('totalSpent').textContent = formatCurrency(userStats.total_spent || 0);
+            
+            // حساب معدل النجاح
+            const totalOrders = userStats.total_orders || 0;
+            const deliveredOrders = userStats.delivered_orders || 0;
+            const successRate = totalOrders > 0 ? Math.round((deliveredOrders / totalOrders) * 100) : 0;
+            document.getElementById('successRate').textContent = `${successRate}%`;
+        }
+        
+        // تحديث عرض النشاط
+        function updateActivityDisplay(data) {
+            const activityList = document.getElementById('activityList');
+            activityList.innerHTML = '';
+            
+            if (!data || (!data.orders?.length && !data.reviews?.length && !data.transactions?.length)) {
+                activityList.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--gray);">
+                        <i class="fas fa-history" style="font-size: 48px; margin-bottom: 15px;"></i>
+                        <p>لا يوجد نشاط حديث</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // عرض الطلبات
+            if (data.orders && data.orders.length > 0) {
+                data.orders.slice(0, 3).forEach(order => {
+                    const item = createActivityItem(
+                        'order',
+                        'طلب جديد',
+                        `تم إنشاء طلب جديد برقم #${order.order_code}`,
+                        order.created_at
+                    );
+                    activityList.appendChild(item);
+                });
+            }
+            
+            // عرض التقييمات
+            if (data.reviews && data.reviews.length > 0) {
+                data.reviews.slice(0, 2).forEach(review => {
+                    const item = createActivityItem(
+                        'review',
+                        'تقييم جديد',
+                        `تم تقييم المنتج "${review.product_name}"`,
+                        review.created_at
+                    );
+                    activityList.appendChild(item);
+                });
+            }
+            
+            // عرض المعاملات
+            if (data.transactions && data.transactions.length > 0) {
+                data.transactions.slice(0, 2).forEach(transaction => {
+                    const typeNames = {
+                        'deposit': 'شحن',
+                        'withdrawal': 'سحب',
+                        'purchase': 'شراء',
+                        'refund': 'استرداد'
+                    };
+                    
+                    const item = createActivityItem(
+                        'wallet',
+                        typeNames[transaction.type] || transaction.type,
+                        `معاملة ${formatCurrency(transaction.amount)}`,
+                        transaction.created_at
+                    );
+                    activityList.appendChild(item);
+                });
+            }
+        }
+        
+        // إنشاء عنصر نشاط
+        function createActivityItem(type, title, description, time) {
+            const div = document.createElement('div');
+            div.className = 'activity-item';
+            
+            const iconClass = {
+                'order': 'fas fa-shopping-cart',
+                'review': 'fas fa-star',
+                'wallet': 'fas fa-wallet',
+                'notification': 'fas fa-bell'
+            }[type] || 'fas fa-info-circle';
+            
+            div.innerHTML = `
+                <div class="activity-icon ${type}">
+                    <i class="${iconClass}"></i>
+                </div>
+                <div class="activity-content">
+                    <h4>${title}</h4>
+                    <p>${description}</p>
+                    <div class="activity-time">${formatRelativeTime(time)}</div>
+                </div>
+            `;
+            
+            return div;
+        }
+        
+        // تحميل البيانات الخاصة بالدور
+        function loadRoleSpecificData() {
+            const section = document.getElementById('roleSpecificSection');
+            const title = document.getElementById('roleTitle');
+            const link = document.getElementById('roleDashboardLink');
+            const stats = document.getElementById('roleStats');
+            
+            if (userData.role === 'seller') {
+                section.style.display = 'block';
+                title.textContent = 'إحصائيات البائع';
+                link.href = '../seller-app.html';
                 
-                input.onchange = function(e) {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = function(event) {
-                            profileImage.src = event.target.result;
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                };
+                stats.innerHTML = `
+                    <div class="role-stat">
+                        <h3>${userData.total_products || 0}</h3>
+                        <p>المنتجات</p>
+                    </div>
+                    <div class="role-stat">
+                        <h3>${userData.active_products || 0}</h3>
+                        <p>منتجات نشطة</p>
+                    </div>
+                    <div class="role-stat">
+                        <h3>${userData.total_sales || 0}</h3>
+                        <p>المبيعات</p>
+                    </div>
+                    <div class="role-stat">
+                        <h3>${formatCurrency(userData.total_earnings || 0)}</h3>
+                        <p>الأرباح</p>
+                    </div>
+                `;
                 
-                input.click();
+            } else if (userData.role === 'driver') {
+                section.style.display = 'block';
+                title.textContent = 'إحصائيات السائق';
+                link.href = '../driver-app.html';
+                
+                stats.innerHTML = `
+                    <div class="role-stat">
+                        <h3>${userData.total_deliveries || 0}</h3>
+                        <p>إجمالي التوصيلات</p>
+                    </div>
+                    <div class="role-stat">
+                        <h3>${userData.completed_deliveries || 0}</h3>
+                        <p>مكتملة</p>
+                    </div>
+                    <div class="role-stat">
+                        <h3>${userData.active_deliveries || 0}</h3>
+                        <p>قيد التوصيل</p>
+                    </div>
+                    <div class="role-stat">
+                        <h3>${userData.avg_rating || 0}/5</h3>
+                        <p>التقييم</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // تبديل علامات التبويب
+        function switchTab(tabName) {
+            // إزالة النشط من جميع الأزرار
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
             });
-
-            // Logout
-            const logoutBtn = document.querySelector('.btn-logout');
-            logoutBtn.addEventListener('click', function() {
-                if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
-                    window.location.href = '/pages/login.html';
+            
+            // إخفاء جميع المحتويات
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // إضافة النشط للزر المحدد
+            event.target.classList.add('active');
+            
+            // إظهار المحتوى المحدد
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+        
+        // نافذة تعديل الصورة
+        function openAvatarModal() {
+            document.getElementById('avatarModal').style.display = 'flex';
+        }
+        
+        function closeAvatarModal() {
+            document.getElementById('avatarModal').style.display = 'none';
+        }
+        
+        function previewImage(event) {
+            const input = event.target;
+            const preview = document.getElementById('imagePreview');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
                 }
-            });
-
-            // Address actions
-            const setDefaultBtns = document.querySelectorAll('.btn-set-default');
-            setDefaultBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const addressCard = this.closest('.address-card');
-                    document.querySelectorAll('.address-card').forEach(card => {
-                        card.classList.remove('default');
-                        card.querySelector('.address-default')?.remove();
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        async function uploadAvatar() {
+            const fileInput = document.getElementById('avatarInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showAlert('يرجى اختيار صورة أولاً', 'warning');
+                return;
+            }
+            
+            if (!file.type.startsWith('image/')) {
+                showAlert('الملف يجب أن يكون صورة', 'error');
+                return;
+            }
+            
+            if (file.size > 5 * 1024 * 1024) { // 5MB
+                showAlert('حجم الصورة يجب أن يكون أقل من 5 ميجابايت', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('avatar', file);
+            
+            try {
+                const response = await fetch('/api/users/profile', {
+                    method: 'PUT',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('تم تحديث صورة البروفايل بنجاح', 'success');
+                    closeAvatarModal();
+                    loadUserProfile();
+                } else {
+                    showAlert(data.error || 'خطأ في تحديث الصورة', 'error');
+                }
+            } catch (error) {
+                showAlert('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+        
+        // نافذة تعديل المعلومات
+        function openEditModal() {
+            document.getElementById('editModal').style.display = 'flex';
+        }
+        
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+        
+        async function saveProfile() {
+            const name = document.getElementById('editName').value.trim();
+            const phone = document.getElementById('editPhone').value.trim();
+            const email = document.getElementById('editEmail').value.trim();
+            
+            if (!name || !phone || !email) {
+                showAlert('يرجى ملء جميع الحقول', 'warning');
+                return;
+            }
+            
+            if (!isValidEmail(email)) {
+                showAlert('البريد الإلكتروني غير صالح', 'error');
+                return;
+            }
+            
+            if (!isValidPhone(phone)) {
+                showAlert('رقم الهاتف غير صالح', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/users/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, phone })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('تم تحديث المعلومات بنجاح', 'success');
+                    closeEditModal();
+                    loadUserProfile();
+                } else {
+                    showAlert(data.error || 'خطأ في تحديث المعلومات', 'error');
+                }
+            } catch (error) {
+                showAlert('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+        
+        // تغيير كلمة المرور
+        async function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showAlert('يرجى ملء جميع الحقول', 'warning');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                showAlert('كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showAlert('كلمة المرور غير متطابقة', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/users/password', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('تم تغيير كلمة المرور بنجاح', 'success');
+                    document.getElementById('passwordForm').reset();
+                } else {
+                    showAlert(data.error || 'خطأ في تغيير كلمة المرور', 'error');
+                }
+            } catch (error) {
+                showAlert('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+        
+        // حفظ الإعدادات
+        async function saveSettings() {
+            const emailNotifications = document.getElementById('emailNotifications').value;
+            const smsNotifications = document.getElementById('smsNotifications').value;
+            const language = document.getElementById('language').value;
+            const theme = document.getElementById('theme').value;
+            
+            try {
+                const response = await fetch('/api/users/settings', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email_notifications: emailNotifications === 'all',
+                        sms_notifications: smsNotifications === 'yes',
+                        language,
+                        theme
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('تم حفظ الإعدادات بنجاح', 'success');
+                    
+                    // تطبيق السمة إذا تم تغييرها
+                    if (theme === 'dark') {
+                        document.documentElement.setAttribute('data-theme', 'dark');
+                    } else {
+                        document.documentElement.removeAttribute('data-theme');
+                    }
+                } else {
+                    showAlert(data.error || 'خطأ في حفظ الإعدادات', 'error');
+                }
+            } catch (error) {
+                showAlert('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+        
+        // تحميل بيانات المستخدم
+        async function downloadUserData() {
+            try {
+                const response = await fetch('/api/users/profile');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const userDataStr = JSON.stringify(data.data, null, 2);
+                    const blob = new Blob([userDataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `user-data-${Date.now()}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    showAlert('تم تحميل بياناتك بنجاح', 'success');
+                }
+            } catch (error) {
+                showAlert('خطأ في تحميل البيانات', 'error');
+            }
+        }
+        
+        // تسجيل الخروج
+        async function logout() {
+            if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+                try {
+                    const response = await fetch('/api/auth/logout', {
+                        method: 'POST'
                     });
                     
-                    addressCard.classList.add('default');
-                    const header = addressCard.querySelector('.address-header');
-                    const defaultSpan = document.createElement('span');
-                    defaultSpan.className = 'address-default';
-                    defaultSpan.textContent = 'افتراضي';
-                    header.appendChild(defaultSpan);
+                    const data = await response.json();
                     
-                    this.textContent = 'افتراضي';
-                    this.classList.remove('btn-set-default');
-                    this.classList.add('btn-edit-address');
-                });
+                    if (data.success) {
+                        window.location.href = '../index.html';
+                    }
+                } catch (error) {
+                    showAlert('خطأ في تسجيل الخروج', 'error');
+                }
+            }
+        }
+        
+        // عرض التنبيهات
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.getElementById('alert');
+            alertDiv.textContent = message;
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.style.display = 'flex';
+            
+            setTimeout(() => {
+                alertDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // وظائف مساعدة
+        function formatDate(dateString) {
+            if (!dateString) return 'غير متاح';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ar-SA', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
             });
-
-            // Filter buttons
-            const filterBtns = document.querySelectorAll('.filter-btn');
-            filterBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    filterBtns.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
-        });
+        }
+        
+        function formatRelativeTime(dateString) {
+            if (!dateString) return 'قبل لحظات';
+            
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / (1000 * 60));
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            
+            if (diffMins < 1) return 'الآن';
+            if (diffMins < 60) return `قبل ${diffMins} دقيقة`;
+            if (diffHours < 24) return `قبل ${diffHours} ساعة`;
+            if (diffDays < 7) return `قبل ${diffDays} يوم`;
+            
+            return formatDate(dateString);
+        }
+        
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('ar-YE', {
+                style: 'currency',
+                currency: 'YER',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+        
+        function isValidEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+        
+        function isValidPhone(phone) {
+            const re = /^[0-9]{9,15}$/;
+            return re.test(phone);
+        }
     </script>
 </body>
 </html>
