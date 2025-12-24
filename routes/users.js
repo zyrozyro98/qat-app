@@ -1,9 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs').promises;
+const { requireAuth } = require('../middleware/auth');
+
+module.exports = (db) => {
+    const userController = require('../controllers/userController')(db);
+    
+    router.get('/profile', requireAuth, userController.getProfile);
+    router.put('/profile', requireAuth, userController.updateProfile);
+    
+    return router;
+};
 
 // Middleware
 const { validateRequest } = require('../middleware/validator');
