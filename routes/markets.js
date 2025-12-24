@@ -1,6 +1,41 @@
 const express = require('express');
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
+const logger = require('../config/logger');
+
+module.exports = (db) => {
+    router.get('/', async (req, res) => {
+        try {
+            const markets = await db.allQuery(
+                `SELECT m.*, 
+                        COUNT(DISTINCT p.id) as product_count,
+                        COUNT(DISTINCT s.id) as seller_count,
+                        COUNT(DISTINCT d.id) as driver_count
+                 FROM markets m
+                 LEFT JOIN products p ON m.id = p.market_id AND p.status = 'active'
+                 LEFT JOIN sellers s ON p.seller_id = s.user_id
+                 LEFT JOIN drivers d ON m.id = d.market_id AND d.status = 'available'
+                 WHERE m.status = 'active'
+                 GROUP BY m.id
+                 ORDER BY m.name`,
+                []
+            );
+            
+            res.json({
+                success: true,
+                data: markets,
+                meta: {
+                    count: markets.length,
+                    timestamp: new Date().toISOString()
+                }
+            });
+        } catch (error) {
+            logger.error(`❌ خطأ في جلب الأسواق: ${error.message}`);
+            res.status(500).json({ success: false, error: 'خطأ في الخادم' });
+        }
+    });
+    
+    return router;
+};
 
 // Middleware
 const { validateRequest } = require('../middleware/validator');
