@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق السائق - قات PRO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        /* الهيدر */
+        .header {
+            background: linear-gradient(135deg, #1a5f23 0%, #2e7d32 100%);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+            color: #4caf50;
+            background: white;
+            padding: 8px;
+            border-radius: 50%;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .driver-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .driver-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #4caf50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .driver-name {
+            font-weight: 600;
+        }
+
+        .driver-status {
+            background: #4caf50;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .driver-status.offline {
+            background: #757575;
+        }
+
+        .driver-status.busy {
+            background: #ff9800;
+        }
+
+        /* المحتوى الرئيسي */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr 400px;
+            }
+        }
+
+        /* قسم الخريطة */
+        .map-section {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            height: 500px;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .map-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .map-btn {
+            background: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            color: #2e7d32;
+            transition: all 0.3s ease;
+        }
+
+        .map-btn:hover {
+            background: #2e7d32;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* قسم الطلبات */
+        .orders-section {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e8f5e9;
+        }
+
+        .section-title h2 {
+            color: #2e7d32;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .order-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .filter-btn {
+            padding: 8px 15px;
+            border: 1px solid #4caf50;
+            background: white;
+            color: #4caf50;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn.active {
+            background: #4caf50;
+            color: white;
+        }
+
+        .filter-btn:hover {
+            background: #4caf50;
+            color: white;
+        }
+
+        .orders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        /* شريط التمرير */
+        .orders-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .orders-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .orders-list::-webkit-scrollbar-thumb {
+            background: #4caf50;
+            border-radius: 10px;
+        }
+
+        .order-card {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 15px;
+            border-left: 4px solid #4caf50;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .order-card:hover {
+            background: #e8f5e9;
+            transform: translateX(-5px);
+        }
+
+        .order-card.new {
+            border-left-color: #ff9800;
+            animation: pulse 2s infinite;
+        }
+
+        .order-card.urgent {
+            border-left-color: #f44336;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .order-code {
+            font-weight: 700;
+            color: #2e7d32;
+            font-size: 1.1rem;
+        }
+
+        .order-time {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .order-customer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .customer-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #4caf50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .customer-info h4 {
+            font-size: 1rem;
+            margin-bottom: 3px;
+        }
+
+        .customer-info p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .order-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-item i {
+            color: #4caf50;
+        }
+
+        .detail-item span {
+            font-size: 0.9rem;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .action-btn.accept {
+            background: #4caf50;
+            color: white;
+        }
+
+        .action-btn.reject {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .action-btn.deliver {
+            background: #2196f3;
+            color: white;
+        }
+
+        .action-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        /* قسم الإحصائيات */
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border-top: 3px solid #4caf50;
+        }
+
+        .stat-card i {
+            font-size: 1.5rem;
+            color: #4caf50;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2e7d32;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* القسم الجانبي */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .status-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .status-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .status-option {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .status-option:hover {
+            border-color: #4caf50;
+        }
+
+        .status-option.active {
+            border-color: #4caf50;
+            background: #e8f5e9;
+        }
+
+        .status-option i {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .status-option.available i { color: #4caf50; }
+        .status-option.busy i { color: #ff9800; }
+        .status-option.offline i { color: #757575; }
+
+        /* الإشعارات */
+        .notifications-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .notifications-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-right: 3px solid #4caf50;
+            transition: all 0.3s ease;
+        }
+
+        .notification-item.unread {
+            background: #e8f5e9;
+            border-right-color: #ff9800;
+        }
+
+        .notification-item:hover {
+            background: #e8f5e9;
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: #2e7d32;
+        }
+
+        .notification-time {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .notification-message {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        /* نموذج تحديث التسليم */
+        .delivery-form {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            display: none;
+        }
+
+        .delivery-form.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* التذييل */
+        .footer {
+            background: #2e7d32;
+            color: white;
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 10px;
+        }
+
+        .footer-section ul li a {
+            color: #c8e6c9;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section ul li a:hover {
+            color: white;
+        }
+
+        /* الرسوم المتحركة */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* التجاوب */
+        @media (max-width: 768px) {
+            .header-top {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .driver-info {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .main-content {
+                padding: 15px;
+            }
+
+            .stats-section {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .order-details {
+                grid-template-columns: 1fr;
+            }
+
+            .status-options {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .order-actions {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                width: 100%;
+            }
+
+            .filter-btn {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+
+            .map-section {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- الهيدر -->
+    <div class="header">
+        <div class="header-top">
+            <div class="logo">
+                <i class="fas fa-truck"></i>
+                <h1>تطبيق السائق - قات PRO</h1>
+            </div>
+            <div class="driver-info">
+                <div class="driver-avatar">م</div>
+                <div class="driver-name">محمد أحمد</div>
+                <div class="driver-status available" id="driverStatus">
+                    <i class="fas fa-circle"></i>
+                    <span>متاح</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="main-content">
+        <!-- القسم الرئيسي -->
+        <div class="main-section">
+            <!-- الخريطة -->
+            <div class="map-section">
+                <div id="map"></div>
+                <div class="map-controls">
+                    <button class="map-btn" onclick="locateMe()" title="موقعي الحالي">
+                        <i class="fas fa-location-arrow"></i>
+                    </button>
+                    <button class="map-btn" onclick="zoomIn()" title="تكبير">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="map-btn" onclick="zoomOut()" title="تصغير">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- الإحصائيات -->
+            <div class="stats-section">
+                <div class="stat-card">
+                    <i class="fas fa-shipping-fast"></i>
+                    <span class="stat-value" id="totalDeliveries">0</span>
+                    <span class="stat-label">إجمالي التوصيلات</span>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-check-circle"></i>
+                    <span class="stat-value" id="todayDeliveries">0</span>
+                    <span class="stat-label">توصيلات اليوم</span>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-star"></i>
+                    <span class="stat-value" id="driverRating">0.0</span>
+                    <span class="stat-label">التقييم</span>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span class="stat-value" id="todayEarnings">0</span>
+                    <span class="stat-label">أرباح اليوم</span>
+                </div>
+            </div>
+
+            <!-- الطلبات -->
+            <div class="orders-section">
+                <div class="section-title">
+                    <h2><i class="fas fa-clipboard-list"></i> الطلبات المتاحة</h2>
+                    <button class="btn" onclick="refreshOrders()">
+                        <i class="fas fa-sync-alt"></i> تحديث
+                    </button>
+                </div>
+
+                <div class="order-filters">
+                    <button class="filter-btn active" onclick="filterOrders('all')">الكل</button>
+                    <button class="filter-btn" onclick="filterOrders('new')">جديدة</button>
+                    <button class="filter-btn" onclick="filterOrders('assigned')">مخصصة لي</button>
+                    <button class="filter-btn" onclick="filterOrders('completed')">مكتملة</button>
+                </div>
+
+                <div class="orders-list" id="ordersList">
+                    <!-- سيتم ملئ الطلبات ديناميكياً -->
+                </div>
+            </div>
+        </div>
+
+        <!-- الشريط الجانبي -->
+        <div class="sidebar">
+            <!-- حالة السائق -->
+            <div class="status-card">
+                <h3><i class="fas fa-user-cog"></i> حالة السائق</h3>
+                <div class="status-options">
+                    <div class="status-option available active" onclick="changeStatus('available')">
+                        <i class="fas fa-check-circle"></i>
+                        <span>متاح</span>
+                    </div>
+                    <div class="status-option busy" onclick="changeStatus('busy')">
+                        <i class="fas fa-clock"></i>
+                        <span>مشغول</span>
+                    </div>
+                    <div class="status-option offline" onclick="changeStatus('offline')">
+                        <i class="fas fa-power-off"></i>
+                        <span>غير متصل</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- نموذج تحديث التسليم -->
+            <div class="delivery-form" id="deliveryForm">
+                <h3><i class="fas fa-truck-loading"></i> تحديث حالة التسليم</h3>
+                <form id="updateDeliveryForm">
+                    <div class="form-group">
+                        <label for="orderId">رقم الطلب:</label>
+                        <input type="text" id="orderId" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="deliveryStatus">حالة التسليم:</label>
+                        <select id="deliveryStatus">
+                            <option value="shipping">قيد التوصيل</option>
+                            <option value="delivered">تم التسليم</option>
+                            <option value="delayed">متأخر</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="deliveryNotes">ملاحظات:</label>
+                        <textarea id="deliveryNotes" placeholder="أضف ملاحظات حول التسليم..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="action-btn deliver">
+                            <i class="fas fa-check"></i> تحديث
+                        </button>
+                        <button type="button" class="action-btn reject" onclick="closeDeliveryForm()">
+                            <i class="fas fa-times"></i> إلغاء
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- الإشعارات -->
+            <div class="notifications-card">
+                <div class="section-title">
+                    <h2><i class="fas fa-bell"></i> الإشعارات</h2>
+                    <button class="btn" onclick="markAllAsRead()">
+                        <i class="fas fa-check-double"></i> قراءة الكل
+                    </button>
+                </div>
+                <div class="notifications-list" id="notificationsList">
+                    <!-- سيتم ملئ الإشعارات ديناميكياً -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- التذييل -->
+    <div class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>دعم السائق</h3>
+                <ul>
+                    <li><a href="#"><i class="fas fa-phone"></i> الدعم الفني: 777777777</a></li>
+                    <li><a href="#"><i class="fas fa-question-circle"></i> الأسئلة الشائعة</a></li>
+                    <li><a href="#"><i class="fas fa-book"></i> دليل الاستخدام</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>روابط سريعة</h3>
+                <ul>
+                    <li><a href="/driver-app.html"><i class="fas fa-home"></i> الصفحة الرئيسية</a></li>
+                    <li><a href="#" onclick="showEarningsReport()"><i class="fas fa-chart-line"></i> تقرير الأرباح</a></li>
+                    <li><a href="#" onclick="showProfile()"><i class="fas fa-user"></i> الملف الشخصي</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>معلومات النظام</h3>
+                <ul>
+                    <li>الإصدار: 2.0.0-PRO</li>
+                    <li>الحالة: <span id="systemStatus">متصل</span></li>
+                    <li>آخر تحديث: <span id="lastUpdate">جاري التحميل...</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- مكتبة Leaflet للخريطة -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // المتغيرات العامة
+        let map;
+        let currentLocation = [15.3694, 44.1910]; // صنعاء
+        let currentMarker;
+        let orders = [];
+        let notifications = [];
+        let driverData = {};
+        let currentOrder = null;
+
+        // تهيئة الخريطة
+        function initMap() {
+            map = L.map('map').setView(currentLocation, 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+            
+            // إضافة علامة للموقع الحالي
+            currentMarker = L.marker(currentLocation, {
+                icon: L.icon({
+                    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41]
+                })
+            }).addTo(map);
+            
+            currentMarker.bindPopup('<b>موقعي الحالي</b><br>أنا هنا!').openPopup();
+        }
+
+        // الحصول على الموقع الحالي
+        function locateMe() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        currentLocation = [lat, lng];
+                        
+                        map.setView(currentLocation, 15);
+                        currentMarker.setLatLng(currentLocation);
+                        currentMarker.bindPopup('<b>موقعي الحالي</b><br>تم التحديث!').openPopup();
+                        
+                        // تحديث موقع السائق في الخادم
+                        updateDriverLocation(lat, lng);
+                    },
+                    (error) => {
+                        console.error('خطأ في الحصول على الموقع:', error);
+                        alert('تعذر الحصول على موقعك الحالي. تأكد من تفعيل خدمة تحديد الموقع.');
+                    }
+                );
+            } else {
+                alert('متصفحك لا يدعم خدمة تحديد الموقع.');
+            }
+        }
+
+        // تحديث موقع السائق في الخادم
+        function updateDriverLocation(lat, lng) {
+            // هنا سيتم إرسال الموقع إلى الخادم
+            console.log('تحديث الموقع:', lat, lng);
+            // simulate API call
+        }
+
+        // تكبير الخريطة
+        function zoomIn() {
+            map.zoomIn();
+        }
+
+        // تصغير الخريطة
+        function zoomOut() {
+            map.zoomOut();
+        }
+
+        // تغيير حالة السائق
+        function changeStatus(status) {
+            const statusElement = document.getElementById('driverStatus');
+            const options = document.querySelectorAll('.status-option');
+            
+            // تحديث الواجهة
+            options.forEach(option => option.classList.remove('active'));
+            document.querySelector(`.status-option.${status}`).classList.add('active');
+            
+            // تحديث شريط الحالة
+            statusElement.className = `driver-status ${status}`;
+            statusElement.innerHTML = `
+                <i class="fas fa-circle"></i>
+                <span>${status === 'available' ? 'متاح' : status === 'busy' ? 'مشغول' : 'غير متصل'}</span>
+            `;
+            
+            // إرسال التحديث للخادم
+            updateDriverStatus(status);
+        }
+
+        // تحديث حالة السائق في الخادم
+        function updateDriverStatus(status) {
+            // هنا سيتم إرسال حالة السائق إلى الخادم
+            console.log('تحديث حالة السائق:', status);
+            // simulate API call
+        }
+
+        // جلب بيانات السائق
+        async function loadDriverData() {
+            try {
+                // simulate API response
+                const mockData = {
+                    name: "محمد أحمد",
+                    totalDeliveries: 154,
+                    todayDeliveries: 8,
+                    rating: 4.7,
+                    todayEarnings: 85000,
+                    status: "available"
+                };
+                
+                driverData = mockData;
+                
+                // تحديث الواجهة
+                document.getElementById('totalDeliveries').textContent = mockData.totalDeliveries;
+                document.getElementById('todayDeliveries').textContent = mockData.todayDeliveries;
+                document.getElementById('driverRating').textContent = mockData.rating;
+                document.getElementById('todayEarnings').textContent = mockData.todayEarnings.toLocaleString();
+                document.querySelector('.driver-name').textContent = mockData.name;
+                
+            } catch (error) {
+                console.error('خطأ في جلب بيانات السائق:', error);
+            }
+        }
+
+        // جلب الطلبات
+        async function loadOrders() {
+            try {
+                // simulate API response
+                const mockOrders = [
+                    {
+                        id: 1,
+                        code: "QAT23071501",
+                        customer: {
+                            name: "أحمد علي",
+                            phone: "777123456",
+                            location: "الروضة، صنعاء"
+                        },
+                        time: "10:30 ص",
+                        total: 25000,
+                        items: 3,
+                        status: "new",
+                        urgent: false
+                    },
+                    {
+                        id: 2,
+                        code: "QAT23071502",
+                        customer: {
+                            name: "سارة محمد",
+                            phone: "777654321",
+                            location: "التعاون، صنعاء"
+                        },
+                        time: "11:15 ص",
+                        total: 18000,
+                        items: 2,
+                        status: "assigned",
+                        urgent: true
+                    },
+                    {
+                        id: 3,
+                        code: "QAT23071503",
+                        customer: {
+                            name: "خالد حسن",
+                            phone: "777987654",
+                            location: "السبعين، صنعاء"
+                        },
+                        time: "12:00 م",
+                        total: 32000,
+                        items: 5,
+                        status: "new",
+                        urgent: false
+                    }
+                ];
+                
+                orders = mockOrders;
+                displayOrders(mockOrders);
+                
+            } catch (error) {
+                console.error('خطأ في جلب الطلبات:', error);
+            }
+        }
+
+        // عرض الطلبات
+        function displayOrders(ordersToDisplay) {
+            const ordersList = document.getElementById('ordersList');
+            ordersList.innerHTML = '';
+            
+            ordersToDisplay.forEach(order => {
+                const orderCard = document.createElement('div');
+                orderCard.className = `order-card ${order.status} ${order.urgent ? 'urgent' : ''}`;
+                
+                orderCard.innerHTML = `
+                    <div class="order-header">
+                        <div class="order-code">${order.code}</div>
+                        <div class="order-time">${order.time}</div>
+                    </div>
+                    <div class="order-customer">
+                        <div class="customer-avatar">${order.customer.name.charAt(0)}</div>
+                        <div class="customer-info">
+                            <h4>${order.customer.name}</h4>
+                            <p>${order.customer.phone}</p>
+                        </div>
+                    </div>
+                    <div class="order-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${order.customer.location}</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>${order.total.toLocaleString()} ريال</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-box"></i>
+                            <span>${order.items} منتج</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span>${order.status === 'new' ? 'جديد' : 'مخصص'}</span>
+                        </div>
+                    </div>
+                    <div class="order-actions">
+                        ${order.status === 'new' ? `
+                            <button class="action-btn accept" onclick="acceptOrder(${order.id})">
+                                <i class="fas fa-check"></i> قبول الطلب
+                            </button>
+                            <button class="action-btn reject" onclick="rejectOrder(${order.id})">
+                                <i class="fas fa-times"></i> رفض
+                            </button>
+                        ` : `
+                            <button class="action-btn deliver" onclick="updateOrderDelivery(${order.id})">
+                                <i class="fas fa-truck"></i> تحديث التسليم
+                            </button>
+                        `}
+                    </div>
+                `;
+                
+                ordersList.appendChild(orderCard);
+            });
+        }
+
+        // تصفية الطلبات
+        function filterOrders(filter) {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            filterBtns.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            let filteredOrders = [];
+            
+            switch(filter) {
+                case 'all':
+                    filteredOrders = orders;
+                    break;
+                case 'new':
+                    filteredOrders = orders.filter(order => order.status === 'new');
+                    break;
+                case 'assigned':
+                    filteredOrders = orders.filter(order => order.status === 'assigned');
+                    break;
+                case 'completed':
+                    filteredOrders = orders.filter(order => order.status === 'completed');
+                    break;
+            }
+            
+            displayOrders(filteredOrders);
+        }
+
+        // قبول طلب
+        function acceptOrder(orderId) {
+            if (confirm('هل تريد قبول هذا الطلب؟')) {
+                const order = orders.find(o => o.id === orderId);
+                if (order) {
+                    order.status = 'assigned';
+                    displayOrders(orders);
+                    
+                    // إضافة إشعار
+                    addNotification('طلب مقبول', `لقد قبلت الطلب ${order.code}`);
+                    
+                    // تحديث في الخادم
+                    updateOrderStatus(orderId, 'accepted');
+                }
+            }
+        }
+
+        // رفض طلب
+        function rejectOrder(orderId) {
+            if (confirm('هل تريد رفض هذا الطلب؟')) {
+                const order = orders.find(o => o.id === orderId);
+                if (order) {
+                    orders = orders.filter(o => o.id !== orderId);
+                    displayOrders(orders);
+                    
+                    // إضافة إشعار
+                    addNotification('طلب مرفوض', `لقد رفضت الطلب ${order.code}`);
+                    
+                    // تحديث في الخادم
+                    updateOrderStatus(orderId, 'rejected');
+                }
+            }
+        }
+
+        // تحديث حالة التسليم
+        function updateOrderDelivery(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                currentOrder = order;
+                
+                document.getElementById('orderId').value = order.code;
+                document.getElementById('deliveryForm').classList.add('active');
+                
+                // إضافة علامة على الخريطة
+                addOrderMarker(order);
+            }
+        }
+
+        // إضافة علامة طلب على الخريطة
+        function addOrderMarker(order) {
+            // هنا سيتم إضافة علامة لموقع العميل
+            // للتبسيط، سنستخدم موقع عشوائي
+            const customerLocation = [
+                currentLocation[0] + (Math.random() - 0.5) * 0.1,
+                currentLocation[1] + (Math.random() - 0.5) * 0.1
+            ];
+            
+            L.marker(customerLocation, {
+                icon: L.icon({
+                    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    className: 'customer-marker'
+                })
+            })
+            .addTo(map)
+            .bindPopup(`<b>موقع العميل:</b><br>${order.customer.name}<br>${order.customer.location}`)
+            .openPopup();
+            
+            // رسم خط بين السائق والعميل
+            L.polyline([currentLocation, customerLocation], {
+                color: '#4caf50',
+                weight: 3,
+                opacity: 0.7,
+                dashArray: '10, 10'
+            }).addTo(map);
+            
+            map.fitBounds([currentLocation, customerLocation]);
+        }
+
+        // إغلاق نموذج التسليم
+        function closeDeliveryForm() {
+            document.getElementById('deliveryForm').classList.remove('active');
+            document.getElementById('updateDeliveryForm').reset();
+            currentOrder = null;
+        }
+
+        // تحديث حالة الطلب في الخادم
+        function updateOrderStatus(orderId, status) {
+            // هنا سيتم إرسال تحديث حالة الطلب إلى الخادم
+            console.log('تحديث حالة الطلب:', orderId, status);
+            // simulate API call
+        }
+
+        // جلب الإشعارات
+        async function loadNotifications() {
+            try {
+                // simulate API response
+                const mockNotifications = [
+                    {
+                        id: 1,
+                        title: 'طلب جديد',
+                        message: 'طلب جديد متاح للتوصيل: QAT23071504',
+                        time: 'قبل 5 دقائق',
+                        unread: true
+                    },
+                    {
+                        id: 2,
+                        title: 'تقييم جديد',
+                        message: 'حصلت على تقييم 5 نجوم من العميل أحمد',
+                        time: 'قبل ساعتين',
+                        unread: true
+                    },
+                    {
+                        id: 3,
+                        title: 'تحديث النظام',
+                        message: 'تم تحديث النظام إلى النسخة 2.0.1',
+                        time: 'أمس',
+                        unread: false
+                    },
+                    {
+                        id: 4,
+                        title: 'دفع مستحق',
+                        message: 'تم إضافة 25,000 ريال إلى رصيدك',
+                        time: 'قبل 3 أيام',
+                        unread: false
+                    }
+                ];
+                
+                notifications = mockNotifications;
+                displayNotifications(mockNotifications);
+                
+            } catch (error) {
+                console.error('خطأ في جلب الإشعارات:', error);
+            }
+        }
+
+        // عرض الإشعارات
+        function displayNotifications(notificationsList) {
+            const notificationsListElement = document.getElementById('notificationsList');
+            notificationsListElement.innerHTML = '';
+            
+            notificationsList.forEach(notification => {
+                const notificationItem = document.createElement('div');
+                notificationItem.className = `notification-item ${notification.unread ? 'unread' : ''}`;
+                
+                notificationItem.innerHTML = `
+                    <div class="notification-header">
+                        <div class="notification-title">${notification.title}</div>
+                        <div class="notification-time">${notification.time}</div>
+                    </div>
+                    <div class="notification-message">${notification.message}</div>
+                `;
+                
+                notificationItem.onclick = () => markAsRead(notification.id);
+                notificationsListElement.appendChild(notificationItem);
+            });
+        }
+
+        // إضافة إشعار جديد
+        function addNotification(title, message) {
+            const newNotification = {
+                id: notifications.length + 1,
+                title,
+                message,
+                time: 'الآن',
+                unread: true
+            };
+            
+            notifications.unshift(newNotification);
+            displayNotifications(notifications);
+        }
+
+        // تحديد إشعار كمقروء
+        function markAsRead(notificationId) {
+            const notification = notifications.find(n => n.id === notificationId);
+            if (notification && notification.unread) {
+                notification.unread = false;
+                displayNotifications(notifications);
+            }
+        }
+
+        // تحديد جميع الإشعارات كمقروءة
+        function markAllAsRead() {
+            notifications.forEach(notification => {
+                notification.unread = false;
+            });
+            displayNotifications(notifications);
+        }
+
+        // تحديث الطلبات
+        function refreshOrders() {
+            loadOrders();
+            addNotification('تحديث', 'تم تحديث قائمة الطلبات بنجاح');
+        }
+
+        // عرض تقرير الأرباح
+        function showEarningsReport() {
+            alert('تقرير الأرباح قيد التطوير...');
+        }
+
+        // عرض الملف الشخصي
+        function showProfile() {
+            alert('الملف الشخصي قيد التطوير...');
+        }
+
+        // تحديث معلومات النظام
+        function updateSystemInfo() {
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = 
+                `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        }
+
+        // تهيئة الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            // تهيئة الخريطة
+            initMap();
+            
+            // تحميل البيانات
+            loadDriverData();
+            loadOrders();
+            loadNotifications();
+            
+            // تحديث المعلومات
+            updateSystemInfo();
+            
+            // تحديث دوري للطلبات
+            setInterval(loadOrders, 30000); // كل 30 ثانية
+            
+            // تحديث دوري للموقع
+            setInterval(locateMe, 60000); // كل دقيقة
+            
+            // معالجة نموذج التسليم
+            document.getElementById('updateDeliveryForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const status = document.getElementById('deliveryStatus').value;
+                const notes = document.getElementById('deliveryNotes').value;
+                
+                if (currentOrder) {
+                    // تحديث حالة الطلب
+                    if (status === 'delivered') {
+                        currentOrder.status = 'completed';
+                        addNotification('تم التسليم', `تم تسليم الطلب ${currentOrder.code} بنجاح`);
+                    }
+                    
+                    // إغلاق النموذج
+                    closeDeliveryForm();
+                    
+                    // إعادة تحميل الطلبات
+                    loadOrders();
+                }
+            });
+            
+            // محاكاة طلبات جديدة
+            setInterval(() => {
+                if (Math.random() > 0.7) { // 30% فرصة لطلب جديد
+                    const newOrder = {
+                        id: orders.length + 1,
+                        code: `QAT${new Date().getTime().toString().slice(-6)}`,
+                        customer: {
+                            name: ['علي', 'فاطمة', 'يوسف', 'مريم'][Math.floor(Math.random() * 4)],
+                            phone: `777${Math.floor(Math.random() * 900000 + 100000)}`,
+                            location: ['شارع الزبيري', 'حي التعاون', 'السبعين', 'الروضة'][Math.floor(Math.random() * 4)]
+                        },
+                        time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+                        total: Math.floor(Math.random() * 20000 + 10000),
+                        items: Math.floor(Math.random() * 5 + 1),
+                        status: 'new',
+                        urgent: Math.random() > 0.7
+                    };
+                    
+                    orders.unshift(newOrder);
+                    displayOrders(orders);
+                    
+                    // إضافة إشعار
+                    addNotification('طلب جديد', `طلب جديد متاح: ${newOrder.code}`);
+                }
+            }, 60000); // كل دقيقة
+        });
+    </script>
+</body>
+</html>
