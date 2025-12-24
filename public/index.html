@@ -3,1737 +3,795 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>قات PRO - نظام البيع والتوصيل</title>
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- CSS الرئيسي -->
+    <title>تطبيق قات PRO - الصفحة الرئيسية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #2E7D32;
+            --primary: #2E7D32;
             --primary-dark: #1B5E20;
-            --primary-light: #4CAF50;
-            --secondary-color: #FF9800;
-            --accent-color: #FF5722;
-            --text-dark: #333333;
-            --text-light: #666666;
-            --background-light: #f8f9fa;
-            --background-white: #ffffff;
-            --border-color: #e0e0e0;
-            --shadow-light: 0 2px 12px rgba(0, 0, 0, 0.08);
-            --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.12);
-            --shadow-heavy: 0 8px 30px rgba(0, 0, 0, 0.15);
-            --radius-small: 8px;
-            --radius-medium: 12px;
-            --radius-large: 20px;
-            --transition: all 0.3s ease;
+            --secondary: #FF9800;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --radius: 8px;
         }
-
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
+        
         body {
-            font-family: 'Cairo', sans-serif;
-            color: var(--text-dark);
-            background-color: var(--background-light);
-            line-height: 1.6;
-            overflow-x: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: var(--dark);
         }
-
+        
         .container {
-            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* التنقل */
+        .navbar {
+            background: white;
+            box-shadow: var(--shadow);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
         }
-
-        .section {
-            padding: 80px 0;
-        }
-
-        .section-title {
-            text-align: center;
-            margin-bottom: 50px;
-            position: relative;
-        }
-
-        .section-title h2 {
-            font-size: 2.5rem;
-            color: var(--primary-dark);
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-
-        .section-title p {
-            font-size: 1.1rem;
-            color: var(--text-light);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 4px;
-            background: var(--secondary-color);
-            border-radius: 2px;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px 30px;
-            border-radius: var(--radius-medium);
-            font-weight: 600;
-            font-size: 1rem;
-            text-decoration: none;
-            border: none;
-            cursor: pointer;
-            transition: var(--transition);
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-medium);
-        }
-
-        .btn-secondary {
-            background: var(--secondary-color);
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #e68900;
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-medium);
-        }
-
-        .btn-outline {
-            background: transparent;
-            color: var(--primary-color);
-            border: 2px solid var(--primary-color);
-        }
-
-        .btn-outline:hover {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        .card {
-            background: var(--background-white);
-            border-radius: var(--radius-medium);
-            box-shadow: var(--shadow-light);
-            overflow: hidden;
-            transition: var(--transition);
-            height: 100%;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-medium);
-        }
-
-        /* ===== الهيدر ===== */
-        .main-header {
-            background: var(--background-white);
-            box-shadow: var(--shadow-light);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            padding: 15px 0;
-        }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
+        
         .logo {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             text-decoration: none;
-            color: var(--primary-dark);
         }
-
-        .logo-icon {
-            font-size: 2.5rem;
-            color: var(--primary-color);
-        }
-
-        .logo-text {
-            font-size: 1.8rem;
-            font-weight: 800;
-        }
-
-        .logo-sub {
-            font-size: 0.9rem;
-            color: var(--secondary-color);
-            margin-top: -5px;
-        }
-
-        .search-container {
-            flex: 1;
-            max-width: 500px;
-            margin: 0 30px;
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 14px 50px 14px 20px;
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-medium);
-            font-size: 1rem;
-            font-family: 'Cairo', sans-serif;
-            transition: var(--transition);
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
-        }
-
-        .search-btn {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
+        
+        .logo img {
             height: 40px;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .search-btn:hover {
-            background: var(--primary-dark);
-        }
-
-        .user-actions {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .action-item {
-            position: relative;
-            cursor: pointer;
-            color: var(--text-dark);
-            transition: var(--transition);
-        }
-
-        .action-item:hover {
-            color: var(--primary-color);
-        }
-
-        .action-icon {
-            font-size: 1.5rem;
-        }
-
-        .badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: var(--accent-color);
-            color: white;
-            font-size: 0.75rem;
-            min-width: 20px;
-            height: 20px;
+            width: 40px;
             border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .nav-links {
             display: flex;
+            gap: 30px;
             align-items: center;
-            justify-content: center;
         }
-
-        .user-menu {
-            position: relative;
-        }
-
-        .user-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            border: 3px solid white;
-            box-shadow: var(--shadow-light);
-        }
-
-        .user-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background: white;
-            box-shadow: var(--shadow-heavy);
-            border-radius: var(--radius-medium);
-            min-width: 250px;
-            display: none;
-            z-index: 1000;
-        }
-
-        .user-menu:hover .user-dropdown {
-            display: block;
-        }
-
-        .dropdown-item {
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: var(--text-dark);
+        
+        .nav-link {
             text-decoration: none;
-            transition: var(--transition);
-            border-bottom: 1px solid var(--border-color);
+            color: var(--dark);
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            transition: all 0.3s ease;
         }
-
-        .dropdown-item:hover {
-            background: var(--background-light);
-            color: var(--primary-color);
+        
+        .nav-link:hover {
+            background: var(--light-gray);
+            color: var(--primary);
         }
-
-        .dropdown-item:last-child {
-            border-bottom: none;
+        
+        .nav-link.active {
+            background: var(--primary);
+            color: white;
         }
-
+        
         .auth-buttons {
             display: flex;
-            gap: 15px;
+            gap: 10px;
         }
-
-        /* ===== الهيرو ===== */
-        .hero {
-            background: linear-gradient(135deg, rgba(46, 125, 50, 0.1), rgba(255, 152, 0, 0.1));
-            padding: 100px 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 50px;
-        }
-
-        .hero-text {
-            flex: 1;
-        }
-
-        .hero-text h1 {
-            font-size: 3.5rem;
-            color: var(--primary-dark);
-            margin-bottom: 20px;
-            line-height: 1.2;
-            font-weight: 800;
-        }
-
-        .hero-text h1 span {
-            color: var(--secondary-color);
-        }
-
-        .hero-text p {
-            font-size: 1.2rem;
-            color: var(--text-light);
-            margin-bottom: 30px;
-            max-width: 500px;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .hero-image {
-            flex: 1;
-            position: relative;
-        }
-
-        .hero-image img {
-            width: 100%;
-            max-width: 500px;
-            border-radius: var(--radius-large);
-            box-shadow: var(--shadow-heavy);
-            transform: perspective(1000px) rotateY(-10deg);
-            transition: var(--transition);
-        }
-
-        .hero-image:hover img {
-            transform: perspective(1000px) rotateY(0deg);
-        }
-
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 50px;
-            padding: 30px;
-            background: white;
-            border-radius: var(--radius-medium);
-            box-shadow: var(--shadow-light);
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 1rem;
-            color: var(--text-light);
-        }
-
-        /* ===== الأسواق ===== */
-        .markets-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
-        }
-
-        .market-card .card-image {
-            height: 200px;
-            overflow: hidden;
-        }
-
-        .market-card .card-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-
-        .market-card:hover .card-image img {
-            transform: scale(1.1);
-        }
-
-        .market-card .card-content {
-            padding: 25px;
-        }
-
-        .market-card .card-title {
-            font-size: 1.3rem;
-            margin-bottom: 10px;
-            color: var(--primary-dark);
-        }
-
-        .market-card .card-location {
-            color: var(--text-light);
-            margin-bottom: 15px;
-            display: flex;
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
         }
-
-        .market-card .card-stats {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
         }
-
-        .market-card .stat {
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* البطل */
+        .hero {
+            padding: 80px 0;
             text-align: center;
+            background: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), 
+                        url('https://images.unsplash.com/photo-1586201375761-83865001e31c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            border-radius: var(--radius);
+            margin: 30px 0;
         }
-
-        .market-card .stat-value {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-
-        .market-card .stat-label {
-            font-size: 0.85rem;
-            color: var(--text-light);
-        }
-
-        /* ===== المنتجات ===== */
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
-        }
-
-        .product-card .card-image {
-            height: 220px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .product-card .card-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-
-        .product-card:hover .card-image img {
-            transform: scale(1.1);
-        }
-
-        .product-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: var(--secondary-color);
-            color: white;
-            padding: 5px 10px;
-            border-radius: var(--radius-small);
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .product-card .card-content {
-            padding: 20px;
-        }
-
-        .product-card .card-title {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-            color: var(--primary-dark);
-        }
-
-        .product-card .card-description {
-            color: var(--text-light);
-            margin-bottom: 15px;
-            font-size: 0.95rem;
-        }
-
-        .product-card .card-price {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 15px;
-        }
-
-        .product-card .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 15px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .seller-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .seller-avatar {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            background: var(--primary-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-        }
-
-        .seller-name {
-            font-size: 0.9rem;
-            color: var(--text-light);
-        }
-
-        /* ===== الخدمات ===== */
-        .services {
-            background: linear-gradient(135deg, rgba(46, 125, 50, 0.05), rgba(255, 152, 0, 0.05));
-        }
-
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
-        }
-
-        .service-card {
-            text-align: center;
-            padding: 40px 30px;
-        }
-
-        .service-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 25px;
-            color: white;
-            font-size: 2rem;
-            transition: var(--transition);
-        }
-
-        .service-card:hover .service-icon {
-            transform: scale(1.1) rotate(5deg);
-        }
-
-        .service-card h3 {
-            font-size: 1.4rem;
-            margin-bottom: 15px;
-            color: var(--primary-dark);
-        }
-
-        .service-card p {
-            color: var(--text-light);
-            line-height: 1.7;
-        }
-
-        /* ===== الدعوة للتسجيل ===== */
-        .cta {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-            color: white;
-            text-align: center;
-            padding: 100px 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cta::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" preserveAspectRatio="none"><path d="M0,0V100H1000V0Z" fill="rgba(255,255,255,0.1)"/></svg>');
-            background-size: 100% 100px;
-        }
-
-        .cta h2 {
-            font-size: 2.8rem;
+        
+        .hero h1 {
+            font-size: 3rem;
+            color: var(--primary);
             margin-bottom: 20px;
-            font-weight: 700;
+            line-height: 1.2;
         }
-
-        .cta p {
+        
+        .hero p {
             font-size: 1.2rem;
-            margin-bottom: 40px;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-            opacity: 0.9;
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto 30px;
+            line-height: 1.6;
         }
-
-        .cta-buttons {
+        
+        .hero-buttons {
             display: flex;
-            justify-content: center;
             gap: 20px;
+            justify-content: center;
             flex-wrap: wrap;
         }
-
-        .cta .btn-outline {
-            border-color: white;
-            color: white;
+        
+        /* الميزات */
+        .features {
+            padding: 60px 0;
         }
-
-        .cta .btn-outline:hover {
-            background: white;
-            color: var(--primary-color);
-        }
-
-        /* ===== الفوتر ===== */
-        .footer {
-            background: var(--primary-dark);
-            color: white;
-            padding: 80px 0 30px;
-        }
-
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 50px;
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            color: var(--primary);
             margin-bottom: 50px;
-        }
-
-        .footer-section h3 {
-            font-size: 1.5rem;
-            margin-bottom: 25px;
             position: relative;
-            padding-bottom: 15px;
         }
-
-        .footer-section h3::after {
+        
+        .section-title::after {
             content: '';
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 50px;
-            height: 3px;
-            background: var(--secondary-color);
+            display: block;
+            width: 100px;
+            height: 4px;
+            background: var(--secondary);
+            margin: 10px auto;
+            border-radius: 2px;
         }
-
-        .footer-section p {
-            opacity: 0.8;
-            line-height: 1.8;
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            color: var(--primary);
             margin-bottom: 20px;
         }
-
-        .footer-links {
-            list-style: none;
+        
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--dark);
         }
-
-        .footer-links li {
-            margin-bottom: 12px;
+        
+        .feature-card p {
+            color: var(--gray);
+            line-height: 1.6;
         }
-
-        .footer-links a {
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            transition: var(--transition);
+        
+        /* الأسواق */
+        .markets-section {
+            padding: 60px 0;
+            background: var(--light);
+            border-radius: var(--radius);
+        }
+        
+        .markets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .market-card {
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+        
+        .market-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .market-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .market-info {
+            padding: 20px;
+        }
+        
+        .market-info h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        
+        .market-info p {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        
+        .market-stats {
             display: flex;
-            align-items: center;
-            gap: 10px;
+            justify-content: space-between;
+            color: var(--gray);
+            font-size: 0.9rem;
         }
-
-        .footer-links a:hover {
+        
+        /* كيفية العمل */
+        .how-it-works {
+            padding: 60px 0;
+        }
+        
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .step {
+            flex: 1;
+            min-width: 250px;
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+        
+        .step-number {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--secondary);
             color: white;
-            transform: translateX(5px);
-        }
-
-        .footer-social {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .footer-social a {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            text-decoration: none;
-            transition: var(--transition);
-        }
-
-        .footer-social a:hover {
-            background: var(--secondary-color);
-            transform: translateY(-3px);
-        }
-
-        .contact-info li {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-            opacity: 0.8;
-        }
-
-        .contact-info i {
-            color: var(--secondary-color);
+            font-weight: bold;
             font-size: 1.2rem;
         }
-
-        .footer-bottom {
+        
+        .step-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        /* التذييل */
+        .footer {
+            background: var(--dark);
+            color: white;
+            padding: 60px 0 30px;
+            margin-top: 60px;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .footer-section h3 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: var(--secondary);
+        }
+        
+        .footer-links {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+        
+        .footer-links a {
+            color: var(--light-gray);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: var(--secondary);
+        }
+        
+        .contact-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .social-links a {
+            color: white;
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            color: var(--secondary);
+        }
+        
+        .copyright {
             text-align: center;
             padding-top: 30px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            opacity: 0.7;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: var(--light-gray);
+            font-size: 0.9rem;
         }
-
-        /* ===== Responsive Design ===== */
-        @media (max-width: 992px) {
-            .hero-content {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .hero-text h1 {
-                font-size: 2.8rem;
-            }
-
-            .hero-buttons {
-                justify-content: center;
-            }
-
-            .search-container {
-                display: none;
-            }
-        }
-
+        
+        /* التجاوب */
         @media (max-width: 768px) {
-            .section {
-                padding: 60px 0;
-            }
-
-            .section-title h2 {
-                font-size: 2rem;
-            }
-
-            .hero {
-                padding: 80px 0;
-            }
-
-            .hero-text h1 {
-                font-size: 2.2rem;
-            }
-
-            .stats {
+            .nav-container {
                 flex-direction: column;
-                gap: 30px;
-            }
-
-            .cta h2 {
-                font-size: 2rem;
-            }
-
-            .user-actions .action-text {
-                display: none;
-            }
-
-            .header-content {
-                flex-wrap: wrap;
                 gap: 20px;
             }
-
-            .user-actions {
-                order: 3;
-                width: 100%;
-                justify-content: space-around;
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
             }
-        }
-
-        @media (max-width: 480px) {
-            .hero-text h1 {
-                font-size: 1.8rem;
+            
+            .hero h1 {
+                font-size: 2.2rem;
             }
-
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
             .btn {
-                padding: 10px 20px;
-                font-size: 0.9rem;
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
             }
-
-            .section-title h2 {
-                font-size: 1.8rem;
-            }
-
-            .cta {
-                padding: 60px 0;
-            }
-
-            .cta h2 {
-                font-size: 1.6rem;
+            
+            .steps {
+                flex-direction: column;
             }
         }
-
-        /* ===== Animations ===== */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-fade-in-up {
-            animation: fadeInUp 0.6s ease forwards;
-        }
-
-        .delay-100 { animation-delay: 0.1s; opacity: 0; }
-        .delay-200 { animation-delay: 0.2s; opacity: 0; }
-        .delay-300 { animation-delay: 0.3s; opacity: 0; }
-        .delay-400 { animation-delay: 0.4s; opacity: 0; }
-        .delay-500 { animation-delay: 0.5s; opacity: 0; }
-
-        /* ===== Loading States ===== */
+        
+        /* تحميل */
         .loading {
-            position: relative;
-            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
         }
-
-        .loading::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            animation: loading 1.5s infinite;
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--light-gray);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
-
-        @keyframes loading {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* الرسائل */
+        .alert {
+            padding: 15px 20px;
+            border-radius: var(--radius);
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
         }
     </style>
 </head>
 <body>
-    <!-- الهيدر -->
-    <header class="main-header">
-        <div class="container">
-            <div class="header-content">
-                <!-- الشعار -->
-                <a href="/" class="logo animate-fade-in-up">
-                    <i class="fas fa-leaf logo-icon"></i>
-                    <div>
-                        <div class="logo-text">قات PRO</div>
-                        <div class="logo-sub">نظام البيع والتوصيل</div>
-                    </div>
+    <!-- شريط التنقل -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <img src="https://cdn-icons-png.flaticon.com/512/2917/2917633.png" alt="قات PRO">
+                <span class="logo-text">قات PRO</span>
+            </a>
+            
+            <div class="nav-links">
+                <a href="/" class="nav-link active">الرئيسية</a>
+                <a href="/markets.html" class="nav-link">الأسواق</a>
+                <a href="/products.html" class="nav-link">المنتجات</a>
+                <a href="/dashboard.html" class="nav-link">لوحة التحكم</a>
+            </div>
+            
+            <div class="auth-buttons" id="authButtons">
+                <!-- سيتم تعبئته بواسطة JavaScript -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="container">
+        <!-- قسم البطل -->
+        <section class="hero">
+            <h1>مرحباً بك في تطبيق قات PRO</h1>
+            <p>منصة متكاملة لبيع وتوصيل القات بأفضل الأسعار وأسرع خدمة. تسوق الآن واستمتع بتجربة تسوق فريدة.</p>
+            <div class="hero-buttons">
+                <a href="/markets.html" class="btn btn-primary">
+                    <i class="fas fa-store"></i>
+                    تصفح الأسواق
                 </a>
+                <a href="/products.html" class="btn btn-outline">
+                    <i class="fas fa-shopping-bag"></i>
+                    عرض المنتجات
+                </a>
+            </div>
+        </section>
 
-                <!-- شريط البحث -->
-                <div class="search-container animate-fade-in-up delay-100">
-                    <input type="text" class="search-input" placeholder="ابحث عن منتجات، أسواق، أو بائعين..." id="searchInput">
-                    <button class="search-btn" onclick="searchProducts()">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-
-                <!-- إجراءات المستخدم -->
-                <div class="user-actions">
-                    <!-- سلة المشتريات -->
-                    <div class="action-item" onclick="window.location.href='/cart'">
-                        <i class="fas fa-shopping-cart action-icon"></i>
-                        <span class="badge" id="cartBadge">0</span>
-                        <span class="action-text">سلة المشتريات</span>
-                    </div>
-
-                    <!-- الإشعارات -->
-                    <div class="action-item" onclick="toggleNotifications()">
-                        <i class="fas fa-bell action-icon"></i>
-                        <span class="badge" id="notificationBadge">3</span>
-                        <span class="action-text">الإشعارات</span>
-                    </div>
-
-                    <!-- قائمة المستخدم -->
-                    <div class="user-menu" id="userMenu">
-                        <div class="user-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="user-dropdown" id="userDropdown">
-                            <!-- سيتم تعبئتها بـ JavaScript -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- القسم الرئيسي (Hero) -->
-    <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <div class="hero-text animate-fade-in-up">
-                    <h1>أفضل منصة لـ <span>بيع وتوصيل القات</span></h1>
-                    <p>توصيل سريع، أسعار منافسة، وجودة عالية. انضم إلى آلاف المستخدمين الذين يثقون بنا في توفير أفضل أنواع القات مع خدمة توصيل فائقة السرعة.</p>
-                    <div class="hero-buttons">
-                        <button class="btn btn-primary" onclick="window.location.href='/products'">
-                            <i class="fas fa-shopping-bag"></i> تصفح المنتجات
-                        </button>
-                        <button class="btn btn-secondary" onclick="window.location.href='/markets'">
-                            <i class="fas fa-store"></i> استكشف الأسواق
-                        </button>
-                        <button class="btn btn-outline" onclick="scrollToSection('features')">
-                            <i class="fas fa-play-circle"></i> شاهد الميزات
-                        </button>
-                    </div>
-                </div>
-                <div class="hero-image animate-fade-in-up delay-300">
-                    <img src="https://pbs.twimg.com/media/Fpfdx15WcAAPGhM?format=jpg&name=small" alt="تطبيق قات PRO">
-                </div>
-            </div>
-
-            <!-- الإحصائيات -->
-            <div class="stats animate-fade-in-up delay-500">
-                <div class="stat-item">
-                    <div class="stat-number" id="productsCount">0</div>
-                    <div class="stat-label">منتج متوفر</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="marketsCount">0</div>
-                    <div class="stat-label">سوق نشط</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="sellersCount">0</div>
-                    <div class="stat-label">بائع موثوق</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="ordersCount">0</div>
-                    <div class="stat-label">طلب منجز</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- الأسواق المميزة -->
-    <section class="section" id="markets">
-        <div class="container">
-            <div class="section-title animate-fade-in-up">
-                <h2>أسواقنا المميزة</h2>
-                <p>اكتشف أفضل الأسواق التي تقدم أجود أنواع القات مع ضمان الجودة والطازجة</p>
-            </div>
-            
-            <div class="markets-grid" id="marketsGrid">
-                <!-- سيتم تعبئة الأسواق بـ JavaScript -->
-                <div class="card market-card loading" style="height: 350px;"></div>
-                <div class="card market-card loading" style="height: 350px;"></div>
-                <div class="card market-card loading" style="height: 350px;"></div>
-            </div>
-            
-            <div class="text-center animate-fade-in-up delay-400" style="margin-top: 40px;">
-                <button class="btn btn-primary" onclick="window.location.href='/markets'">
-                    <i class="fas fa-store"></i> استكشف جميع الأسواق
-                </button>
-            </div>
-        </div>
-    </section>
-
-    <!-- المنتجات المميزة -->
-    <section class="section" id="products" style="background-color: #f8f9fa;">
-        <div class="container">
-            <div class="section-title animate-fade-in-up">
-                <h2>أحدث المنتجات</h2>
-                <p>تصفح أحدث المنتجات المضافة من قبل بائعين موثوقين</p>
-            </div>
-            
-            <div class="products-grid" id="productsGrid">
-                <!-- سيتم تعبئة المنتجات بـ JavaScript -->
-                <div class="card product-card loading" style="height: 400px;"></div>
-                <div class="card product-card loading" style="height: 400px;"></div>
-                <div class="card product-card loading" style="height: 400px;"></div>
-                <div class="card product-card loading" style="height: 400px;"></div>
-            </div>
-            
-            <div class="text-center animate-fade-in-up delay-400" style="margin-top: 40px;">
-                <button class="btn btn-primary" onclick="window.location.href='/products'">
-                    <i class="fas fa-shopping-bag"></i> تصفح جميع المنتجات
-                </button>
-            </div>
-        </div>
-    </section>
-
-    <!-- الميزات والخدمات -->
-    <section class="section services" id="features">
-        <div class="container">
-            <div class="section-title animate-fade-in-up">
-                <h2>لماذا تختار قات PRO؟</h2>
-                <p>نقدم لك تجربة تسوق فريدة مع ميزات متطورة تضعنا في المقدمة</p>
-            </div>
-            
-            <div class="services-grid">
-                <div class="card service-card animate-fade-in-up">
-                    <div class="service-icon">
-                        <i class="fas fa-shipping-fast"></i>
+        <!-- الميزات -->
+        <section class="features">
+            <h2 class="section-title">لماذا تختار قات PRO؟</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-truck"></i>
                     </div>
                     <h3>توصيل سريع</h3>
-                    <p>نوصل طلباتك في أسرع وقت ممكن مع مندوبين محترفين يضمنون وصول الطلب في أفضل حالة</p>
+                    <p>نوصل طلباتك في أسرع وقت ممكن مع فريق توصيل محترف ومتابعة حية للطلبات.</p>
                 </div>
                 
-                <div class="card service-card animate-fade-in-up delay-100">
-                    <div class="service-icon">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <h3>جودة مضمونة</h3>
-                    <p>جميع منتجاتنا تخضع لفحص الجودة قبل الشحن لضمان رضاك التام عن كل طلب</p>
-                </div>
-                
-                <div class="card service-card animate-fade-in-up delay-200">
-                    <div class="service-icon">
+                <div class="feature-card">
+                    <div class="feature-icon">
                         <i class="fas fa-shield-alt"></i>
                     </div>
-                    <h3>أمان تام</h3>
-                    <p>نظام دفع آمن وحماية كاملة لبياناتك مع تشفير متقدم لجميع المعاملات</p>
+                    <h3>جودة مضمونة</h3>
+                    <p>جميع المنتجات مفحوصة ومضمونة الجودة من أفضل المزارع وأجود الأصناف.</p>
                 </div>
                 
-                <div class="card service-card animate-fade-in-up delay-300">
-                    <div class="service-icon">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <h3>دفوعات آمنة</h3>
+                    <p>أنظمة دفع متعددة وآمنة مع محفظة إلكترونية لتسهيل عمليات الشراء.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
                         <i class="fas fa-headset"></i>
                     </div>
-                    <h3>دعم فني 24/7</h3>
-                    <p>فريق دعم فني متاح على مدار الساعة لمساعدتك في أي استفسار أو مشكلة تواجهك</p>
+                    <h3>دعم فني</h3>
+                    <p>فريق دعم فني متاح 24/7 لمساعدتك في أي استفسار أو مشكلة تواجهك.</p>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- الدعوة للتسجيل -->
-    <section class="section cta">
-        <div class="container">
-            <div class="section-title animate-fade-in-up">
-                <h2 style="color: white;">انضم إلينا الآن!</h2>
-                <p style="color: rgba(255, 255, 255, 0.9);">سجل في منصتنا وابدأ رحلة التسوق المميزة مع أفضل عروض القات والتوصيل السريع</p>
+        <!-- الأسواق الشائعة -->
+        <section class="markets-section">
+            <h2 class="section-title">الأسواق الشائعة</h2>
+            <div class="markets-grid" id="popularMarkets">
+                <!-- سيتم تعبئته بواسطة JavaScript -->
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
             </div>
-            
-            <div class="cta-buttons animate-fade-in-up delay-200">
-                <button class="btn btn-secondary" onclick="window.location.href='/register'">
-                    <i class="fas fa-user-plus"></i> إنشاء حساب جديد
-                </button>
-                <button class="btn btn-outline" onclick="window.location.href='/seller/register'">
-                    <i class="fas fa-store-alt"></i> انضم كبائع
-                </button>
-                <button class="btn btn-outline" onclick="window.location.href='/driver/register'">
-                    <i class="fas fa-motorcycle"></i> انضم كمندوب
-                </button>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- الفوتر -->
+        <!-- كيفية العمل -->
+        <section class="how-it-works">
+            <h2 class="section-title">كيفية عمل التطبيق</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h3>سجل حساب</h3>
+                    <p>أنشئ حسابك في دقائق معدودة واختر نوع حسابك (مشتري، بائع، سائق).</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>تصفح واختر</h3>
+                    <p>تصفح الأسواق والمنتجات واختر ما يناسبك من أفضل أنواع القات.</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h3>أضف للسلة</h3>
+                    <p>أضف المنتجات المطلوبة إلى سلة التسوق وحدد كمية كل منتج.</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <h3>استلم طلبك</h3>
+                    <p>اختر طريقة الدفع وانتظر وصول طلبك إلى عنوانك المحدد.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- التذييل -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
-                <div class="footer-section animate-fade-in-up">
+                <div class="footer-section">
                     <h3>عن قات PRO</h3>
-                    <p>منصة رائدة في مجال بيع وتوصيل القات، نهدف إلى توفير أفضل تجربة تسوق مع ضمان الجودة والسرعة في التوصيل.</p>
-                    <div class="footer-social">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <p>منصة رائدة في بيع وتوصيل القات، نسعى لتقديم أفضل تجربة تسوق لعملائنا الكرام.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
                         <a href="#"><i class="fab fa-twitter"></i></a>
                         <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
                     </div>
                 </div>
                 
-                <div class="footer-section animate-fade-in-up delay-100">
+                <div class="footer-section">
                     <h3>روابط سريعة</h3>
                     <ul class="footer-links">
-                        <li><a href="/"><i class="fas fa-chevron-left"></i> الرئيسية</a></li>
-                        <li><a href="/markets"><i class="fas fa-chevron-left"></i> الأسواق</a></li>
-                        <li><a href="/products"><i class="fas fa-chevron-left"></i> المنتجات</a></li>
-                        <li><a href="/sellers"><i class="fas fa-chevron-left"></i> البائعون</a></li>
-                        <li><a href="/about"><i class="fas fa-chevron-left"></i> عن التطبيق</a></li>
+                        <li><a href="/">الرئيسية</a></li>
+                        <li><a href="/markets.html">الأسواق</a></li>
+                        <li><a href="/products.html">المنتجات</a></li>
+                        <li><a href="/dashboard.html">لوحة التحكم</a></li>
                     </ul>
                 </div>
                 
-                <div class="footer-section animate-fade-in-up delay-200">
+                <div class="footer-section">
                     <h3>معلومات الاتصال</h3>
-                    <ul class="contact-info">
-                        <li>
-                            <i class="fas fa-phone"></i>
-                            <span>771831482</span>
-                        </li>
-                        <li>
-                            <i class="fas fa-envelope"></i>
-                            <span>info@qat-app.com</span>
-                        </li>
-                        <li>
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>الجمهورية اليمنية</span>
-                        </li>
-                    </ul>
+                    <div class="contact-info">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>صنعاء، اليمن</span>
+                    </div>
+                    <div class="contact-info">
+                        <i class="fas fa-phone"></i>
+                        <span>+967 777 777 777</span>
+                    </div>
+                    <div class="contact-info">
+                        <i class="fas fa-envelope"></i>
+                        <span>info@qat-pro.com</span>
+                    </div>
                 </div>
             </div>
             
-            <div class="footer-bottom animate-fade-in-up delay-300">
-                <p>&copy; 2024 قات PRO. جميع الحقوق محفوظة.</p>
+            <div class="copyright">
+                <p>© 2024 تطبيق قات PRO. جميع الحقوق محفوظة.</p>
             </div>
         </div>
     </footer>
 
-    <!-- JavaScript -->
     <script>
-        // تهيئة التطبيق
         document.addEventListener('DOMContentLoaded', function() {
-            loadUserInfo();
-            loadStats();
-            loadFeaturedMarkets();
-            loadFeaturedProducts();
-            initializeAnimations();
+            // التحقق من حالة المصادقة
+            checkAuthStatus();
+            
+            // جلب الأسواق الشائعة
+            loadPopularMarkets();
         });
-
-        // تحميل معلومات المستخدم
-        async function loadUserInfo() {
+        
+        async function checkAuthStatus() {
             try {
                 const response = await fetch('/api/auth/check');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.isAuthenticated && data.user) {
-                        updateUserMenu(data.user);
-                    } else {
-                        showAuthButtons();
-                    }
+                const data = await response.json();
+                
+                const authButtons = document.getElementById('authButtons');
+                
+                if (data.isAuthenticated) {
+                    authButtons.innerHTML = `
+                        <a href="/dashboard.html" class="btn btn-outline">
+                            <i class="fas fa-user"></i>
+                            ${data.user.name}
+                        </a>
+                        <button onclick="logout()" class="btn btn-outline">
+                            <i class="fas fa-sign-out-alt"></i>
+                            تسجيل خروج
+                        </button>
+                    `;
+                } else {
+                    authButtons.innerHTML = `
+                        <a href="/login.html" class="btn btn-outline">
+                            <i class="fas fa-sign-in-alt"></i>
+                            تسجيل دخول
+                        </a>
+                        <a href="/register.html" class="btn btn-primary">
+                            <i class="fas fa-user-plus"></i>
+                            إنشاء حساب
+                        </a>
+                    `;
                 }
             } catch (error) {
-                console.error('Error loading user info:', error);
-                showAuthButtons();
+                console.error('Error checking auth status:', error);
             }
         }
-
-        // تحديث قائمة المستخدم
-        function updateUserMenu(user) {
-            const userMenu = document.getElementById('userMenu');
-            const userAvatar = userMenu.querySelector('.user-avatar');
-            const userDropdown = document.getElementById('userDropdown');
-            
-            // تحديث الصورة الرمزية
-            if (user.avatar) {
-                userAvatar.innerHTML = `<img src="${user.avatar}" alt="${user.name}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
-            } else {
-                userAvatar.innerHTML = `<i class="fas fa-user"></i>`;
-            }
-            
-            // تحديث القائمة المنسدلة
-            const roleText = {
-                'admin': 'مدير النظام',
-                'seller': 'بائع',
-                'buyer': 'مشتري',
-                'driver': 'مندوب توصيل'
-            }[user.role] || 'مستخدم';
-
-            userDropdown.innerHTML = `
-                <div class="dropdown-item user-info">
-                    <div style="flex: 1;">
-                        <div style="font-weight:bold;font-size:1.1rem;">${user.name}</div>
-                        <div style="font-size:0.85rem;color:#666;">${roleText}</div>
-                    </div>
-                </div>
-                <a href="/profile" class="dropdown-item">
-                    <i class="fas fa-user-edit"></i>
-                    <span>الملف الشخصي</span>
-                </a>
-                <a href="/orders" class="dropdown-item">
-                    <i class="fas fa-clipboard-list"></i>
-                    <span>طلباتي</span>
-                </a>
-                <a href="/wallet" class="dropdown-item">
-                    <i class="fas fa-wallet"></i>
-                    <span>المحفظة</span>
-                </a>
-                ${user.role === 'seller' ? `
-                <a href="/seller/dashboard" class="dropdown-item">
-                    <i class="fas fa-chart-line"></i>
-                    <span>لوحة التحكم</span>
-                </a>
-                ` : ''}
-                ${user.role === 'driver' ? `
-                <a href="/driver/dashboard" class="dropdown-item">
-                    <i class="fas fa-motorcycle"></i>
-                    <span>لوحة السائق</span>
-                </a>
-                ` : ''}
-                <div class="dropdown-divider"></div>
-                <a href="/settings" class="dropdown-item">
-                    <i class="fas fa-cog"></i>
-                    <span>الإعدادات</span>
-                </a>
-                <a href="#" class="dropdown-item" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>تسجيل الخروج</span>
-                </a>
-            `;
-        }
-
-        // عرض أزرار المصادقة
-        function showAuthButtons() {
-            const userMenu = document.getElementById('userMenu');
-            userMenu.innerHTML = `
-                <div class="auth-buttons">
-                    <button class="btn btn-outline" onclick="window.location.href='/login'" style="padding: 8px 20px; font-size: 0.9rem;">
-                        <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
-                    </button>
-                    <button class="btn btn-primary" onclick="window.location.href='/register'" style="padding: 8px 20px; font-size: 0.9rem;">
-                        <i class="fas fa-user-plus"></i> تسجيل جديد
-                    </button>
-                </div>
-            `;
-        }
-
-        // تسجيل الخروج
+        
         async function logout() {
             try {
-                const response = await fetch('/api/logout', {
+                const response = await fetch('/api/auth/logout', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     }
                 });
                 
-                if (response.ok) {
-                    window.location.reload();
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.href = '/';
                 }
             } catch (error) {
                 console.error('Error logging out:', error);
             }
         }
-
-        // تحميل الإحصائيات
-        async function loadStats() {
+        
+        async function loadPopularMarkets() {
             try {
-                const response = await fetch('/api/stats/home');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        animateCounters(data.data);
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading stats:', error);
-                // استخدام أرقام افتراضية
-                animateCounters({
-                    total_products: 500,
-                    total_markets: 20,
-                    active_sellers: 150,
-                    completed_orders: 10000
-                });
-            }
-        }
-
-        // تحريك العدادات
-        function animateCounters(stats) {
-            const counters = {
-                'productsCount': stats.total_products,
-                'marketsCount': stats.total_markets,
-                'sellersCount': stats.active_sellers,
-                'ordersCount': stats.completed_orders
-            };
-
-            Object.entries(counters).forEach(([id, target]) => {
-                const element = document.getElementById(id);
-                if (!element) return;
-
-                let current = 0;
-                const increment = target / 50;
-                const timer = setInterval(() => {
-                    current += increment;
-                    if (current >= target) {
-                        current = target;
-                        clearInterval(timer);
-                    }
-                    element.textContent = Math.floor(current).toLocaleString();
-                }, 30);
-            });
-        }
-
-        // تحميل الأسواق المميزة
-        async function loadFeaturedMarkets() {
-            try {
-                const response = await fetch('/api/markets?featured=true&limit=3');
-                const marketsGrid = document.getElementById('marketsGrid');
+                const response = await fetch('/api/markets?limit=4');
+                const data = await response.json();
                 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.data.length > 0) {
-                        marketsGrid.innerHTML = '';
-                        data.data.forEach(market => {
-                            const marketCard = createMarketCard(market);
-                            marketsGrid.appendChild(marketCard);
-                        });
-                    } else {
-                        showDefaultMarkets();
-                    }
+                const marketsContainer = document.getElementById('popularMarkets');
+                
+                if (data.success && data.data.length > 0) {
+                    let marketsHTML = '';
+                    
+                    data.data.forEach(market => {
+                        marketsHTML += `
+                            <div class="market-card">
+                                <img src="${market.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80'}" 
+                                     alt="${market.name}" class="market-image">
+                                <div class="market-info">
+                                    <h3>${market.name}</h3>
+                                    <p>${market.description || 'سوق متخصص في بيع القات'}</p>
+                                    <div class="market-stats">
+                                        <span><i class="fas fa-box"></i> ${market.product_count || 0} منتج</span>
+                                        <span><i class="fas fa-store"></i> ${market.seller_count || 0} بائع</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    marketsContainer.innerHTML = marketsHTML;
                 } else {
-                    showDefaultMarkets();
+                    marketsContainer.innerHTML = `
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            لا توجد أسواق متاحة حالياً
+                        </div>
+                    `;
                 }
             } catch (error) {
                 console.error('Error loading markets:', error);
-                showDefaultMarkets();
-            }
-        }
-
-        // إنشاء بطاقة سوق
-        function createMarketCard(market) {
-            const div = document.createElement('div');
-            div.className = 'card market-card animate-fade-in-up';
-            div.innerHTML = `
-                <div class="card-image">
-                    <img src="${market.image || 'https://pbs.twimg.com/media/Fpfdx15WcAAPGhM?format=jpg&name=small'}" alt="${market.name}">
-                </div>
-                <div class="card-content">
-                    <h3 class="card-title">${market.name}</h3>
-                    <div class="card-location">
-                        <i class="fas fa-map-marker-alt"></i>
-                        ${market.location || 'الموقع غير محدد'}
+                document.getElementById('popularMarkets').innerHTML = `
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        خطأ في تحميل الأسواق
                     </div>
-                    <p>${market.description || 'سوق مميز يقدم أجود أنواع القات.'}</p>
-                    <div class="card-stats">
-                        <div class="stat">
-                            <div class="stat-value">${market.product_count || 0}</div>
-                            <div class="stat-label">منتج</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">${market.seller_count || 0}</div>
-                            <div class="stat-label">بائع</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">${market.driver_count || 0}</div>
-                            <div class="stat-label">مندوب</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            div.addEventListener('click', () => {
-                window.location.href = `/markets/${market.id}`;
-            });
-            return div;
-        }
-
-        // عرض أسواق افتراضية
-        function showDefaultMarkets() {
-            const marketsGrid = document.getElementById('marketsGrid');
-            const defaultMarkets = [
-                {
-                    id: 1,
-                    name: 'سوق القات المركزي',
-                    location: 'صنعاء',
-                    description: 'أكبر سوق للقات في العاصمة صنعاء',
-                    product_count: 150,
-                    seller_count: 50,
-                    driver_count: 20
-                },
-                {
-                    id: 2,
-                    name: 'سوق تعز الجديد',
-                    location: 'تعز',
-                    description: 'سوق حديث يقدم أفضل أنواع القات',
-                    product_count: 120,
-                    seller_count: 40,
-                    driver_count: 15
-                },
-                {
-                    id: 3,
-                    name: 'سوق الحديدة',
-                    location: 'الحديدة',
-                    description: 'سوق ساحلي يقدم أنواع مميزة من القات',
-                    product_count: 90,
-                    seller_count: 30,
-                    driver_count: 12
-                }
-            ];
-
-            marketsGrid.innerHTML = '';
-            defaultMarkets.forEach(market => {
-                const marketCard = createMarketCard(market);
-                marketsGrid.appendChild(marketCard);
-            });
-        }
-
-        // تحميل المنتجات المميزة
-        async function loadFeaturedProducts() {
-            try {
-                const response = await fetch('/api/products?featured=true&limit=4');
-                const productsGrid = document.getElementById('productsGrid');
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.data.length > 0) {
-                        productsGrid.innerHTML = '';
-                        data.data.forEach(product => {
-                            const productCard = createProductCard(product);
-                            productsGrid.appendChild(productCard);
-                        });
-                    } else {
-                        showDefaultProducts();
-                    }
-                } else {
-                    showDefaultProducts();
-                }
-            } catch (error) {
-                console.error('Error loading products:', error);
-                showDefaultProducts();
-            }
-        }
-
-        // إنشاء بطاقة منتج
-        function createProductCard(product) {
-            const div = document.createElement('div');
-            div.className = 'card product-card animate-fade-in-up';
-            div.innerHTML = `
-                <div class="card-image">
-                    <img src="${product.image || 'https://pbs.twimg.com/media/Fpfdx15WcAAPGhM?format=jpg&name=small'}" alt="${product.name}">
-                    ${product.quantity < 10 ? '<span class="product-badge">كمية محدودة</span>' : ''}
-                </div>
-                <div class="card-content">
-                    <h3 class="card-title">${product.name}</h3>
-                    <p class="card-description">${product.description?.substring(0, 80) || 'منتج عالي الجودة'}</p>
-                    <div class="card-price">${formatCurrency(product.price)}</div>
-                    <div class="card-footer">
-                        <div class="seller-info">
-                            <div class="seller-avatar">
-                                ${product.seller_name?.charAt(0) || 'ب'}
-                            </div>
-                            <div class="seller-name">${product.seller_name || 'بائع'}</div>
-                        </div>
-                        <button class="btn btn-primary" onclick="event.stopPropagation(); addToCart(${product.id})" style="padding: 8px 15px; font-size: 0.9rem;">
-                            <i class="fas fa-cart-plus"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-            div.addEventListener('click', () => {
-                window.location.href = `/products/${product.id}`;
-            });
-            return div;
-        }
-
-        // عرض منتجات افتراضية
-        function showDefaultProducts() {
-            const productsGrid = document.getElementById('productsGrid');
-            const defaultProducts = [
-                {
-                    id: 1,
-                    name: 'قات صنعائي ممتاز',
-                    description: 'قات صنعائي عالي الجودة من أفضل المزارع',
-                    price: 5000,
-                    image: null,
-                    seller_name: 'أحمد العمري',
-                    quantity: 20
-                },
-                {
-                    id: 2,
-                    name: 'قات تعزي فاخر',
-                    description: 'نوعية فاخرة من القات التعزي الشهير',
-                    price: 7000,
-                    image: null,
-                    seller_name: 'محمد الحكيمي',
-                    quantity: 15
-                },
-                {
-                    id: 3,
-                    name: 'قات حضرمي',
-                    description: 'قات حضرمي مميز من وادي حضرموت',
-                    price: 6000,
-                    image: null,
-                    seller_name: 'سالم الكثيري',
-                    quantity: 5
-                },
-                {
-                    id: 4,
-                    name: 'قات إبّي',
-                    description: 'قات إبّي طازج من مزارع إب الخضراء',
-                    price: 4500,
-                    image: null,
-                    seller_name: 'يوسف النظاري',
-                    quantity: 25
-                }
-            ];
-
-            productsGrid.innerHTML = '';
-            defaultProducts.forEach(product => {
-                const productCard = createProductCard(product);
-                productsGrid.appendChild(productCard);
-            });
-        }
-
-        // تنسيق العملة
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('ar-YE', {
-                style: 'currency',
-                currency: 'YER',
-                minimumFractionDigits: 0
-            }).format(amount);
-        }
-
-        // البحث عن المنتجات
-        function searchProducts() {
-            const searchTerm = document.getElementById('searchInput').value.trim();
-            if (searchTerm) {
-                window.location.href = `/products?search=${encodeURIComponent(searchTerm)}`;
-            }
-        }
-
-        // البحث عند الضغط على Enter
-        document.getElementById('searchInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchProducts();
-            }
-        });
-
-        // إضافة إلى سلة المشتريات
-        async function addToCart(productId) {
-            try {
-                const response = await fetch('/api/cart/add', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ product_id: productId, quantity: 1 })
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        showNotification('تمت الإضافة', 'تمت إضافة المنتج إلى سلة المشتريات بنجاح', 'success');
-                        updateCartBadge();
-                    }
-                }
-            } catch (error) {
-                console.error('Error adding to cart:', error);
-                showNotification('خطأ', 'حدث خطأ أثناء إضافة المنتج إلى السلة', 'error');
-            }
-        }
-
-        // تحديث عداد سلة المشتريات
-        async function updateCartBadge() {
-            try {
-                const response = await fetch('/api/cart/count');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        document.getElementById('cartBadge').textContent = data.count;
-                    }
-                }
-            } catch (error) {
-                console.error('Error updating cart badge:', error);
-            }
-        }
-
-        // إظهار الإشعارات
-        function toggleNotifications() {
-            // سيتم تنفيذها في ملف notifications.js المنفصل
-            window.location.href = '/notifications';
-        }
-
-        // عرض إشعار
-        function showNotification(title, message, type = 'info') {
-            // إنشاء عنصر الإشعار
-            const notification = document.createElement('div');
-            notification.className = `notification-toast ${type}`;
-            notification.innerHTML = `
-                <div class="toast-icon">
-                    <i class="fas fa-${getNotificationIcon(type)}"></i>
-                </div>
-                <div class="toast-content">
-                    <div class="toast-title">${title}</div>
-                    <div class="toast-message">${message}</div>
-                </div>
-                <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
-            `;
-
-            // إضافة الأنماط إذا لم تكن موجودة
-            if (!document.querySelector('#toast-styles')) {
-                const style = document.createElement('style');
-                style.id = 'toast-styles';
-                style.textContent = `
-                    .notification-toast {
-                        position: fixed;
-                        top: 20px;
-                        right: 20px;
-                        background: white;
-                        border-radius: 8px;
-                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                        padding: 16px;
-                        display: flex;
-                        align-items: center;
-                        gap: 12px;
-                        min-width: 300px;
-                        max-width: 400px;
-                        z-index: 9999;
-                        animation: slideIn 0.3s ease;
-                        border-left: 4px solid #2E7D32;
-                    }
-                    .notification-toast.success { border-color: #2E7D32; }
-                    .notification-toast.info { border-color: #1976D2; }
-                    .notification-toast.warning { border-color: #F57C00; }
-                    .notification-toast.error { border-color: #D32F2F; }
-                    @keyframes slideIn {
-                        from { transform: translateX(100%); opacity: 0; }
-                        to { transform: translateX(0); opacity: 1; }
-                    }
                 `;
-                document.head.appendChild(style);
-            }
-
-            document.body.appendChild(notification);
-
-            // إزالة الإشعار بعد 5 ثوانٍ
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.style.animation = 'slideOut 0.3s ease';
-                    setTimeout(() => notification.remove(), 300);
-                }
-            }, 5000);
-        }
-
-        function getNotificationIcon(type) {
-            const icons = {
-                'success': 'check-circle',
-                'info': 'info-circle',
-                'warning': 'exclamation-triangle',
-                'error': 'exclamation-circle'
-            };
-            return icons[type] || 'bell';
-        }
-
-        // التمرير إلى قسم معين
-        function scrollToSection(sectionId) {
-            const section = document.getElementById(sectionId);
-            if (section) {
-                section.scrollIntoView({ behavior: 'smooth' });
             }
         }
-
-        // تهيئة الرسوم المتحركة
-        function initializeAnimations() {
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('animate-fade-in-up');
-                    }
-                });
-            }, observerOptions);
-
-            // مراقبة جميع العناصر المتحركة
-            document.querySelectorAll('.animate-on-scroll').forEach(el => {
-                observer.observe(el);
+        
+        // إضافة تأثيرات تفاعلية
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function() {
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
             });
-        }
-
-        // تحديث الصفحة عند الاتصال بالإنترنت
-        window.addEventListener('online', () => {
-            showNotification('تم استعادة الاتصال', 'تمت استعادة الاتصال بالإنترنت', 'success');
-            loadStats();
-            loadFeaturedMarkets();
-            loadFeaturedProducts();
-        });
-
-        window.addEventListener('offline', () => {
-            showNotification('فقدان الاتصال', 'تم فقدان الاتصال بالإنترنت', 'warning');
         });
     </script>
 </body>
