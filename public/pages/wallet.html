@@ -1,1 +1,586 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المحفظة - تطبيق قات PRO</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/wallet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <button class="back-btn" onclick="window.history.back()">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+                <h1 class="page-title">المحفظة الإلكترونية</h1>
+                <button class="menu-btn" onclick="toggleMenu()">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+            </div>
+        </header>
 
+        <!-- Wallet Overview -->
+        <div class="wallet-overview" id="walletOverview">
+            <div class="balance-card">
+                <div class="balance-header">
+                    <i class="fas fa-wallet"></i>
+                    <h3>الرصيد الحالي</h3>
+                </div>
+                <div class="balance-amount">
+                    <span id="currentBalance">0</span>
+                    <span class="currency">ريال يمني</span>
+                </div>
+                <div class="balance-actions">
+                    <button class="btn btn-primary" onclick="showDepositModal()">
+                        <i class="fas fa-plus-circle"></i> شحن المحفظة
+                    </button>
+                    <button class="btn btn-secondary" onclick="showWithdrawModal()">
+                        <i class="fas fa-minus-circle"></i> سحب رصيد
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="quick-stats">
+                <div class="stat-card">
+                    <div class="stat-icon income">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">إجمالي الإيداعات</span>
+                        <span class="stat-value" id="totalDeposits">0 ريال</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon expense">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">إجمالي المشتريات</span>
+                        <span class="stat-value" id="totalPurchases">0 ريال</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wallet Actions -->
+        <div class="wallet-actions">
+            <h3 class="section-title">خدمات سريعة</h3>
+            <div class="action-grid">
+                <button class="action-btn" onclick="showTransferModal()">
+                    <div class="action-icon transfer">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <span>تحويل أموال</span>
+                </button>
+                <button class="action-btn" onclick="showBillPaymentModal()">
+                    <div class="action-icon bill">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <span>دفع فواتير</span>
+                </button>
+                <button class="action-btn" onclick="showGiftCardModal()">
+                    <div class="action-icon gift">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <span>بطاقات هدايا</span>
+                </button>
+                <button class="action-btn" onclick="showQRModal()">
+                    <div class="action-icon qr">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <span>الدفع بالQR</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Transactions Section -->
+        <div class="transactions-section">
+            <div class="section-header">
+                <h3 class="section-title">سجل المعاملات</h3>
+                <div class="filter-controls">
+                    <select id="transactionFilter" class="filter-select" onchange="filterTransactions()">
+                        <option value="all">جميع المعاملات</option>
+                        <option value="deposit">الإيداعات</option>
+                        <option value="withdrawal">السحوبات</option>
+                        <option value="purchase">المشتريات</option>
+                        <option value="refund">المبالغ المستردة</option>
+                    </select>
+                    <select id="periodFilter" class="filter-select" onchange="filterTransactions()">
+                        <option value="all">جميع الأوقات</option>
+                        <option value="today">اليوم</option>
+                        <option value="week">أسبوع</option>
+                        <option value="month">شهر</option>
+                        <option value="year">سنة</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="transactions-list" id="transactionsList">
+                <!-- Transactions will be loaded here -->
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>جاري تحميل المعاملات...</p>
+                </div>
+            </div>
+
+            <div class="load-more" id="loadMoreContainer" style="display: none;">
+                <button class="btn btn-outline" onclick="loadMoreTransactions()" id="loadMoreBtn">
+                    <i class="fas fa-chevron-down"></i> تحميل المزيد
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="bottom-nav">
+            <a href="/pages/home.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>الرئيسية</span>
+            </a>
+            <a href="/pages/products.html" class="nav-item">
+                <i class="fas fa-shopping-bag"></i>
+                <span>المنتجات</span>
+            </a>
+            <a href="/pages/orders.html" class="nav-item">
+                <i class="fas fa-clipboard-list"></i>
+                <span>الطلبات</span>
+            </a>
+            <a href="/pages/wallet.html" class="nav-item active">
+                <i class="fas fa-wallet"></i>
+                <span>المحفظة</span>
+            </a>
+            <a href="/pages/profile.html" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>الحساب</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Modals -->
+    
+    <!-- Deposit Modal -->
+    <div class="modal" id="depositModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>شحن المحفظة</h3>
+                <button class="close-btn" onclick="closeDepositModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="depositAmount">المبلغ (ريال يمني)</label>
+                    <input type="number" id="depositAmount" class="form-control" min="100" step="100" placeholder="أدخل المبلغ">
+                    <div class="amount-suggestions">
+                        <button class="amount-btn" onclick="setDepositAmount(1000)">1,000</button>
+                        <button class="amount-btn" onclick="setDepositAmount(5000)">5,000</button>
+                        <button class="amount-btn" onclick="setDepositAmount(10000)">10,000</button>
+                        <button class="amount-btn" onclick="setDepositAmount(20000)">20,000</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>طريقة الدفع</label>
+                    <div class="payment-methods">
+                        <div class="payment-option" onclick="selectPaymentMethod('bank')">
+                            <input type="radio" name="paymentMethod" id="bankTransfer" value="bank">
+                            <label for="bankTransfer">
+                                <i class="fas fa-university"></i>
+                                <span>تحويل بنكي</span>
+                            </label>
+                        </div>
+                        <div class="payment-option" onclick="selectPaymentMethod('card')">
+                            <input type="radio" name="paymentMethod" id="creditCard" value="card">
+                            <label for="creditCard">
+                                <i class="fas fa-credit-card"></i>
+                                <span>بطاقة ائتمان</span>
+                            </label>
+                        </div>
+                        <div class="payment-option" onclick="selectPaymentMethod('cash')">
+                            <input type="radio" name="paymentMethod" id="cash" value="cash">
+                            <label for="cash">
+                                <i class="fas fa-money-bill"></i>
+                                <span>نقداً</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bank-details" id="bankDetails" style="display: none;">
+                    <div class="info-card">
+                        <h4>تفاصيل الحساب البنكي</h4>
+                        <div class="bank-info">
+                            <p><strong>اسم البنك:</strong> البنك المركزي اليمني</p>
+                            <p><strong>رقم الحساب:</strong> 1234567890123</p>
+                            <p><strong>اسم المستفيد:</strong> تطبيق قات PRO</p>
+                            <p><strong>الفرع:</strong> صنعاء المركزي</p>
+                        </div>
+                        <p class="note">يرجى إرسال إيصال التحويل عبر التطبيق بعد إتمام العملية</p>
+                    </div>
+                </div>
+                
+                <div class="card-details" id="cardDetails" style="display: none;">
+                    <div class="form-group">
+                        <label for="cardNumber">رقم البطاقة</label>
+                        <input type="text" id="cardNumber" class="form-control" placeholder="1234 5678 9012 3456">
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <label for="expiryDate">تاريخ الانتهاء</label>
+                            <input type="text" id="expiryDate" class="form-control" placeholder="MM/YY">
+                        </div>
+                        <div class="col">
+                            <label for="cvv">CVV</label>
+                            <input type="text" id="cvv" class="form-control" placeholder="123">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDepositModal()">إلغاء</button>
+                <button class="btn btn-primary" onclick="processDeposit()" id="depositBtn">
+                    <i class="fas fa-check"></i> تأكيد الشحن
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdraw Modal -->
+    <div class="modal" id="withdrawModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>سحب من المحفظة</h3>
+                <button class="close-btn" onclick="closeWithdrawModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="withdrawAmount">المبلغ (ريال يمني)</label>
+                    <input type="number" id="withdrawAmount" class="form-control" min="100" step="100" placeholder="أدخل المبلغ">
+                    <div class="balance-info">
+                        <span>الرصيد المتاح: <strong id="availableBalance">0</strong> ريال</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>طريقة السحب</label>
+                    <div class="withdraw-methods">
+                        <div class="withdraw-option" onclick="selectWithdrawMethod('bank')">
+                            <input type="radio" name="withdrawMethod" id="withdrawBank" value="bank">
+                            <label for="withdrawBank">
+                                <i class="fas fa-university"></i>
+                                <span>تحويل بنكي</span>
+                            </label>
+                        </div>
+                        <div class="withdraw-option" onclick="selectWithdrawMethod('cash')">
+                            <input type="radio" name="withdrawMethod" id="withdrawCash" value="cash">
+                            <label for="withdrawCash">
+                                <i class="fas fa-money-bill"></i>
+                                <span>استلام نقدي</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bank-withdraw-details" id="bankWithdrawDetails" style="display: none;">
+                    <div class="form-group">
+                        <label for="bankName">اسم البنك</label>
+                        <input type="text" id="bankName" class="form-control" placeholder="أدخل اسم البنك">
+                    </div>
+                    <div class="form-group">
+                        <label for="accountNumber">رقم الحساب</label>
+                        <input type="text" id="accountNumber" class="form-control" placeholder="أدخل رقم الحساب">
+                    </div>
+                    <div class="form-group">
+                        <label for="accountName">اسم صاحب الحساب</label>
+                        <input type="text" id="accountName" class="form-control" placeholder="أدخل اسم صاحب الحساب">
+                    </div>
+                </div>
+                
+                <div class="cash-withdraw-details" id="cashWithdrawDetails" style="display: none;">
+                    <div class="info-card">
+                        <h4>تفاصيل الاستلام النقدي</h4>
+                        <p>يمكنك استلام المبلغ نقداً من أقرب فرع لنا خلال أوقات العمل الرسمية</p>
+                        <div class="location-info">
+                            <p><i class="fas fa-map-marker-alt"></i> العنوان: صنعاء، شارع التحرير</p>
+                            <p><i class="fas fa-clock"></i> أوقات العمل: 8 صباحاً - 10 مساءً</p>
+                            <p><i class="fas fa-phone"></i> الهاتف: 777777777</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeWithdrawModal()">إلغاء</button>
+                <button class="btn btn-primary" onclick="processWithdrawal()" id="withdrawBtn">
+                    <i class="fas fa-check"></i> تأكيد السحب
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transfer Modal -->
+    <div class="modal" id="transferModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>تحويل أموال</h3>
+                <button class="close-btn" onclick="closeTransferModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="recipientSearch">البحث عن المستلم</label>
+                    <div class="search-box">
+                        <input type="text" id="recipientSearch" class="form-control" placeholder="ابحث بالاسم أو البريد أو الهاتف">
+                        <button class="search-btn" onclick="searchRecipient()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div class="search-results" id="searchResults" style="display: none;"></div>
+                </div>
+                
+                <div class="selected-recipient" id="selectedRecipient" style="display: none;">
+                    <div class="recipient-card">
+                        <div class="recipient-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="recipient-info">
+                            <h4 id="recipientName"></h4>
+                            <p id="recipientPhone"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="transferAmount">المبلغ (ريال يمني)</label>
+                    <input type="number" id="transferAmount" class="form-control" min="10" step="10" placeholder="أدخل المبلغ">
+                </div>
+                
+                <div class="form-group">
+                    <label for="transferNote">ملاحظة (اختياري)</label>
+                    <textarea id="transferNote" class="form-control" rows="2" placeholder="أضف ملاحظة للتحويل"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeTransferModal()">إلغاء</button>
+                <button class="btn btn-primary" onclick="processTransfer()" id="transferBtn" disabled>
+                    <i class="fas fa-paper-plane"></i> إرسال التحويل
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div class="modal" id="qrModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>الدفع بواسطة QR Code</h3>
+                <button class="close-btn" onclick="closeQRModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="qr-container">
+                    <div class="qr-code" id="qrCodeDisplay">
+                        <!-- QR code will be generated here -->
+                    </div>
+                    <div class="qr-info">
+                        <p>قم بمسح الرمز لاستلام الدفعات من الآخرين</p>
+                        <div class="user-info">
+                            <p><strong>اسم المستخدم:</strong> <span id="qrUserName"></span></p>
+                            <p><strong>رقم الهاتف:</strong> <span id="qrUserPhone"></span></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="qr-actions">
+                    <button class="btn btn-outline" onclick="generateNewQR()">
+                        <i class="fas fa-sync-alt"></i> تحديث الرمز
+                    </button>
+                    <button class="btn btn-primary" onclick="downloadQRCode()">
+                        <i class="fas fa-download"></i> تحميل الرمز
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Details Modal -->
+    <div class="modal" id="transactionDetailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>تفاصيل المعاملة</h3>
+                <button class="close-btn" onclick="closeTransactionDetails()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="transaction-details" id="transactionDetails">
+                    <!-- Details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeTransactionDetails()">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bill Payment Modal -->
+    <div class="modal" id="billPaymentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>دفع الفواتير</h3>
+                <button class="close-btn" onclick="closeBillPaymentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="bill-types">
+                    <div class="bill-type" onclick="selectBillType('electricity')">
+                        <i class="fas fa-bolt"></i>
+                        <span>كهرباء</span>
+                    </div>
+                    <div class="bill-type" onclick="selectBillType('water')">
+                        <i class="fas fa-tint"></i>
+                        <span>ماء</span>
+                    </div>
+                    <div class="bill-type" onclick="selectBillType('internet')">
+                        <i class="fas fa-wifi"></i>
+                        <span>إنترنت</span>
+                    </div>
+                    <div class="bill-type" onclick="selectBillType('mobile')">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>جوال</span>
+                    </div>
+                </div>
+                
+                <div class="bill-form" id="billForm" style="display: none;">
+                    <div class="form-group">
+                        <label id="billLabel">رقم العداد / الهاتف</label>
+                        <input type="text" id="billNumber" class="form-control" placeholder="أدخل الرقم">
+                    </div>
+                    <div class="form-group">
+                        <label>المبلغ</label>
+                        <input type="number" id="billAmount" class="form-control" placeholder="أدخل المبلغ">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeBillPaymentModal()">إلغاء</button>
+                <button class="btn btn-primary" onclick="payBill()" id="payBillBtn" disabled>
+                    <i class="fas fa-check"></i> دفع الفاتورة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gift Card Modal -->
+    <div class="modal" id="giftCardModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>بطاقات الهدايا</h3>
+                <button class="close-btn" onclick="closeGiftCardModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="gift-actions">
+                    <button class="btn btn-primary" onclick="showCreateGiftCard()">
+                        <i class="fas fa-plus"></i> إنشاء بطاقة هدايا
+                    </button>
+                    <button class="btn btn-secondary" onclick="showRedeemGiftCard()">
+                        <i class="fas fa-gift"></i> استبدال بطاقة هدايا
+                    </button>
+                </div>
+                
+                <div class="create-gift-card" id="createGiftCard" style="display: none;">
+                    <div class="form-group">
+                        <label>قيمة البطاقة</label>
+                        <div class="gift-amounts">
+                            <button class="amount-btn" onclick="setGiftAmount(1000)">1,000</button>
+                            <button class="amount-btn" onclick="setGiftAmount(5000)">5,000</button>
+                            <button class="amount-btn" onclick="setGiftAmount(10000)">10,000</button>
+                            <button class="amount-btn" onclick="setGiftAmount(20000)">20,000</button>
+                        </div>
+                        <input type="number" id="giftAmount" class="form-control" placeholder="أو أدخل قيمة مخصصة">
+                    </div>
+                    <div class="form-group">
+                        <label>إلى (اختياري)</label>
+                        <input type="text" id="giftRecipient" class="form-control" placeholder="اسم المستلم">
+                    </div>
+                    <div class="form-group">
+                        <label>رسالة (اختياري)</label>
+                        <textarea id="giftMessage" class="form-control" rows="2" placeholder="أضف رسالة تهنئة"></textarea>
+                    </div>
+                </div>
+                
+                <div class="redeem-gift-card" id="redeemGiftCard" style="display: none;">
+                    <div class="form-group">
+                        <label>كود بطاقة الهدايا</label>
+                        <input type="text" id="giftCode" class="form-control" placeholder="أدخل كود البطاقة">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeGiftCardModal()">إلغاء</button>
+                <button class="btn btn-primary" onclick="createGiftCard()" id="createGiftBtn" style="display: none;">
+                    <i class="fas fa-check"></i> إنشاء البطاقة
+                </button>
+                <button class="btn btn-primary" onclick="redeemGiftCard()" id="redeemGiftBtn" style="display: none;">
+                    <i class="fas fa-check"></i> استبدال البطاقة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-content">
+            <i class="fas fa-spinner fa-spin fa-3x"></i>
+            <p id="loadingText">جاري المعالجة...</p>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/wallet.js"></script>
+    
+    <script>
+        // Initialize toastr
+        toastr.options = {
+            positionClass: 'toast-top-left',
+            rtl: true,
+            timeOut: 3000
+        };
+
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth().then(isAuthenticated => {
+                if (!isAuthenticated) {
+                    window.location.href = '/pages/login.html';
+                } else {
+                    loadWalletData();
+                    loadTransactions();
+                }
+            }).catch(error => {
+                console.error('Authentication error:', error);
+                window.location.href = '/pages/login.html';
+            });
+        });
+
+        // Toggle menu function
+        function toggleMenu() {
+            // Implement menu functionality
+            console.log('Toggle menu');
+        }
+    </script>
+</body>
+</html>
